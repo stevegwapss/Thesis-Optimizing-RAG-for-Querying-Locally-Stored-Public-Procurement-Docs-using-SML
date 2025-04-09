@@ -1,0 +1,455 @@
+/* 
+ * WESDEABEN PDF Summarizer CSS
+ * Based on logo colors: Navy Blue (#192535) and Gold/Tan (#c1a06d)
+ */
+
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+body {
+    background-color: #f5f5f5;
+    color: #333;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header styles */
+header {
+    background-color: #fff;
+    padding: 0.8rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(25, 37, 53, 0.1);
+    z-index: 10;
+}
+
+.header-left, .header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+h1 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #192535;
+}
+
+.icon-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #666;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.icon-button:hover {
+    background-color: rgba(25, 37, 53, 0.05);
+}
+
+.free-trial {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #c1a06d;
+    font-weight: 500;
+}
+
+.free-trial i {
+    color: #c1a06d;
+}
+
+.user-button {
+    background-color: #192535;
+    color: white;
+}
+
+/* Main content */
+main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* PDF container */
+.pdf-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background-color: #f0f2f5;
+    border-right: 1px solid #e0e0e0;
+}
+
+.pdf-viewer {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 1rem;
+}
+
+.pdf-content {
+    flex: 1;
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(25, 37, 53, 0.1);
+    overflow: auto;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.thesis-header {
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+    line-height: 1.5;
+}
+
+.university-logos {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.logo-left, .logo-right {
+    width: 80px;
+    height: 80px;
+    background-color: #f0f0f0;
+    border-radius: 50%;
+}
+
+.university-text {
+    flex: 1;
+    padding: 0 1rem;
+}
+
+.thesis-title {
+    margin: 2rem 0;
+    font-weight: bold;
+}
+
+.thesis-presentation, .thesis-fulfillment, .thesis-authors, .thesis-advisor, .thesis-date {
+    margin: 1.5rem 0;
+}
+
+.pdf-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    background-color: #fff;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(25, 37, 53, 0.1);
+    margin-top: 1rem;
+}
+
+.pdf-navigation, .pdf-tools {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.page-indicator {
+    display: flex;
+    align-items: center;
+}
+
+.page-number {
+    width: 2rem;
+    text-align: center;
+    border: none;
+    background: none;
+    font-size: 0.9rem;
+}
+
+.nav-button, .tool-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #192535;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.nav-button:hover, .tool-button:hover {
+    background-color: rgba(25, 37, 53, 0.05);
+}
+
+.download-button {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background-color: #192535;
+    color: white;
+    border: none;
+    padding: 0.5rem 1.5rem;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.download-button:hover {
+    background-color: #253545;
+}
+
+/* Summary container */
+.summary-container {
+    width: 400px;
+    display: flex;
+    flex-direction: column;
+    background-color: #fff;
+}
+
+.summary-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background-color: rgba(193, 160, 109, 0.1);
+    border-bottom: 1px solid rgba(193, 160, 109, 0.2);
+}
+
+.color-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.color-square {
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, #ff0000, #00ff00, #0000ff, #ff00ff);
+    border-radius: 4px;
+}
+
+.summary-header h2 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #192535;
+}
+
+.summary-content {
+    flex: 1;
+    padding: 1rem;
+    background-color: rgba(193, 160, 109, 0.1);
+    overflow-y: auto;
+}
+
+.main-list {
+    list-style-type: none;
+}
+
+.main-list > li {
+    margin-bottom: 1rem;
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.main-list > li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #192535;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.sub-list {
+    list-style-type: none;
+    margin-top: 0.5rem;
+    margin-left: 0.5rem;
+}
+
+.sub-list > li {
+    margin-bottom: 0.5rem;
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.sub-list > li::before {
+    content: "○";
+    position: absolute;
+    left: 0;
+    color: #192535;
+    font-size: 0.8rem;
+}
+
+.main-list strong, .sub-list strong {
+    color: #192535;
+    font-weight: 600;
+}
+
+.suggested-questions {
+    margin-top: 1.5rem;
+    background-color: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(25, 37, 53, 0.05);
+}
+
+.questions-header {
+    display: flex;
+    align-items: center;
+    padding: 0.8rem 1rem;
+    background-color: rgba(25, 37, 53, 0.05);
+    border-bottom: 1px solid rgba(25, 37, 53, 0.1);
+}
+
+.questions-icon {
+    margin-right: 0.5rem;
+    color: #c1a06d;
+}
+
+.collapse-button {
+    margin-left: auto;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+}
+
+.questions-list {
+    padding: 0.5rem;
+}
+
+.question-item {
+    display: flex;
+    align-items: center;
+    padding: 0.8rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.question-item:last-child {
+    border-bottom: none;
+}
+
+.question-text {
+    flex: 1;
+    font-size: 0.9rem;
+    color: #333;
+}
+
+.question-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #192535;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.question-button:hover {
+    background-color: rgba(25, 37, 53, 0.05);
+}
+
+.feedback-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.feedback-button, .copy-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.feedback-button:hover, .copy-button:hover {
+    background-color: rgba(25, 37, 53, 0.05);
+    color: #192535;
+}
+
+.chat-input {
+    display: flex;
+    padding: 1rem;
+    border-top: 1px solid #e0e0e0;
+    background-color: #fff;
+}
+
+.chat-input input {
+    flex: 1;
+    padding: 0.8rem 1rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.chat-input input:focus {
+    outline: none;
+    border-color: #c1a06d;
+    box-shadow: 0 0 0 2px rgba(193, 160, 109, 0.2);
+}
+
+.send-button {
+    background-color: #192535;
+    color: white;
+    border: none;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 4px;
+    margin-left: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.send-button:hover {
+    background-color: #253545;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    main {
+        flex-direction: column;
+    }
+    
+    .summary-container {
+        width: 100%;
+        height: 50%;
+    }
+    
+    .pdf-container {
+        border-right: none;
+        border-bottom: 1px solid #e0e0e0;
+    }
+}

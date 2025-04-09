@@ -1,0 +1,278 @@
+/* document-viewer.css */
+
+.document-viewer-container {
+    max-width: 1400px;
+    margin: 1rem auto;
+    padding: 0 1rem;
+}
+
+.document-info-bar {
+    background-color: #f5f7fa;
+    padding: 1rem;
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e0e4e8;
+}
+
+.document-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 300px;
+}
+
+.document-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.document-controls button {
+    background-color: #fff;
+    border: 1px solid #d0d5dd;
+    border-radius: 4px;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.document-controls button:hover {
+    background-color: #f0f4f8;
+}
+
+#page-info {
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.main-content {
+    display: flex;
+    height: calc(100vh - 220px);
+    border: 1px solid #e0e4e8;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    overflow: hidden;
+}
+
+.pdf-viewer {
+    flex: 1;
+    background-color: #f0f0f0;
+    overflow: auto;
+    position: relative;
+    border-right: 1px solid #e0e4e8;
+}
+
+#pdf-container {
+    background: linear-gradient(135deg, #f5f5f5 0%, #e2d0b2 100%);
+    padding: 2rem;
+    min-height: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+#pdf-render {
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    background-color: white;
+}
+
+.pdf-loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top-color: #4a90e2;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.chat-interface {
+    width: 400px;
+    display: flex;
+    flex-direction: column;
+    background-color: #fff;
+}
+
+.chat-header {
+    padding: 1rem;
+    background-color: #f5f7fa;
+    border-bottom: 1px solid #e0e4e8;
+}
+
+.chat-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.model-info {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 0.3rem;
+}
+
+.chat-messages {
+    flex: 1;
+    padding: 1rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.user-message, .assistant-message {
+    max-width: 85%;
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.user-message {
+    align-self: flex-end;
+    background-color: #e3f2fd;
+}
+
+.assistant-message {
+    align-self: flex-start;
+    background-color: #f1f8e9;
+}
+
+.chat-input {
+    display: flex;
+    padding: 1rem;
+    border-top: 1px solid #e0e4e8;
+}
+
+.chat-input input {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: 1px solid #d0d5dd;
+    border-radius: 4px 0 0 4px;
+    font-size: 1rem;
+}
+
+.chat-input button {
+    padding: 0.5rem 1rem;
+    background-color: #c1a06d;
+    color: white;
+    border: none;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chat-input button:hover {
+    background-color: #3a7bc8;
+}
+
+.chat-input button svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Additional styles for the upload component */
+.upload-container {
+    max-width: 600px;
+    margin: 2rem auto;
+}
+
+.upload-box {
+    border: 2px dashed #ddd;
+    border-radius: 10px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    background-color: #f9f9f9;
+}
+
+.upload-box.drag-over {
+    border-color: #4a90e2;
+    background-color: rgba(74, 144, 226, 0.05);
+}
+
+.upload-icon {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 1rem;
+    color: #777;
+}
+
+.upload-text {
+    color: #666;
+    margin-bottom: 1.5rem;
+}
+
+.upload-button {
+    display: inline-block;
+    background-color: #4a90e2;
+    color: white;
+    padding: 0.8rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
+
+.upload-button:hover {
+    background-color: #3a7bc8;
+}
+
+.file-name {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: #555;
+    font-weight: 500;
+    display: none;
+}
+
+.error-message {
+    color: #e53935;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+    .main-content {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    .pdf-viewer {
+        height: 500px;
+        border-right: none;
+        border-bottom: 1px solid #e0e4e8;
+    }
+    
+    .chat-interface {
+        width: 100%;
+        height: 400px;
+    }
+}

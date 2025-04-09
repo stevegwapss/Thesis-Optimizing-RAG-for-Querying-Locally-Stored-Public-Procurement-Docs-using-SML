@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Viewer - WESDEABEN</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/document-viewer.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <nav>
+            <div class="logo">
+                <img src="/images/logo.png" alt="WESDEABEN Logo">
+                <span>WESDEABEN</span>
+            </div>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="#">Features</a>
+                <a href="#">How It Works</a>
+                <a href="#">Pricing</a>
+                <a href="#">About</a>
+                <button class="free-trial">Start Free Trial</button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Document Viewer Container -->
+    <div class="document-viewer-container">
+        <!-- Document Info Bar -->
+        <div class="document-info-bar">
+            <div class="document-name" id="document-name">Loading document...</div>
+            <div class="document-controls">
+                <button id="prev-page">Previous</button>
+                <span id="page-info">Page <span id="current-page">1</span> of <span id="total-pages">?</span></span>
+                <button id="next-page">Next</button>
+                <button id="zoom-in">Zoom In</button>
+                <button id="zoom-out">Zoom Out</button>
+            </div>
+        </div>
+        
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <!-- PDF Viewer -->
+            <div class="pdf-viewer">
+                <div id="pdf-container">
+                    <canvas id="pdf-render"></canvas>
+                    <div class="pdf-loading" id="pdf-loading">
+                        <div class="spinner"></div>
+                        <p>Loading document...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Chat Interface -->
+            <div class="chat-interface">
+                <div class="chat-header">
+                    <h3>Document Assistant</h3>
+                    <div class="model-info">Powered by Local LLM</div>
+                </div>
+                <div class="chat-messages" id="chat-messages">
+                    <div class="assistant-message">Hello! I've indexed your document. You can ask me any questions about its content.</div>
+                </div>
+                <div class="chat-input">
+                    <input type="text" id="query-input" placeholder="Ask about this document...">
+                    <button id="send-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2025 WESDEABEN. All rights reserved.</p>
+            <p>
+                <a href="#">Privacy Policy</a> | 
+                <a href="#">Terms of Service</a> | 
+                <a href="#">Contact Us</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="/js/document-viewer.js"></script>
+</body>
+</html>

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WESDEABEN - Sample Page</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <nav>
+            <div class="logo">
+                <img src="/images/logo.png" alt="WESDEABEN Logo">
+                <span>WESDEABEN</span>
+            </div>
+            <div class="nav-links">
+                <a href="">Features</a>
+                <a href="#">How It Works</a>
+                <a href="#">Pricing</a>
+                <a href="#">About</a>
+                <button class="free-trial">Hello</button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>Retrieval-Augmented Generation for Procurement Documents</h1>
+        <div class="features-summary">
+            <p>An intelligent RAG system for processing and querying locally stored public procurement documents using Small Language Models.</p>
+        </div>
+        <div class="upload-container">
+            <div class="upload-box" id="upload-box">
+                <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <h3>Upload Procurement Documents</h3>
+                <p class="upload-text">Drag and drop your files here or click to browse</p>
+                <input type="file" id="file-input" accept=".pdf" style="display: none;">
+                <div class="upload-button" id="select-files-btn">Select Files</div>
+                <div id="file-name" class="file-name"></div>
+            </div>
+        </div>
+        
+        <div class="limitations-box">
+            <h3><i class="fas fa-exclamation-circle"></i> System Limitations</h3>
+            <ul style="list-style: none; padding: 0;">
+                <li><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Maximum file size: 25MB per PDF</li>
+                <li><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg> Supported format: PDF files only</li>
+                <li><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg> Maximum of 10 files per upload</li>
+                <li><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg> Text must be machine-readable</li>
+                <li><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> No password-protected documents</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="feature-card">
+            <div class="feature-image-container">
+                <div class="feature-image">
+                    <img src="/images/local.png" alt="Feature 1" class="feature-image">
+                </div>
+            </div>
+            <div class="feature-content">
+                <h2>100% Local</h2>
+                <p>Our optimized RAG Pipeline is completely local, the model runs on your own machine, and does not require any internet connection for it to work. It just works.</p>
+                <a href="#" class="btn btn-outline">Learn More</a>
+            </div>
+        </div>
+        <div class="feature-card">
+            <div class="feature-image-container">
+                <div class="feature-image">
+                    <img src="/images/private.png" alt="Feature 1" class="feature-image">
+                </div>
+            </div>
+            <div class="feature-content">
+                <h2>100% Private</h2>
+                <p>Our system is completely private because it runs on your machine, and as such you have complete control over your data and how its used..</p>
+                <a href="#" class="btn btn-outline">Learn More</a>
+            </div>
+        </div>
+        <div class="feature-card">
+            <div class="feature-image-container">
+                <div class="feature-image">
+                    <img src="/images/available.png" alt="Feature 1" class="feature-image">
+                </div>
+            </div>
+            <div class="feature-content">
+                <h2>100% Available</h2>
+                <p>Our app is available to be used by a lot of machines, because we have tuned it to be optimized for low end machines..</p>
+                <a href="#" class="btn btn-outline">Learn More</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works">
+        <h2>How It Works</h2>
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <h3>Sign Up</h3>
+                <p>Create your account and set up your team in minutes.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <h3>Upload</h3>
+                <p>Upload your files and data to our secure platform.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <h3>Configure</h3>
+                <p>Configure your workflow to match your business needs.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">4</div>
+                <h3>Analyze</h3>
+                <p>Monitor progress and analyze results in real-time.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="benefits">
+        <h2>Why Choose WESDEABEN</h2>
+        <div class="benefits-grid">
+            <div class="benefit-card">
+                <h3>Time Saving</h3>
+                <p>Reduce manual work and save valuable time with our automated processes.</p>
+            </div>
+            <div class="benefit-card">
+                <h3>Cost Effective</h3>
+                <p>Minimize operational costs and maximize ROI with our efficient solutions.</p>
+            </div>
+            <div class="benefit-card">
+                <h3>Scalable</h3>
+                <p>Our platform grows with your business, from startup to enterprise.</p>
+            </div>
+            <div class="benefit-card">
+                <h3>Secure</h3>
+                <p>Enterprise-grade security ensures your data is always protected.</p>
+            </div>
+            <div class="benefit-card">
+                <h3>Customizable</h3>
+                <p>Tailor the platform to your specific business requirements.</p>
+            </div>
+            <div class="benefit-card">
+                <h3>24/7 Support</h3>
+                <p>Our dedicated support team is always available to assist you.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials">
+        <h2>What Our Clients Say</h2>
+        <div class="testimonial-card">
+            <p class="testimonial-text">WESDEABEN has transformed how we manage our projects. The intuitive interface and powerful features have increased our productivity by 40%.</p>
+            <p class="testimonial-author">Sarah Johnson</p>
+            <p class="testimonial-role">Project Manager, TechCorp</p>
+        </div>
+    </section>
+
+    <!-- Call to Action Section -->
+    <section class="cta-section">
+        <div class="cta-content">
+            <h2>Ready to Transform Your Workflow?</h2>
+            <p>Join thousands of businesses that have already improved their operations with WESDEABEN.</p>
+            <a href="#" class="cta-button">Start Your Free Trial</a>
+        </div>
+    </section>
+
+    <!-- Form Example -->
+    <section class="features-section">
+        <h2 style="text-align: center; margin-bottom: 2rem;">Contact Us</h2>
+        <form style="max-width: 600px; margin: 0 auto;">
+            <div>
+                <label for="name">Name</label>
+                <input type="text" id="name" placeholder="Your name">
+            </div>
+            <div>
+                <label for="email">Email</label>
+                <input type="email" id="email" placeholder="Your email">
+            </div>
+            <div>
+                <label for="message">Message</label>
+                <textarea id="message" rows="5" placeholder="Your message"></textarea>
+            </div>
+            <div>
+                <label class="custom-checkbox">
+                    <input type="checkbox">
+                    <span class="checkmark"></span>
+                    Subscribe to our newsletter
+                </label>
+            </div>
+            <button type="submit" class="btn btn-primary">Send Message</button>
+        </form>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2025 WESDEABEN. All rights reserved.</p>
+            <p>
+                <a href="#">Privacy Policy</a> | 
+                <a href="#">Terms of Service</a> | 
+                <a href="#">Contact Us</a>
+            </p>
+        </div>
+    </footer>
+</body>
+<script src="/js/script.js"></script>
+</html>
+
+
