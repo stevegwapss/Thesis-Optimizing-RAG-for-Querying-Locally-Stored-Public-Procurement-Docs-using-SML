@@ -28,3 +28,10 @@ This is an intelligent Retrieval-Augmented Generation (RAG) system for querying 
 Make sure Ollama is running in the background.
 
 PDF files must be under 25MB, machine-readable, and not password-protected.
+
+Collaborators:
+Dean Reight F. Billedo
+Marc Anthony Huesca
+Al-steven John Tumimbang
+
+For Thesis
