@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const fileNameDisplay = document.getElementById('file-name');
     
     // API endpoint
-    const UPLOAD_ENDPOINT = '/upload';
+    const UPLOAD_ENDPOINT = 'http://127.0.0.1:5000/upload';
     
     // Setup event listeners
     selectFilesBtn.addEventListener('click', () => fileInput.click());
@@ -108,8 +108,10 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('file', file);
         
         // Show loading state
-        selectFilesBtn.textContent = 'Uploading...';
+        selectFilesBtn.textContent = 'Processing...';
         selectFilesBtn.disabled = true;
+        
+        console.log('Starting upload for file:', file.name);
         
         // Send to server
         fetch(UPLOAD_ENDPOINT, {
@@ -117,31 +119,45 @@ document.addEventListener('DOMContentLoaded', function() {
             body: formData
         })
         .then(response => {
+            console.log('Response received:', response.status, response.ok);
             if (!response.ok) {
-                throw new Error('Server returned ' + response.status);
+                throw new Error(`Server error: ${response.status}`);
             }
             return response.json();
         })
         .then(data => {
+            console.log('Upload response:', data);
+            
             if (data.success) {
-                // Update pdfData to mark as uploaded
+                // Store file info in session storage
+                sessionStorage.setItem('uploadedPdf', file.name);
                 const pdfData = {
                     uploaded: true,
                     fileName: file.name,
-                    url: `/uploads/${file.name}`  // Add URL to the uploaded file
+                    url: `http://127.0.0.1:5000/uploads/${file.name}`,
+                    chunks_added: data.chunks_added
                 };
                 sessionStorage.setItem('pdfData', JSON.stringify(pdfData));
                 
-                // Redirect to viewer page
+                // Show success
+                selectFilesBtn.textContent = 'Success! Redirecting...';
+                selectFilesBtn.style.backgroundColor = '#4CAF50';
+                
+                console.log('Upload successful, redirecting to document-viewer.html');
+                
+                // Immediate redirect
                 window.location.href = 'document-viewer.html';
+                
             } else {
                 throw new Error(data.message || 'Upload failed');
             }
         })
         .catch(error => {
+            console.error('Upload failed:', error);
             showError('Upload failed: ' + error.message);
             selectFilesBtn.textContent = 'Select Files';
             selectFilesBtn.disabled = false;
+            selectFilesBtn.style.backgroundColor = '';
         });
     }
 });

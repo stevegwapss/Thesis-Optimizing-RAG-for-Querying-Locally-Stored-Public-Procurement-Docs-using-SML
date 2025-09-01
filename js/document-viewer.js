@@ -28,9 +28,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // API endpoints
     const API_ENDPOINTS = {
-        UPLOAD: '/upload',
-        QUERY: '/query',
-        STATUS: '/status'
+        UPLOAD: 'http://127.0.0.1:5000/upload',
+        QUERY: 'http://127.0.0.1:5000/query',
+        STATUS: 'http://127.0.0.1:5000/status'
     };
     
     // Check if we have a document in session storage
@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // If source is a string that looks like a filename rather than a URL or data
         if (typeof source === 'string' && !source.startsWith('http') && !source.startsWith('data:')) {
             // Construct path to the uploaded file
-            pdfSource = `/uploads/${source}`;
+            pdfSource = `http://127.0.0.1:5000/uploads/${source}`;
         }
         
         // Source can be URL string or Uint8Array
@@ -253,8 +253,39 @@ document.addEventListener('DOMContentLoaded', function() {
         
         sendButton.addEventListener('click', sendQuery);
         
-        // Add welcome message
-        //addMessage('system', 'Welcome! You can ask questions about the document content.');
+        // Add role selection change handler
+        const roleSelect = document.getElementById('roleSelect');
+        if (roleSelect) {
+            roleSelect.addEventListener('change', function() {
+                const newRole = this.value;
+                const roleDisplayNames = {
+                    'general': 'General User',
+                    'auditor': 'Auditor',
+                    'procurement_officer': 'Procurement Officer',
+                    'policy_maker': 'Policy Maker',
+                    'bidder': 'Bidder/Supplier'
+                };
+                
+                const displayName = roleDisplayNames[newRole] || newRole;
+                
+                // Add a system message to show role change
+                addMessage('system', `🎭 Role switched to: ${displayName}`);
+                
+                console.log(`Role changed to: ${newRole}`);
+            });
+        }
+        
+        // Add welcome message with initial role
+        const initialRole = roleSelect ? roleSelect.value : 'general';
+        const roleDisplayNames = {
+            'general': 'General User',
+            'auditor': 'Auditor',
+            'procurement_officer': 'Procurement Officer',
+            'policy_maker': 'Policy Maker',
+            'bidder': 'Bidder/Supplier'
+        };
+        
+        addMessage('system', `Welcome! Current role: ${roleDisplayNames[initialRole] || initialRole}. You can ask questions about the document content.`);
     }
     
     // Send query to AI
@@ -262,8 +293,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const query = queryInput.value.trim();
         if (!query) return;
         
-        // Add user message to chat
-        addMessage('user', query);
+        // Get selected role from dropdown - more robust selection
+        const roleSelect = document.getElementById('roleSelect');
+        let selectedRole = 'general';
+        
+        if (roleSelect && roleSelect.value) {
+            selectedRole = roleSelect.value;
+        }
+        
+        console.log(`DEBUG: Selected role from dropdown: "${selectedRole}"`); // Debug logging
+        
+        // Add user message to chat (with role indicator for clarity)
+        addMessage('user', `[${selectedRole.toUpperCase()}] ${query}`);
         
         // Clear input
         queryInput.value = '';
@@ -271,22 +312,37 @@ document.addEventListener('DOMContentLoaded', function() {
         // Show thinking indicator
         showThinking();
         
-        // Send query to backend
+        // Send query to backend with role
         fetch(API_ENDPOINTS.QUERY, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ query: query })
+            body: JSON.stringify({ 
+                query: query,
+                role: selectedRole  // Send the role
+            })
         })
         .then(response => response.json())
         .then(data => {
             // Remove thinking message
             removeThinking();
             
+            console.log('Response received:', data); // Debug log
+            
             if (data.error) {
                 addMessage('system', `Error: ${data.error}`);
             } else {
+                // Add response with role confirmation and metadata
+                const roleInfo = data.confirmed_role ? `[${data.confirmed_role.toUpperCase()}]` : '';
+                const tagsInfo = data.relevant_tags && data.relevant_tags.length > 0 ? 
+                    ` | Tags: ${data.relevant_tags.join(', ')}` : '';
+                const contextInfo = ` | Chunks: ${data.contexts_used || 0}`;
+                
+                // Add metadata line for transparency
+                addMessage('system', `${roleInfo} Response${tagsInfo}${contextInfo}`);
+                
+                // Add the actual response
                 addMessage('assistant', data.response);
             }
         })
@@ -295,6 +351,16 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Query error:', error);
             addMessage('system', 'Failed to get a response. Please try again.');
         });
+    }
+
+    // Remove the addEnhancedMessage function and keep only the simple addMessage
+    function addMessage(type, content) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `${type}-message`;
+        messageDiv.textContent = content;
+        
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
     }
     
     // Show thinking message

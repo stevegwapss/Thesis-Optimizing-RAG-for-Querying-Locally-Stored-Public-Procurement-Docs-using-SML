@@ -1,0 +1,905 @@
+2025-08-29 19:50:48,925 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-08-29 19:50:48,926 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-08-29 19:50:48,929 - werkzeug - INFO -  * Restarting with stat
+2025-08-29 19:50:50,551 - werkzeug - WARNING -  * Debugger is active!
+2025-08-29 19:50:50,558 - werkzeug - INFO -  * Debugger PIN: 729-816-909
+2025-08-29 19:50:54,216 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:50:54] "[36mGET / HTTP/1.1[0m" 304 -
+2025-08-29 19:50:54,231 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:50:54] "[36mGET /images/logo.png HTTP/1.1[0m" 304 -
+2025-08-29 19:50:54,234 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:50:54] "[36mGET /images/local.png HTTP/1.1[0m" 304 -
+2025-08-29 19:50:54,246 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:50:54] "[36mGET /images/private.png HTTP/1.1[0m" 304 -
+2025-08-29 19:50:54,250 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:50:54] "[36mGET /css/style.css HTTP/1.1[0m" 304 -
+2025-08-29 19:50:54,257 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:50:54] "[36mGET /images/available.png HTTP/1.1[0m" 304 -
+2025-08-29 19:50:54,296 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:50:54] "[36mGET /js/script.js HTTP/1.1[0m" 304 -
+2025-08-29 19:50:54,378 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:50:54] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-08-29 19:50:59,803 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:50:59] "POST /upload HTTP/1.1" 200 -
+2025-08-29 19:50:59,870 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:50:59] "[36mGET /document-viewer.html HTTP/1.1[0m" 304 -
+2025-08-29 19:50:59,882 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:50:59] "[36mGET /css/style.css HTTP/1.1[0m" 304 -
+2025-08-29 19:50:59,888 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:50:59] "[36mGET /images/logo.png HTTP/1.1[0m" 304 -
+2025-08-29 19:50:59,889 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:50:59] "[36mGET /css/document-viewer.css HTTP/1.1[0m" 304 -
+2025-08-29 19:50:59,927 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:50:59] "[36mGET /js/document-viewer.js HTTP/1.1[0m" 304 -
+2025-08-29 19:51:00,405 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:51:00] "[33mGET /status HTTP/1.1[0m" 404 -
+2025-08-29 19:51:00,564 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:51:00] "GET /uploads/PR-25-03-120-Rebid_merged-1.pdf HTTP/1.1" 200 -
+2025-08-29 19:51:17,879 - role_awareness - INFO - RECEIVED_ROLE: 'general' for query: 'what is the budget?'
+2025-08-29 19:52:09,988 - role_awareness - INFO - QUERY: 'what is the budget?' | ROLE: general | DETECTED_TAG: None | CONFIDENCE: 0 | CHUNKS: 5
+2025-08-29 19:52:09,989 - role_awareness - INFO - TAGS_USED: BIDDER_INFO, CONTACT_INFO, COMPLIANCE_REQUIREMENTS, TECHNICAL_SPECS, TIMELINE, CONTRACT_AMOUNT
+2025-08-29 19:52:09,989 - role_awareness - INFO - ROLE_RELEVANCE: general | AVG_SCORE: 0.500 | INDIVIDUAL_SCORES: ['0.500', '0.500', '0.500', '0.500', '0.500']
+2025-08-29 19:52:09,990 - role_awareness - INFO - CHUNK_ANALYSIS for query 'what is the budget?':
+2025-08-29 19:52:09,990 - role_awareness - INFO -   Chunk 1: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | RELEVANCE_SCORES={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-08-29 19:52:09,990 - role_awareness - INFO -   Chunk 2: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | RELEVANCE_SCORES={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-08-29 19:52:09,990 - role_awareness - INFO -   Chunk 3: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO'] | RELEVANCE_SCORES={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-08-29 19:52:09,990 - role_awareness - INFO -   Chunk 4: TAGS=['CONTACT_INFO'] | RELEVANCE_SCORES={'auditor': 0.5, 'procurement_officer': 0.5, 'bidder': 0.5, 'policy_maker': 0.5}
+2025-08-29 19:52:09,990 - role_awareness - INFO -   Chunk 5: TAGS=['TIMELINE', 'BIDDER_INFO'] | RELEVANCE_SCORES={'auditor': 0.5, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.5}
+2025-08-29 19:52:09,991 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:52:09] "POST /query HTTP/1.1" 200 -
+2025-08-29 19:52:35,162 - role_awareness - INFO - RECEIVED_ROLE: 'general' for query: 'what is this document about?'
+2025-08-29 19:52:51,273 - role_awareness - INFO - QUERY: 'what is this document about?' | ROLE: general | DETECTED_TAG: None | CONFIDENCE: 0 | CHUNKS: 5
+2025-08-29 19:52:51,274 - role_awareness - INFO - TAGS_USED: BIDDER_INFO, CONTACT_INFO, COMPLIANCE_REQUIREMENTS, TECHNICAL_SPECS, TIMELINE, CONTRACT_AMOUNT
+2025-08-29 19:52:51,274 - role_awareness - INFO - ROLE_RELEVANCE: general | AVG_SCORE: 0.500 | INDIVIDUAL_SCORES: ['0.500', '0.500', '0.500', '0.500', '0.500']
+2025-08-29 19:52:51,274 - role_awareness - INFO - CHUNK_ANALYSIS for query 'what is this document about?':
+2025-08-29 19:52:51,274 - role_awareness - INFO -   Chunk 1: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | RELEVANCE_SCORES={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-08-29 19:52:51,274 - role_awareness - INFO -   Chunk 2: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | RELEVANCE_SCORES={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-08-29 19:52:51,274 - role_awareness - INFO -   Chunk 3: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO'] | RELEVANCE_SCORES={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-08-29 19:52:51,274 - role_awareness - INFO -   Chunk 4: TAGS=['CONTACT_INFO'] | RELEVANCE_SCORES={'auditor': 0.5, 'procurement_officer': 0.5, 'bidder': 0.5, 'policy_maker': 0.5}
+2025-08-29 19:52:51,275 - role_awareness - INFO -   Chunk 5: TAGS=['TIMELINE', 'BIDDER_INFO'] | RELEVANCE_SCORES={'auditor': 0.5, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.5}
+2025-08-29 19:52:51,276 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:52:51] "POST /query HTTP/1.1" 200 -
+2025-08-29 19:53:06,287 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:53:06] "[36mGET /document-viewer.html HTTP/1.1[0m" 304 -
+2025-08-29 19:53:06,303 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:53:06] "[36mGET /css/document-viewer.css HTTP/1.1[0m" 304 -
+2025-08-29 19:53:06,303 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:53:06] "[36mGET /css/style.css HTTP/1.1[0m" 304 -
+2025-08-29 19:53:06,306 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:53:06] "[36mGET /images/logo.png HTTP/1.1[0m" 304 -
+2025-08-29 19:53:06,311 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:53:06] "[36mGET /js/document-viewer.js HTTP/1.1[0m" 304 -
+2025-08-29 19:53:06,340 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:53:06] "[33mGET /status HTTP/1.1[0m" 404 -
+2025-08-29 19:53:06,438 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:53:06] "[36mGET /uploads/PR-25-03-120-Rebid_merged-1.pdf HTTP/1.1[0m" 304 -
+2025-08-29 19:53:20,412 - role_awareness - INFO - RECEIVED_ROLE: 'general' for query: 'tell me what is the approved budget?'
+2025-08-29 19:53:36,944 - role_awareness - INFO - QUERY: 'tell me what is the approved budget?' | ROLE: general | DETECTED_TAG: CONTRACT_AMOUNT | CONFIDENCE: 2 | CHUNKS: 1
+2025-08-29 19:53:36,944 - role_awareness - INFO - TAGS_USED: CONTACT_INFO, TIMELINE, CONTRACT_AMOUNT, TECHNICAL_SPECS
+2025-08-29 19:53:36,944 - role_awareness - INFO - ROLE_RELEVANCE: general | AVG_SCORE: 0.500 | INDIVIDUAL_SCORES: ['0.500']
+2025-08-29 19:53:36,944 - role_awareness - INFO - CHUNK_ANALYSIS for query 'tell me what is the approved budget?':
+2025-08-29 19:53:36,944 - role_awareness - INFO -   Chunk 1: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | RELEVANCE_SCORES={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-08-29 19:53:36,945 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:53:36] "POST /query HTTP/1.1" 200 -
+2025-08-29 19:56:43,828 - werkzeug - INFO -  * Detected change in 'C:\\Users\\al-st\\Thesis-Optimizing-RAG-for-Querying-Locally-Stored-Public-Procurement-Docs-using-SML\\app.py', reloading
+2025-08-29 19:56:44,011 - werkzeug - INFO -  * Restarting with stat
+2025-08-29 19:56:46,063 - werkzeug - WARNING -  * Debugger is active!
+2025-08-29 19:56:46,066 - werkzeug - INFO -  * Debugger PIN: 729-816-909
+2025-08-29 19:57:10,189 - werkzeug - INFO -  * Detected change in 'C:\\Users\\al-st\\Thesis-Optimizing-RAG-for-Querying-Locally-Stored-Public-Procurement-Docs-using-SML\\app.py', reloading
+2025-08-29 19:57:10,356 - werkzeug - INFO -  * Restarting with stat
+2025-08-29 19:57:11,908 - werkzeug - WARNING -  * Debugger is active!
+2025-08-29 19:57:11,913 - werkzeug - INFO -  * Debugger PIN: 729-816-909
+2025-08-29 19:57:15,650 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:57:15] "[36mGET /document-viewer.html HTTP/1.1[0m" 304 -
+2025-08-29 19:57:15,662 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:57:15] "[36mGET /css/style.css HTTP/1.1[0m" 304 -
+2025-08-29 19:57:15,664 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:57:15] "[36mGET /css/document-viewer.css HTTP/1.1[0m" 304 -
+2025-08-29 19:57:15,670 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:57:15] "[36mGET /images/logo.png HTTP/1.1[0m" 304 -
+2025-08-29 19:57:15,711 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:57:15] "GET /js/document-viewer.js HTTP/1.1" 200 -
+2025-08-29 19:57:15,725 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:57:15] "[33mGET /status HTTP/1.1[0m" 404 -
+2025-08-29 19:57:15,809 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:57:15] "[36mGET /uploads/PR-25-03-120-Rebid_merged-1.pdf HTTP/1.1[0m" 304 -
+2025-08-29 19:57:45,588 - role_awareness - INFO - RECEIVED_ROLE: 'procurement_officer' for query: 'what are the requirements?'
+2025-08-29 19:58:34,584 - role_awareness - INFO - QUERY: 'what are the requirements?' | ROLE: procurement_officer | DETECTED_TAG: None | CONFIDENCE: 0 | CHUNKS: 5
+2025-08-29 19:58:34,584 - role_awareness - INFO - TAGS_USED: CONTRACT_AMOUNT, COMPLIANCE_REQUIREMENTS, TECHNICAL_SPECS, TIMELINE, BIDDER_INFO, CONTACT_INFO
+2025-08-29 19:58:34,585 - role_awareness - INFO - ROLE_RELEVANCE: procurement_officer | AVG_SCORE: 0.900 | INDIVIDUAL_SCORES: ['0.900', '0.900', '0.900', '0.900', '0.900']
+2025-08-29 19:58:34,585 - role_awareness - INFO - CHUNK_ANALYSIS for query 'what are the requirements?' with role 'procurement_officer':
+2025-08-29 19:58:34,585 - role_awareness - INFO -   Chunk 1: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | PROCUREMENT_OFFICER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-08-29 19:58:34,585 - role_awareness - INFO -   Chunk 2: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | PROCUREMENT_OFFICER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-08-29 19:58:34,586 - role_awareness - INFO -   Chunk 3: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO'] | PROCUREMENT_OFFICER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-08-29 19:58:34,586 - role_awareness - INFO -   Chunk 4: TAGS=['TIMELINE', 'BIDDER_INFO'] | PROCUREMENT_OFFICER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.5}
+2025-08-29 19:58:34,586 - role_awareness - INFO -   Chunk 5: TAGS=['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | PROCUREMENT_OFFICER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-08-29 19:58:34,588 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 19:58:34] "POST /query HTTP/1.1" 200 -
+2025-08-29 20:02:31,555 - werkzeug - INFO -  * Detected change in 'C:\\Users\\al-st\\Thesis-Optimizing-RAG-for-Querying-Locally-Stored-Public-Procurement-Docs-using-SML\\app.py', reloading
+2025-08-29 20:02:31,714 - werkzeug - INFO -  * Restarting with stat
+2025-08-29 20:02:38,212 - werkzeug - WARNING -  * Debugger is active!
+2025-08-29 20:02:38,215 - werkzeug - INFO -  * Debugger PIN: 729-816-909
+2025-08-29 20:53:17,067 - werkzeug - INFO -  * Detected change in 'C:\\Users\\al-st\\Thesis-Optimizing-RAG-for-Querying-Locally-Stored-Public-Procurement-Docs-using-SML\\app.py', reloading
+2025-08-29 20:53:17,261 - werkzeug - INFO -  * Restarting with stat
+2025-08-29 20:53:18,952 - werkzeug - WARNING -  * Debugger is active!
+2025-08-29 20:53:18,955 - werkzeug - INFO -  * Debugger PIN: 729-816-909
+2025-08-29 20:53:19,354 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 20:53:19] "GET /document-viewer.html HTTP/1.1" 200 -
+2025-08-29 20:53:19,367 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 20:53:19] "GET /images/logo.png HTTP/1.1" 200 -
+2025-08-29 20:53:19,378 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 20:53:19] "GET /css/style.css HTTP/1.1" 200 -
+2025-08-29 20:53:19,378 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 20:53:19] "GET /css/document-viewer.css HTTP/1.1" 200 -
+2025-08-29 20:53:19,399 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 20:53:19] "GET /js/document-viewer.js HTTP/1.1" 200 -
+2025-08-29 20:53:19,778 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 20:53:19] "[33mGET /status HTTP/1.1[0m" 404 -
+2025-08-29 20:53:19,786 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 20:53:19] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-08-29 20:53:19,874 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 20:53:19] "[36mGET /uploads/PR-25-03-120-Rebid_merged-1.pdf HTTP/1.1[0m" 304 -
+2025-08-29 20:53:31,929 - role_awareness - INFO - RECEIVED_ROLE: 'auditor' for query: 'what is the approved budget?'
+2025-08-29 20:54:04,745 - role_awareness - INFO - QUERY: 'what is the approved budget?' | ROLE: auditor | DETECTED_TAG: CONTRACT_AMOUNT | CONFIDENCE: 2 | CHUNKS: 1
+2025-08-29 20:54:04,745 - role_awareness - INFO - TAGS_USED: CONTACT_INFO, TIMELINE, TECHNICAL_SPECS, CONTRACT_AMOUNT
+2025-08-29 20:54:04,745 - role_awareness - INFO - ROLE_RELEVANCE: auditor | AVG_SCORE: 0.900 | INDIVIDUAL_SCORES: ['0.900']
+2025-08-29 20:54:04,745 - role_awareness - INFO - CHUNK_ANALYSIS for query 'what is the approved budget?' with role 'auditor':
+2025-08-29 20:54:04,746 - role_awareness - INFO -   Chunk 1: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | AUDITOR_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-08-29 20:54:04,749 - werkzeug - INFO - 127.0.0.1 - - [29/Aug/2025 20:54:04] "POST /query HTTP/1.1" 200 -
+2025-09-01 10:29:48,562 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-09-01 10:29:48,563 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-09-01 10:29:48,567 - werkzeug - INFO -  * Restarting with stat
+2025-09-01 10:29:51,404 - werkzeug - WARNING -  * Debugger is active!
+2025-09-01 10:29:51,413 - werkzeug - INFO -  * Debugger PIN: 729-816-909
+2025-09-01 10:30:05,134 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:30:05] "GET /?id=79feeacb-c970-436c-8216-6e996bd01f1f&vscodeBrowserReqId=1756693805014 HTTP/1.1" 200 -
+2025-09-01 10:30:05,153 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:30:05] "GET /css/style.css HTTP/1.1" 200 -
+2025-09-01 10:30:05,161 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:30:05] "GET /images/logo.png HTTP/1.1" 200 -
+2025-09-01 10:30:05,161 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:30:05] "GET /images/local.png HTTP/1.1" 200 -
+2025-09-01 10:30:05,167 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:30:05] "GET /images/private.png HTTP/1.1" 200 -
+2025-09-01 10:30:05,171 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:30:05] "GET /images/available.png HTTP/1.1" 200 -
+2025-09-01 10:30:05,173 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:30:05] "GET /js/script.js HTTP/1.1" 200 -
+2025-09-01 10:30:11,650 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:30:11] "GET / HTTP/1.1" 200 -
+2025-09-01 10:30:11,920 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:30:11] "GET /images/local.png HTTP/1.1" 200 -
+2025-09-01 10:30:11,923 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:30:11] "GET /css/style.css HTTP/1.1" 200 -
+2025-09-01 10:30:11,923 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:30:11] "GET /images/logo.png HTTP/1.1" 200 -
+2025-09-01 10:30:11,939 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:30:11] "GET /images/private.png HTTP/1.1" 200 -
+2025-09-01 10:30:11,994 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:30:11] "GET /images/available.png HTTP/1.1" 200 -
+2025-09-01 10:30:12,003 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:30:12] "GET /js/script.js HTTP/1.1" 200 -
+2025-09-01 10:30:12,134 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:30:12] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-09-01 10:31:19,168 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-09-01 10:31:19,169 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-09-01 10:31:19,171 - werkzeug - INFO -  * Restarting with stat
+2025-09-01 10:31:21,238 - werkzeug - WARNING -  * Debugger is active!
+2025-09-01 10:31:21,241 - werkzeug - INFO -  * Debugger PIN: 729-816-909
+2025-09-01 10:31:52,340 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:31:52] "GET /document-viewer.html?id=328508ba-77f3-4cb2-9555-cc1b2e744586&vscodeBrowserReqId=1756693912276 HTTP/1.1" 200 -
+2025-09-01 10:31:52,380 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:31:52] "[36mGET /css/style.css HTTP/1.1[0m" 304 -
+2025-09-01 10:31:52,381 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:31:52] "GET /css/document-viewer.css HTTP/1.1" 200 -
+2025-09-01 10:31:52,397 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:31:52] "[36mGET /images/logo.png HTTP/1.1[0m" 304 -
+2025-09-01 10:31:52,432 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:31:52] "GET /js/document-viewer.js HTTP/1.1" 200 -
+2025-09-01 10:31:52,717 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:31:52] "GET /index.html HTTP/1.1" 200 -
+2025-09-01 10:31:52,873 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:31:52] "[36mGET /css/style.css HTTP/1.1[0m" 304 -
+2025-09-01 10:31:52,874 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:31:52] "[36mGET /images/logo.png HTTP/1.1[0m" 304 -
+2025-09-01 10:31:52,876 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:31:52] "[36mGET /images/private.png HTTP/1.1[0m" 304 -
+2025-09-01 10:31:52,876 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:31:52] "[36mGET /images/local.png HTTP/1.1[0m" 304 -
+2025-09-01 10:31:52,884 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:31:52] "[36mGET /images/available.png HTTP/1.1[0m" 304 -
+2025-09-01 10:31:52,891 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:31:52] "[36mGET /js/script.js HTTP/1.1[0m" 304 -
+2025-09-01 10:32:57,727 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-09-01 10:32:57,728 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-09-01 10:32:57,730 - werkzeug - INFO -  * Restarting with stat
+2025-09-01 10:33:00,063 - werkzeug - WARNING -  * Debugger is active!
+2025-09-01 10:33:00,067 - werkzeug - INFO -  * Debugger PIN: 729-816-909
+2025-09-01 10:33:04,849 - role_awareness - INFO - RECEIVED_ROLE: 'general' for query: 'What is the budget for this project?'
+2025-09-01 10:33:04,849 - role_awareness - INFO - QUERY_START: Role='general', Query='What is the budget for this project?', Available_chunks=8
+2025-09-01 10:33:04,850 - role_awareness - INFO - FILTERING_START: Role='general', Query='What is the budget for this project?', Total_chunks=8
+2025-09-01 10:33:04,858 - role_awareness - INFO - FILTERING_RESULT: Role='general', Query='What is the budget for this project?', Intent='CONTRACT_AMOUNT', Confidence=14, Final_chunks=1
+2025-09-01 10:33:08,959 - role_awareness - ERROR - Error querying Ollama: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/generate (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000028126A260C0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))
+2025-09-01 10:33:08,960 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'general' | TAGS: [] | CHUNKS: 0
+2025-09-01 10:33:08,960 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:33:08] "POST /query HTTP/1.1" 200 -
+2025-09-01 10:33:09,986 - role_awareness - INFO - RECEIVED_ROLE: 'auditor' for query: 'What is the budget for this project?'
+2025-09-01 10:33:09,987 - role_awareness - INFO - QUERY_START: Role='auditor', Query='What is the budget for this project?', Available_chunks=8
+2025-09-01 10:33:09,987 - role_awareness - INFO - FILTERING_START: Role='auditor', Query='What is the budget for this project?', Total_chunks=8
+2025-09-01 10:33:09,990 - role_awareness - INFO - FILTERING_RESULT: Role='auditor', Query='What is the budget for this project?', Intent='CONTRACT_AMOUNT', Confidence=14, Final_chunks=1
+2025-09-01 10:33:14,081 - role_awareness - ERROR - Error querying Ollama: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/generate (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x00000281283278C0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))
+2025-09-01 10:33:14,082 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'auditor' | TAGS: [] | CHUNKS: 0
+2025-09-01 10:33:14,082 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:33:14] "POST /query HTTP/1.1" 200 -
+2025-09-01 10:33:15,112 - role_awareness - INFO - RECEIVED_ROLE: 'procurement_officer' for query: 'What is the budget for this project?'
+2025-09-01 10:33:15,112 - role_awareness - INFO - QUERY_START: Role='procurement_officer', Query='What is the budget for this project?', Available_chunks=8
+2025-09-01 10:33:15,113 - role_awareness - INFO - FILTERING_START: Role='procurement_officer', Query='What is the budget for this project?', Total_chunks=8
+2025-09-01 10:33:15,118 - role_awareness - INFO - FILTERING_RESULT: Role='procurement_officer', Query='What is the budget for this project?', Intent='CONTRACT_AMOUNT', Confidence=14, Final_chunks=1
+2025-09-01 10:33:19,217 - role_awareness - ERROR - Error querying Ollama: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/generate (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x00000281280EA3F0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))
+2025-09-01 10:33:19,217 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'procurement_officer' | TAGS: [] | CHUNKS: 0
+2025-09-01 10:33:19,218 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:33:19] "POST /query HTTP/1.1" 200 -
+2025-09-01 10:33:20,289 - role_awareness - INFO - RECEIVED_ROLE: 'policy_maker' for query: 'What is the budget for this project?'
+2025-09-01 10:33:20,290 - role_awareness - INFO - QUERY_START: Role='policy_maker', Query='What is the budget for this project?', Available_chunks=8
+2025-09-01 10:33:20,299 - role_awareness - INFO - FILTERING_START: Role='policy_maker', Query='What is the budget for this project?', Total_chunks=8
+2025-09-01 10:33:20,303 - role_awareness - INFO - FILTERING_RESULT: Role='policy_maker', Query='What is the budget for this project?', Intent='CONTRACT_AMOUNT', Confidence=14, Final_chunks=1
+2025-09-01 10:33:24,391 - role_awareness - ERROR - Error querying Ollama: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/generate (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000028128326E10>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))
+2025-09-01 10:33:24,392 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'policy_maker' | TAGS: [] | CHUNKS: 0
+2025-09-01 10:33:24,392 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:33:24] "POST /query HTTP/1.1" 200 -
+2025-09-01 10:33:25,880 - role_awareness - INFO - RECEIVED_ROLE: 'bidder' for query: 'What is the budget for this project?'
+2025-09-01 10:33:25,884 - role_awareness - INFO - QUERY_START: Role='bidder', Query='What is the budget for this project?', Available_chunks=8
+2025-09-01 10:33:25,908 - role_awareness - INFO - FILTERING_START: Role='bidder', Query='What is the budget for this project?', Total_chunks=8
+2025-09-01 10:33:25,943 - role_awareness - INFO - FILTERING_RESULT: Role='bidder', Query='What is the budget for this project?', Intent='CONTRACT_AMOUNT', Confidence=14, Final_chunks=1
+2025-09-01 10:33:30,057 - role_awareness - ERROR - Error querying Ollama: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/generate (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x00000281283D54C0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))
+2025-09-01 10:33:30,058 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'bidder' | TAGS: [] | CHUNKS: 0
+2025-09-01 10:33:30,059 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:33:30] "POST /query HTTP/1.1" 200 -
+2025-09-01 10:33:31,090 - role_awareness - INFO - RECEIVED_ROLE: 'general' for query: 'When is the deadline for submission?'
+2025-09-01 10:33:31,091 - role_awareness - INFO - QUERY_START: Role='general', Query='When is the deadline for submission?', Available_chunks=8
+2025-09-01 10:33:31,091 - role_awareness - INFO - FILTERING_START: Role='general', Query='When is the deadline for submission?', Total_chunks=8
+2025-09-01 10:33:31,094 - role_awareness - INFO - FILTERING_RESULT: Role='general', Query='When is the deadline for submission?', Intent='TIMELINE', Confidence=24, Final_chunks=3
+2025-09-01 10:34:12,366 - role_awareness - INFO - RECEIVED_ROLE: 'general' for query: 'What is the budget for this project?'
+2025-09-01 10:34:12,366 - role_awareness - INFO - QUERY_START: Role='general', Query='What is the budget for this project?', Available_chunks=8
+2025-09-01 10:34:12,367 - role_awareness - INFO - FILTERING_START: Role='general', Query='What is the budget for this project?', Total_chunks=8
+2025-09-01 10:34:12,379 - role_awareness - INFO - FILTERING_RESULT: Role='general', Query='What is the budget for this project?', Intent='CONTRACT_AMOUNT', Confidence=14, Final_chunks=1
+2025-09-01 10:34:18,712 - role_awareness - INFO - ================================================================================
+2025-09-01 10:34:18,719 - role_awareness - INFO - QUERY: 'When is the deadline for submission?'
+2025-09-01 10:34:18,720 - role_awareness - INFO - ROLE: GENERAL
+2025-09-01 10:34:18,720 - role_awareness - INFO - DETECTED_TAG: TIMELINE
+2025-09-01 10:34:18,720 - role_awareness - INFO - CONFIDENCE: 24
+2025-09-01 10:34:18,720 - role_awareness - INFO - CHUNKS_USED: 3
+2025-09-01 10:34:18,721 - role_awareness - INFO - TAGS_IN_RESULTS: TIMELINE, COMPLIANCE_REQUIREMENTS, TECHNICAL_SPECS, CONTACT_INFO, CONTRACT_AMOUNT, BIDDER_INFO
+2025-09-01 10:34:18,721 - role_awareness - INFO - ROLE_EFFECTIVENESS: GENERAL | AVG_RELEVANCE: 0.500
+2025-09-01 10:34:18,721 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.500', '0.500', '0.500']
+2025-09-01 10:34:18,722 - role_awareness - INFO - ================================================================================
+2025-09-01 10:34:18,722 - role_awareness - INFO - CHUNK_ANALYSIS for query 'When is the deadline for submission?' with role 'general':
+2025-09-01 10:34:18,723 - role_awareness - INFO -   Chunk 1: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | GENERAL_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:34:18,723 - role_awareness - INFO -   Chunk 2: TAGS=['TIMELINE', 'BIDDER_INFO'] | GENERAL_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.5}
+2025-09-01 10:34:18,723 - role_awareness - INFO -   Chunk 3: TAGS=['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | GENERAL_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:34:18,724 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='general', Avg_Relevance=0.500, Tags_Found=6, Intent_Match=TIMELINE
+2025-09-01 10:34:18,725 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'general' | TAGS: ['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'TECHNICAL_SPECS', 'CONTACT_INFO', 'CONTRACT_AMOUNT', 'BIDDER_INFO'] | CHUNKS: 3
+2025-09-01 10:34:18,725 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:34:18] "POST /query HTTP/1.1" 200 -
+2025-09-01 10:34:35,707 - role_awareness - INFO - ================================================================================
+2025-09-01 10:34:35,712 - role_awareness - INFO - QUERY: 'What is the budget for this project?'
+2025-09-01 10:34:35,712 - role_awareness - INFO - ROLE: GENERAL
+2025-09-01 10:34:35,712 - role_awareness - INFO - DETECTED_TAG: CONTRACT_AMOUNT
+2025-09-01 10:34:35,712 - role_awareness - INFO - CONFIDENCE: 14
+2025-09-01 10:34:35,712 - role_awareness - INFO - CHUNKS_USED: 1
+2025-09-01 10:34:35,713 - role_awareness - INFO - TAGS_IN_RESULTS: TIMELINE, CONTRACT_AMOUNT, TECHNICAL_SPECS, CONTACT_INFO
+2025-09-01 10:34:35,713 - role_awareness - INFO - ROLE_EFFECTIVENESS: GENERAL | AVG_RELEVANCE: 0.500
+2025-09-01 10:34:35,713 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.500']
+2025-09-01 10:34:35,713 - role_awareness - INFO - ================================================================================
+2025-09-01 10:34:35,714 - role_awareness - INFO - CHUNK_ANALYSIS for query 'What is the budget for this project?' with role 'general':
+2025-09-01 10:34:35,714 - role_awareness - INFO -   Chunk 1: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | GENERAL_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:34:35,714 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='general', Avg_Relevance=0.500, Tags_Found=4, Intent_Match=CONTRACT_AMOUNT
+2025-09-01 10:34:35,714 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'general' | TAGS: ['TIMELINE', 'CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'CONTACT_INFO'] | CHUNKS: 1
+2025-09-01 10:34:35,715 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:34:35] "POST /query HTTP/1.1" 200 -
+2025-09-01 10:34:36,747 - role_awareness - INFO - RECEIVED_ROLE: 'auditor' for query: 'What is the budget for this project?'
+2025-09-01 10:34:36,747 - role_awareness - INFO - QUERY_START: Role='auditor', Query='What is the budget for this project?', Available_chunks=8
+2025-09-01 10:34:36,750 - role_awareness - INFO - FILTERING_START: Role='auditor', Query='What is the budget for this project?', Total_chunks=8
+2025-09-01 10:34:36,753 - role_awareness - INFO - FILTERING_RESULT: Role='auditor', Query='What is the budget for this project?', Intent='CONTRACT_AMOUNT', Confidence=14, Final_chunks=1
+2025-09-01 10:35:52,812 - role_awareness - INFO - ================================================================================
+2025-09-01 10:35:52,815 - role_awareness - INFO - QUERY: 'What is the budget for this project?'
+2025-09-01 10:35:52,815 - role_awareness - INFO - ROLE: AUDITOR
+2025-09-01 10:35:52,816 - role_awareness - INFO - DETECTED_TAG: CONTRACT_AMOUNT
+2025-09-01 10:35:52,816 - role_awareness - INFO - CONFIDENCE: 14
+2025-09-01 10:35:52,816 - role_awareness - INFO - CHUNKS_USED: 1
+2025-09-01 10:35:52,816 - role_awareness - INFO - TAGS_IN_RESULTS: TIMELINE, CONTRACT_AMOUNT, TECHNICAL_SPECS, CONTACT_INFO
+2025-09-01 10:35:52,816 - role_awareness - INFO - ROLE_EFFECTIVENESS: AUDITOR | AVG_RELEVANCE: 0.900
+2025-09-01 10:35:52,816 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.900']
+2025-09-01 10:35:52,817 - role_awareness - INFO - ================================================================================
+2025-09-01 10:35:52,817 - role_awareness - INFO - CHUNK_ANALYSIS for query 'What is the budget for this project?' with role 'auditor':
+2025-09-01 10:35:52,817 - role_awareness - INFO -   Chunk 1: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | AUDITOR_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:35:52,817 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='auditor', Avg_Relevance=0.900, Tags_Found=4, Intent_Match=CONTRACT_AMOUNT
+2025-09-01 10:35:52,818 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'auditor' | TAGS: ['TIMELINE', 'CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'CONTACT_INFO'] | CHUNKS: 1
+2025-09-01 10:35:52,819 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:35:52] "POST /query HTTP/1.1" 200 -
+2025-09-01 10:35:53,854 - role_awareness - INFO - RECEIVED_ROLE: 'procurement_officer' for query: 'What is the budget for this project?'
+2025-09-01 10:35:53,854 - role_awareness - INFO - QUERY_START: Role='procurement_officer', Query='What is the budget for this project?', Available_chunks=8
+2025-09-01 10:35:53,856 - role_awareness - INFO - FILTERING_START: Role='procurement_officer', Query='What is the budget for this project?', Total_chunks=8
+2025-09-01 10:35:53,860 - role_awareness - INFO - FILTERING_RESULT: Role='procurement_officer', Query='What is the budget for this project?', Intent='CONTRACT_AMOUNT', Confidence=14, Final_chunks=1
+2025-09-01 10:36:13,066 - role_awareness - INFO - ================================================================================
+2025-09-01 10:36:13,069 - role_awareness - INFO - QUERY: 'What is the budget for this project?'
+2025-09-01 10:36:13,069 - role_awareness - INFO - ROLE: PROCUREMENT_OFFICER
+2025-09-01 10:36:13,070 - role_awareness - INFO - DETECTED_TAG: CONTRACT_AMOUNT
+2025-09-01 10:36:13,070 - role_awareness - INFO - CONFIDENCE: 14
+2025-09-01 10:36:13,070 - role_awareness - INFO - CHUNKS_USED: 1
+2025-09-01 10:36:13,070 - role_awareness - INFO - TAGS_IN_RESULTS: TIMELINE, CONTRACT_AMOUNT, TECHNICAL_SPECS, CONTACT_INFO
+2025-09-01 10:36:13,070 - role_awareness - INFO - ROLE_EFFECTIVENESS: PROCUREMENT_OFFICER | AVG_RELEVANCE: 0.900
+2025-09-01 10:36:13,070 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.900']
+2025-09-01 10:36:13,070 - role_awareness - INFO - ================================================================================
+2025-09-01 10:36:13,070 - role_awareness - INFO - CHUNK_ANALYSIS for query 'What is the budget for this project?' with role 'procurement_officer':
+2025-09-01 10:36:13,071 - role_awareness - INFO -   Chunk 1: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | PROCUREMENT_OFFICER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:36:13,071 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='procurement_officer', Avg_Relevance=0.900, Tags_Found=4, Intent_Match=CONTRACT_AMOUNT
+2025-09-01 10:36:13,071 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'procurement_officer' | TAGS: ['TIMELINE', 'CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'CONTACT_INFO'] | CHUNKS: 1
+2025-09-01 10:36:13,071 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:36:13] "POST /query HTTP/1.1" 200 -
+2025-09-01 10:36:14,098 - role_awareness - INFO - RECEIVED_ROLE: 'policy_maker' for query: 'What is the budget for this project?'
+2025-09-01 10:36:14,098 - role_awareness - INFO - QUERY_START: Role='policy_maker', Query='What is the budget for this project?', Available_chunks=8
+2025-09-01 10:36:14,099 - role_awareness - INFO - FILTERING_START: Role='policy_maker', Query='What is the budget for this project?', Total_chunks=8
+2025-09-01 10:36:14,102 - role_awareness - INFO - FILTERING_RESULT: Role='policy_maker', Query='What is the budget for this project?', Intent='CONTRACT_AMOUNT', Confidence=14, Final_chunks=1
+2025-09-01 10:36:38,188 - role_awareness - INFO - ================================================================================
+2025-09-01 10:36:38,192 - role_awareness - INFO - QUERY: 'What is the budget for this project?'
+2025-09-01 10:36:38,193 - role_awareness - INFO - ROLE: POLICY_MAKER
+2025-09-01 10:36:38,193 - role_awareness - INFO - DETECTED_TAG: CONTRACT_AMOUNT
+2025-09-01 10:36:38,193 - role_awareness - INFO - CONFIDENCE: 14
+2025-09-01 10:36:38,193 - role_awareness - INFO - CHUNKS_USED: 1
+2025-09-01 10:36:38,194 - role_awareness - INFO - TAGS_IN_RESULTS: TIMELINE, CONTRACT_AMOUNT, TECHNICAL_SPECS, CONTACT_INFO
+2025-09-01 10:36:38,194 - role_awareness - INFO - ROLE_EFFECTIVENESS: POLICY_MAKER | AVG_RELEVANCE: 0.900
+2025-09-01 10:36:38,194 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.900']
+2025-09-01 10:36:38,194 - role_awareness - INFO - ================================================================================
+2025-09-01 10:36:38,194 - role_awareness - INFO - CHUNK_ANALYSIS for query 'What is the budget for this project?' with role 'policy_maker':
+2025-09-01 10:36:38,195 - role_awareness - INFO -   Chunk 1: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | POLICY_MAKER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:36:38,195 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='policy_maker', Avg_Relevance=0.900, Tags_Found=4, Intent_Match=CONTRACT_AMOUNT
+2025-09-01 10:36:38,195 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'policy_maker' | TAGS: ['TIMELINE', 'CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'CONTACT_INFO'] | CHUNKS: 1
+2025-09-01 10:36:38,196 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:36:38] "POST /query HTTP/1.1" 200 -
+2025-09-01 10:36:39,237 - role_awareness - INFO - RECEIVED_ROLE: 'bidder' for query: 'What is the budget for this project?'
+2025-09-01 10:36:39,238 - role_awareness - INFO - QUERY_START: Role='bidder', Query='What is the budget for this project?', Available_chunks=8
+2025-09-01 10:36:39,239 - role_awareness - INFO - FILTERING_START: Role='bidder', Query='What is the budget for this project?', Total_chunks=8
+2025-09-01 10:36:39,242 - role_awareness - INFO - FILTERING_RESULT: Role='bidder', Query='What is the budget for this project?', Intent='CONTRACT_AMOUNT', Confidence=14, Final_chunks=1
+2025-09-01 10:37:05,163 - role_awareness - INFO - ================================================================================
+2025-09-01 10:37:05,167 - role_awareness - INFO - QUERY: 'What is the budget for this project?'
+2025-09-01 10:37:05,168 - role_awareness - INFO - ROLE: BIDDER
+2025-09-01 10:37:05,168 - role_awareness - INFO - DETECTED_TAG: CONTRACT_AMOUNT
+2025-09-01 10:37:05,168 - role_awareness - INFO - CONFIDENCE: 14
+2025-09-01 10:37:05,168 - role_awareness - INFO - CHUNKS_USED: 1
+2025-09-01 10:37:05,169 - role_awareness - INFO - TAGS_IN_RESULTS: TIMELINE, CONTRACT_AMOUNT, TECHNICAL_SPECS, CONTACT_INFO
+2025-09-01 10:37:05,169 - role_awareness - INFO - ROLE_EFFECTIVENESS: BIDDER | AVG_RELEVANCE: 0.900
+2025-09-01 10:37:05,169 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.900']
+2025-09-01 10:37:05,169 - role_awareness - INFO - ================================================================================
+2025-09-01 10:37:05,170 - role_awareness - INFO - CHUNK_ANALYSIS for query 'What is the budget for this project?' with role 'bidder':
+2025-09-01 10:37:05,170 - role_awareness - INFO -   Chunk 1: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | BIDDER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:37:05,170 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='bidder', Avg_Relevance=0.900, Tags_Found=4, Intent_Match=CONTRACT_AMOUNT
+2025-09-01 10:37:05,171 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'bidder' | TAGS: ['TIMELINE', 'CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'CONTACT_INFO'] | CHUNKS: 1
+2025-09-01 10:37:05,171 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:37:05] "POST /query HTTP/1.1" 200 -
+2025-09-01 10:37:06,214 - role_awareness - INFO - RECEIVED_ROLE: 'general' for query: 'When is the deadline for submission?'
+2025-09-01 10:37:06,216 - role_awareness - INFO - QUERY_START: Role='general', Query='When is the deadline for submission?', Available_chunks=8
+2025-09-01 10:37:06,216 - role_awareness - INFO - FILTERING_START: Role='general', Query='When is the deadline for submission?', Total_chunks=8
+2025-09-01 10:37:06,221 - role_awareness - INFO - FILTERING_RESULT: Role='general', Query='When is the deadline for submission?', Intent='TIMELINE', Confidence=24, Final_chunks=3
+2025-09-01 10:37:41,382 - role_awareness - INFO - ================================================================================
+2025-09-01 10:37:41,385 - role_awareness - INFO - QUERY: 'When is the deadline for submission?'
+2025-09-01 10:37:41,385 - role_awareness - INFO - ROLE: GENERAL
+2025-09-01 10:37:41,387 - role_awareness - INFO - DETECTED_TAG: TIMELINE
+2025-09-01 10:37:41,387 - role_awareness - INFO - CONFIDENCE: 24
+2025-09-01 10:37:41,387 - role_awareness - INFO - CHUNKS_USED: 3
+2025-09-01 10:37:41,387 - role_awareness - INFO - TAGS_IN_RESULTS: TIMELINE, COMPLIANCE_REQUIREMENTS, TECHNICAL_SPECS, CONTACT_INFO, CONTRACT_AMOUNT, BIDDER_INFO
+2025-09-01 10:37:41,388 - role_awareness - INFO - ROLE_EFFECTIVENESS: GENERAL | AVG_RELEVANCE: 0.500
+2025-09-01 10:37:41,388 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.500', '0.500', '0.500']
+2025-09-01 10:37:41,388 - role_awareness - INFO - ================================================================================
+2025-09-01 10:37:41,388 - role_awareness - INFO - CHUNK_ANALYSIS for query 'When is the deadline for submission?' with role 'general':
+2025-09-01 10:37:41,389 - role_awareness - INFO -   Chunk 1: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | GENERAL_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:37:41,389 - role_awareness - INFO -   Chunk 2: TAGS=['TIMELINE', 'BIDDER_INFO'] | GENERAL_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.5}
+2025-09-01 10:37:41,389 - role_awareness - INFO -   Chunk 3: TAGS=['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | GENERAL_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:37:41,390 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='general', Avg_Relevance=0.500, Tags_Found=6, Intent_Match=TIMELINE
+2025-09-01 10:37:41,390 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'general' | TAGS: ['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'TECHNICAL_SPECS', 'CONTACT_INFO', 'CONTRACT_AMOUNT', 'BIDDER_INFO'] | CHUNKS: 3
+2025-09-01 10:37:41,391 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:37:41] "POST /query HTTP/1.1" 200 -
+2025-09-01 10:37:42,420 - role_awareness - INFO - RECEIVED_ROLE: 'auditor' for query: 'When is the deadline for submission?'
+2025-09-01 10:37:42,421 - role_awareness - INFO - QUERY_START: Role='auditor', Query='When is the deadline for submission?', Available_chunks=8
+2025-09-01 10:37:42,421 - role_awareness - INFO - FILTERING_START: Role='auditor', Query='When is the deadline for submission?', Total_chunks=8
+2025-09-01 10:37:42,425 - role_awareness - INFO - FILTERING_RESULT: Role='auditor', Query='When is the deadline for submission?', Intent='TIMELINE', Confidence=24, Final_chunks=3
+2025-09-01 10:38:22,640 - role_awareness - INFO - ================================================================================
+2025-09-01 10:38:22,643 - role_awareness - INFO - QUERY: 'When is the deadline for submission?'
+2025-09-01 10:38:22,643 - role_awareness - INFO - ROLE: AUDITOR
+2025-09-01 10:38:22,643 - role_awareness - INFO - DETECTED_TAG: TIMELINE
+2025-09-01 10:38:22,643 - role_awareness - INFO - CONFIDENCE: 24
+2025-09-01 10:38:22,643 - role_awareness - INFO - CHUNKS_USED: 3
+2025-09-01 10:38:22,643 - role_awareness - INFO - TAGS_IN_RESULTS: TIMELINE, COMPLIANCE_REQUIREMENTS, TECHNICAL_SPECS, CONTACT_INFO, CONTRACT_AMOUNT, BIDDER_INFO
+2025-09-01 10:38:22,643 - role_awareness - INFO - ROLE_EFFECTIVENESS: AUDITOR | AVG_RELEVANCE: 0.767
+2025-09-01 10:38:22,644 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.900', '0.900', '0.500']
+2025-09-01 10:38:22,644 - role_awareness - INFO - ================================================================================
+2025-09-01 10:38:22,644 - role_awareness - INFO - CHUNK_ANALYSIS for query 'When is the deadline for submission?' with role 'auditor':
+2025-09-01 10:38:22,644 - role_awareness - INFO -   Chunk 1: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | AUDITOR_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:38:22,644 - role_awareness - INFO -   Chunk 2: TAGS=['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | AUDITOR_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:38:22,644 - role_awareness - INFO -   Chunk 3: TAGS=['TIMELINE', 'BIDDER_INFO'] | AUDITOR_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.5}
+2025-09-01 10:38:22,645 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='auditor', Avg_Relevance=0.767, Tags_Found=6, Intent_Match=TIMELINE
+2025-09-01 10:38:22,645 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'auditor' | TAGS: ['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'TECHNICAL_SPECS', 'CONTACT_INFO', 'CONTRACT_AMOUNT', 'BIDDER_INFO'] | CHUNKS: 3
+2025-09-01 10:38:22,645 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:38:22] "POST /query HTTP/1.1" 200 -
+2025-09-01 10:38:23,672 - role_awareness - INFO - RECEIVED_ROLE: 'procurement_officer' for query: 'When is the deadline for submission?'
+2025-09-01 10:38:23,674 - role_awareness - INFO - QUERY_START: Role='procurement_officer', Query='When is the deadline for submission?', Available_chunks=8
+2025-09-01 10:38:23,675 - role_awareness - INFO - FILTERING_START: Role='procurement_officer', Query='When is the deadline for submission?', Total_chunks=8
+2025-09-01 10:38:23,679 - role_awareness - INFO - FILTERING_RESULT: Role='procurement_officer', Query='When is the deadline for submission?', Intent='TIMELINE', Confidence=24, Final_chunks=3
+2025-09-01 10:39:17,722 - role_awareness - INFO - ================================================================================
+2025-09-01 10:39:17,731 - role_awareness - INFO - QUERY: 'When is the deadline for submission?'
+2025-09-01 10:39:17,731 - role_awareness - INFO - ROLE: PROCUREMENT_OFFICER
+2025-09-01 10:39:17,732 - role_awareness - INFO - DETECTED_TAG: TIMELINE
+2025-09-01 10:39:17,732 - role_awareness - INFO - CONFIDENCE: 24
+2025-09-01 10:39:17,732 - role_awareness - INFO - CHUNKS_USED: 3
+2025-09-01 10:39:17,732 - role_awareness - INFO - TAGS_IN_RESULTS: TIMELINE, COMPLIANCE_REQUIREMENTS, TECHNICAL_SPECS, CONTACT_INFO, CONTRACT_AMOUNT, BIDDER_INFO
+2025-09-01 10:39:17,733 - role_awareness - INFO - ROLE_EFFECTIVENESS: PROCUREMENT_OFFICER | AVG_RELEVANCE: 0.900
+2025-09-01 10:39:17,733 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.900', '0.900', '0.900']
+2025-09-01 10:39:17,733 - role_awareness - INFO - ================================================================================
+2025-09-01 10:39:17,733 - role_awareness - INFO - CHUNK_ANALYSIS for query 'When is the deadline for submission?' with role 'procurement_officer':
+2025-09-01 10:39:17,733 - role_awareness - INFO -   Chunk 1: TAGS=['TIMELINE', 'BIDDER_INFO'] | PROCUREMENT_OFFICER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.5}
+2025-09-01 10:39:17,734 - role_awareness - INFO -   Chunk 2: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | PROCUREMENT_OFFICER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:39:17,734 - role_awareness - INFO -   Chunk 3: TAGS=['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | PROCUREMENT_OFFICER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:39:17,734 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='procurement_officer', Avg_Relevance=0.900, Tags_Found=6, Intent_Match=TIMELINE
+2025-09-01 10:39:17,735 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'procurement_officer' | TAGS: ['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'TECHNICAL_SPECS', 'CONTACT_INFO', 'CONTRACT_AMOUNT', 'BIDDER_INFO'] | CHUNKS: 3
+2025-09-01 10:39:17,736 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:39:17] "POST /query HTTP/1.1" 200 -
+2025-09-01 10:39:18,778 - role_awareness - INFO - RECEIVED_ROLE: 'policy_maker' for query: 'When is the deadline for submission?'
+2025-09-01 10:39:18,779 - role_awareness - INFO - QUERY_START: Role='policy_maker', Query='When is the deadline for submission?', Available_chunks=8
+2025-09-01 10:39:18,779 - role_awareness - INFO - FILTERING_START: Role='policy_maker', Query='When is the deadline for submission?', Total_chunks=8
+2025-09-01 10:39:18,783 - role_awareness - INFO - FILTERING_RESULT: Role='policy_maker', Query='When is the deadline for submission?', Intent='TIMELINE', Confidence=24, Final_chunks=3
+2025-09-01 10:40:00,942 - role_awareness - INFO - ================================================================================
+2025-09-01 10:40:00,945 - role_awareness - INFO - QUERY: 'When is the deadline for submission?'
+2025-09-01 10:40:00,945 - role_awareness - INFO - ROLE: POLICY_MAKER
+2025-09-01 10:40:00,945 - role_awareness - INFO - DETECTED_TAG: TIMELINE
+2025-09-01 10:40:00,945 - role_awareness - INFO - CONFIDENCE: 24
+2025-09-01 10:40:00,945 - role_awareness - INFO - CHUNKS_USED: 3
+2025-09-01 10:40:00,945 - role_awareness - INFO - TAGS_IN_RESULTS: TIMELINE, COMPLIANCE_REQUIREMENTS, TECHNICAL_SPECS, CONTACT_INFO, CONTRACT_AMOUNT, BIDDER_INFO
+2025-09-01 10:40:00,945 - role_awareness - INFO - ROLE_EFFECTIVENESS: POLICY_MAKER | AVG_RELEVANCE: 0.767
+2025-09-01 10:40:00,945 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.900', '0.900', '0.500']
+2025-09-01 10:40:00,945 - role_awareness - INFO - ================================================================================
+2025-09-01 10:40:00,945 - role_awareness - INFO - CHUNK_ANALYSIS for query 'When is the deadline for submission?' with role 'policy_maker':
+2025-09-01 10:40:00,947 - role_awareness - INFO -   Chunk 1: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | POLICY_MAKER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:40:00,947 - role_awareness - INFO -   Chunk 2: TAGS=['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | POLICY_MAKER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:40:00,947 - role_awareness - INFO -   Chunk 3: TAGS=['TIMELINE', 'BIDDER_INFO'] | POLICY_MAKER_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.5}
+2025-09-01 10:40:00,947 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='policy_maker', Avg_Relevance=0.767, Tags_Found=6, Intent_Match=TIMELINE
+2025-09-01 10:40:00,947 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'policy_maker' | TAGS: ['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'TECHNICAL_SPECS', 'CONTACT_INFO', 'CONTRACT_AMOUNT', 'BIDDER_INFO'] | CHUNKS: 3
+2025-09-01 10:40:00,948 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:40:00] "POST /query HTTP/1.1" 200 -
+2025-09-01 10:40:01,975 - role_awareness - INFO - RECEIVED_ROLE: 'bidder' for query: 'When is the deadline for submission?'
+2025-09-01 10:40:01,975 - role_awareness - INFO - QUERY_START: Role='bidder', Query='When is the deadline for submission?', Available_chunks=8
+2025-09-01 10:40:01,976 - role_awareness - INFO - FILTERING_START: Role='bidder', Query='When is the deadline for submission?', Total_chunks=8
+2025-09-01 10:40:01,980 - role_awareness - INFO - FILTERING_RESULT: Role='bidder', Query='When is the deadline for submission?', Intent='TIMELINE', Confidence=24, Final_chunks=3
+2025-09-01 10:40:42,337 - role_awareness - INFO - ================================================================================
+2025-09-01 10:40:42,340 - role_awareness - INFO - QUERY: 'When is the deadline for submission?'
+2025-09-01 10:40:42,340 - role_awareness - INFO - ROLE: BIDDER
+2025-09-01 10:40:42,340 - role_awareness - INFO - DETECTED_TAG: TIMELINE
+2025-09-01 10:40:42,341 - role_awareness - INFO - CONFIDENCE: 24
+2025-09-01 10:40:42,341 - role_awareness - INFO - CHUNKS_USED: 3
+2025-09-01 10:40:42,341 - role_awareness - INFO - TAGS_IN_RESULTS: TIMELINE, COMPLIANCE_REQUIREMENTS, TECHNICAL_SPECS, CONTACT_INFO, CONTRACT_AMOUNT, BIDDER_INFO
+2025-09-01 10:40:42,341 - role_awareness - INFO - ROLE_EFFECTIVENESS: BIDDER | AVG_RELEVANCE: 0.900
+2025-09-01 10:40:42,341 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.900', '0.900', '0.900']
+2025-09-01 10:40:42,341 - role_awareness - INFO - ================================================================================
+2025-09-01 10:40:42,342 - role_awareness - INFO - CHUNK_ANALYSIS for query 'When is the deadline for submission?' with role 'bidder':
+2025-09-01 10:40:42,342 - role_awareness - INFO -   Chunk 1: TAGS=['TIMELINE', 'BIDDER_INFO'] | BIDDER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.5}
+2025-09-01 10:40:42,342 - role_awareness - INFO -   Chunk 2: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | BIDDER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:40:42,342 - role_awareness - INFO -   Chunk 3: TAGS=['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | BIDDER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:40:42,342 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='bidder', Avg_Relevance=0.900, Tags_Found=6, Intent_Match=TIMELINE
+2025-09-01 10:40:42,344 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'bidder' | TAGS: ['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'TECHNICAL_SPECS', 'CONTACT_INFO', 'CONTRACT_AMOUNT', 'BIDDER_INFO'] | CHUNKS: 3
+2025-09-01 10:40:42,344 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:40:42] "POST /query HTTP/1.1" 200 -
+2025-09-01 10:40:43,372 - role_awareness - INFO - RECEIVED_ROLE: 'general' for query: 'What are the technical specifications?'
+2025-09-01 10:40:43,372 - role_awareness - INFO - QUERY_START: Role='general', Query='What are the technical specifications?', Available_chunks=8
+2025-09-01 10:40:43,373 - role_awareness - INFO - FILTERING_START: Role='general', Query='What are the technical specifications?', Total_chunks=8
+2025-09-01 10:40:43,383 - role_awareness - INFO - FILTERING_RESULT: Role='general', Query='What are the technical specifications?', Intent='TECHNICAL_SPECS', Confidence=27, Final_chunks=2
+2025-09-01 10:41:37,880 - role_awareness - INFO - ================================================================================
+2025-09-01 10:41:37,884 - role_awareness - INFO - QUERY: 'What are the technical specifications?'
+2025-09-01 10:41:37,885 - role_awareness - INFO - ROLE: GENERAL
+2025-09-01 10:41:37,885 - role_awareness - INFO - DETECTED_TAG: TECHNICAL_SPECS
+2025-09-01 10:41:37,885 - role_awareness - INFO - CONFIDENCE: 27
+2025-09-01 10:41:37,886 - role_awareness - INFO - CHUNKS_USED: 2
+2025-09-01 10:41:37,886 - role_awareness - INFO - TAGS_IN_RESULTS: TIMELINE, CONTRACT_AMOUNT, TECHNICAL_SPECS, CONTACT_INFO
+2025-09-01 10:41:37,886 - role_awareness - INFO - ROLE_EFFECTIVENESS: GENERAL | AVG_RELEVANCE: 0.500
+2025-09-01 10:41:37,886 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.500', '0.500']
+2025-09-01 10:41:37,886 - role_awareness - INFO - ================================================================================
+2025-09-01 10:41:37,887 - role_awareness - INFO - CHUNK_ANALYSIS for query 'What are the technical specifications?' with role 'general':
+2025-09-01 10:41:37,887 - role_awareness - INFO -   Chunk 1: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | GENERAL_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:41:37,887 - role_awareness - INFO -   Chunk 2: TAGS=['TECHNICAL_SPECS', 'CONTACT_INFO'] | GENERAL_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.5, 'bidder': 0.9, 'policy_maker': 0.5}
+2025-09-01 10:41:37,887 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='general', Avg_Relevance=0.500, Tags_Found=4, Intent_Match=TECHNICAL_SPECS
+2025-09-01 10:41:37,888 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'general' | TAGS: ['TIMELINE', 'CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'CONTACT_INFO'] | CHUNKS: 2
+2025-09-01 10:41:37,889 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:41:37] "POST /query HTTP/1.1" 200 -
+2025-09-01 10:41:38,929 - role_awareness - INFO - RECEIVED_ROLE: 'auditor' for query: 'What are the technical specifications?'
+2025-09-01 10:41:38,930 - role_awareness - INFO - QUERY_START: Role='auditor', Query='What are the technical specifications?', Available_chunks=8
+2025-09-01 10:41:38,930 - role_awareness - INFO - FILTERING_START: Role='auditor', Query='What are the technical specifications?', Total_chunks=8
+2025-09-01 10:41:38,934 - role_awareness - INFO - FILTERING_RESULT: Role='auditor', Query='What are the technical specifications?', Intent='TECHNICAL_SPECS', Confidence=27, Final_chunks=2
+2025-09-01 10:43:23,921 - role_awareness - INFO - ================================================================================
+2025-09-01 10:43:23,925 - role_awareness - INFO - QUERY: 'What are the technical specifications?'
+2025-09-01 10:43:23,925 - role_awareness - INFO - ROLE: AUDITOR
+2025-09-01 10:43:23,925 - role_awareness - INFO - DETECTED_TAG: TECHNICAL_SPECS
+2025-09-01 10:43:23,925 - role_awareness - INFO - CONFIDENCE: 27
+2025-09-01 10:43:23,925 - role_awareness - INFO - CHUNKS_USED: 2
+2025-09-01 10:43:23,926 - role_awareness - INFO - TAGS_IN_RESULTS: TIMELINE, CONTRACT_AMOUNT, TECHNICAL_SPECS, CONTACT_INFO
+2025-09-01 10:43:23,926 - role_awareness - INFO - ROLE_EFFECTIVENESS: AUDITOR | AVG_RELEVANCE: 0.700
+2025-09-01 10:43:23,926 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.900', '0.500']
+2025-09-01 10:43:23,927 - role_awareness - INFO - ================================================================================
+2025-09-01 10:43:23,927 - role_awareness - INFO - CHUNK_ANALYSIS for query 'What are the technical specifications?' with role 'auditor':
+2025-09-01 10:43:23,927 - role_awareness - INFO -   Chunk 1: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | AUDITOR_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:43:23,928 - role_awareness - INFO -   Chunk 2: TAGS=['TECHNICAL_SPECS', 'CONTACT_INFO'] | AUDITOR_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.5, 'bidder': 0.9, 'policy_maker': 0.5}
+2025-09-01 10:43:23,928 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='auditor', Avg_Relevance=0.700, Tags_Found=4, Intent_Match=TECHNICAL_SPECS
+2025-09-01 10:43:23,929 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'auditor' | TAGS: ['TIMELINE', 'CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'CONTACT_INFO'] | CHUNKS: 2
+2025-09-01 10:43:23,930 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:43:23] "POST /query HTTP/1.1" 200 -
+2025-09-01 10:43:24,981 - role_awareness - INFO - RECEIVED_ROLE: 'procurement_officer' for query: 'What are the technical specifications?'
+2025-09-01 10:43:24,981 - role_awareness - INFO - QUERY_START: Role='procurement_officer', Query='What are the technical specifications?', Available_chunks=8
+2025-09-01 10:43:24,982 - role_awareness - INFO - FILTERING_START: Role='procurement_officer', Query='What are the technical specifications?', Total_chunks=8
+2025-09-01 10:43:24,985 - role_awareness - INFO - FILTERING_RESULT: Role='procurement_officer', Query='What are the technical specifications?', Intent='TECHNICAL_SPECS', Confidence=27, Final_chunks=2
+2025-09-01 10:44:36,275 - role_awareness - INFO - ================================================================================
+2025-09-01 10:44:36,280 - role_awareness - INFO - QUERY: 'What are the technical specifications?'
+2025-09-01 10:44:36,280 - role_awareness - INFO - ROLE: PROCUREMENT_OFFICER
+2025-09-01 10:44:36,280 - role_awareness - INFO - DETECTED_TAG: TECHNICAL_SPECS
+2025-09-01 10:44:36,280 - role_awareness - INFO - CONFIDENCE: 27
+2025-09-01 10:44:36,281 - role_awareness - INFO - CHUNKS_USED: 2
+2025-09-01 10:44:36,282 - role_awareness - INFO - TAGS_IN_RESULTS: TIMELINE, CONTRACT_AMOUNT, TECHNICAL_SPECS, CONTACT_INFO
+2025-09-01 10:44:36,283 - role_awareness - INFO - ROLE_EFFECTIVENESS: PROCUREMENT_OFFICER | AVG_RELEVANCE: 0.700
+2025-09-01 10:44:36,285 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.900', '0.500']
+2025-09-01 10:44:36,286 - role_awareness - INFO - ================================================================================
+2025-09-01 10:44:36,286 - role_awareness - INFO - CHUNK_ANALYSIS for query 'What are the technical specifications?' with role 'procurement_officer':
+2025-09-01 10:44:36,288 - role_awareness - INFO -   Chunk 1: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | PROCUREMENT_OFFICER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:44:36,288 - role_awareness - INFO -   Chunk 2: TAGS=['TECHNICAL_SPECS', 'CONTACT_INFO'] | PROCUREMENT_OFFICER_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.5, 'bidder': 0.9, 'policy_maker': 0.5}
+2025-09-01 10:44:36,289 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='procurement_officer', Avg_Relevance=0.700, Tags_Found=4, Intent_Match=TECHNICAL_SPECS
+2025-09-01 10:44:36,289 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'procurement_officer' | TAGS: ['TIMELINE', 'CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'CONTACT_INFO'] | CHUNKS: 2
+2025-09-01 10:44:36,290 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:44:36] "POST /query HTTP/1.1" 200 -
+2025-09-01 10:44:37,332 - role_awareness - INFO - RECEIVED_ROLE: 'policy_maker' for query: 'What are the technical specifications?'
+2025-09-01 10:44:37,334 - role_awareness - INFO - QUERY_START: Role='policy_maker', Query='What are the technical specifications?', Available_chunks=8
+2025-09-01 10:44:37,336 - role_awareness - INFO - FILTERING_START: Role='policy_maker', Query='What are the technical specifications?', Total_chunks=8
+2025-09-01 10:44:37,341 - role_awareness - INFO - FILTERING_RESULT: Role='policy_maker', Query='What are the technical specifications?', Intent='TECHNICAL_SPECS', Confidence=27, Final_chunks=2
+2025-09-01 10:45:45,921 - role_awareness - INFO - ================================================================================
+2025-09-01 10:45:45,926 - role_awareness - INFO - QUERY: 'What are the technical specifications?'
+2025-09-01 10:45:45,926 - role_awareness - INFO - ROLE: POLICY_MAKER
+2025-09-01 10:45:45,926 - role_awareness - INFO - DETECTED_TAG: TECHNICAL_SPECS
+2025-09-01 10:45:45,926 - role_awareness - INFO - CONFIDENCE: 27
+2025-09-01 10:45:45,926 - role_awareness - INFO - CHUNKS_USED: 2
+2025-09-01 10:45:45,927 - role_awareness - INFO - TAGS_IN_RESULTS: TIMELINE, CONTRACT_AMOUNT, TECHNICAL_SPECS, CONTACT_INFO
+2025-09-01 10:45:45,927 - role_awareness - INFO - ROLE_EFFECTIVENESS: POLICY_MAKER | AVG_RELEVANCE: 0.700
+2025-09-01 10:45:45,927 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.900', '0.500']
+2025-09-01 10:45:45,927 - role_awareness - INFO - ================================================================================
+2025-09-01 10:45:45,928 - role_awareness - INFO - CHUNK_ANALYSIS for query 'What are the technical specifications?' with role 'policy_maker':
+2025-09-01 10:45:45,928 - role_awareness - INFO -   Chunk 1: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | POLICY_MAKER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:45:45,928 - role_awareness - INFO -   Chunk 2: TAGS=['TECHNICAL_SPECS', 'CONTACT_INFO'] | POLICY_MAKER_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.5, 'bidder': 0.9, 'policy_maker': 0.5}
+2025-09-01 10:45:45,928 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='policy_maker', Avg_Relevance=0.700, Tags_Found=4, Intent_Match=TECHNICAL_SPECS
+2025-09-01 10:45:45,929 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'policy_maker' | TAGS: ['TIMELINE', 'CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'CONTACT_INFO'] | CHUNKS: 2
+2025-09-01 10:45:45,930 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:45:45] "POST /query HTTP/1.1" 200 -
+2025-09-01 10:45:46,960 - role_awareness - INFO - RECEIVED_ROLE: 'bidder' for query: 'What are the technical specifications?'
+2025-09-01 10:45:46,961 - role_awareness - INFO - QUERY_START: Role='bidder', Query='What are the technical specifications?', Available_chunks=8
+2025-09-01 10:45:46,961 - role_awareness - INFO - FILTERING_START: Role='bidder', Query='What are the technical specifications?', Total_chunks=8
+2025-09-01 10:45:46,964 - role_awareness - INFO - FILTERING_RESULT: Role='bidder', Query='What are the technical specifications?', Intent='TECHNICAL_SPECS', Confidence=27, Final_chunks=2
+2025-09-01 10:46:48,886 - role_awareness - INFO - ================================================================================
+2025-09-01 10:46:48,891 - role_awareness - INFO - QUERY: 'What are the technical specifications?'
+2025-09-01 10:46:48,891 - role_awareness - INFO - ROLE: BIDDER
+2025-09-01 10:46:48,892 - role_awareness - INFO - DETECTED_TAG: TECHNICAL_SPECS
+2025-09-01 10:46:48,892 - role_awareness - INFO - CONFIDENCE: 27
+2025-09-01 10:46:48,892 - role_awareness - INFO - CHUNKS_USED: 2
+2025-09-01 10:46:48,892 - role_awareness - INFO - TAGS_IN_RESULTS: TIMELINE, CONTRACT_AMOUNT, TECHNICAL_SPECS, CONTACT_INFO
+2025-09-01 10:46:48,893 - role_awareness - INFO - ROLE_EFFECTIVENESS: BIDDER | AVG_RELEVANCE: 0.900
+2025-09-01 10:46:48,893 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.900', '0.900']
+2025-09-01 10:46:48,893 - role_awareness - INFO - ================================================================================
+2025-09-01 10:46:48,894 - role_awareness - INFO - CHUNK_ANALYSIS for query 'What are the technical specifications?' with role 'bidder':
+2025-09-01 10:46:48,894 - role_awareness - INFO -   Chunk 1: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | BIDDER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:46:48,894 - role_awareness - INFO -   Chunk 2: TAGS=['TECHNICAL_SPECS', 'CONTACT_INFO'] | BIDDER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.5, 'bidder': 0.9, 'policy_maker': 0.5}
+2025-09-01 10:46:48,897 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='bidder', Avg_Relevance=0.900, Tags_Found=4, Intent_Match=TECHNICAL_SPECS
+2025-09-01 10:46:48,899 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'bidder' | TAGS: ['TIMELINE', 'CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'CONTACT_INFO'] | CHUNKS: 2
+2025-09-01 10:46:48,901 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:46:48] "POST /query HTTP/1.1" 200 -
+2025-09-01 10:46:50,028 - role_awareness - INFO - RECEIVED_ROLE: 'general' for query: 'What compliance requirements must be met?'
+2025-09-01 10:46:50,028 - role_awareness - INFO - QUERY_START: Role='general', Query='What compliance requirements must be met?', Available_chunks=8
+2025-09-01 10:46:50,028 - role_awareness - INFO - FILTERING_START: Role='general', Query='What compliance requirements must be met?', Total_chunks=8
+2025-09-01 10:46:50,035 - role_awareness - INFO - FILTERING_RESULT: Role='general', Query='What compliance requirements must be met?', Intent='COMPLIANCE_REQUIREMENTS', Confidence=19, Final_chunks=3
+2025-09-01 10:47:51,212 - role_awareness - INFO - ================================================================================
+2025-09-01 10:47:51,221 - role_awareness - INFO - QUERY: 'What compliance requirements must be met?'
+2025-09-01 10:47:51,221 - role_awareness - INFO - ROLE: GENERAL
+2025-09-01 10:47:51,221 - role_awareness - INFO - DETECTED_TAG: COMPLIANCE_REQUIREMENTS
+2025-09-01 10:47:51,222 - role_awareness - INFO - CONFIDENCE: 19
+2025-09-01 10:47:51,222 - role_awareness - INFO - CHUNKS_USED: 3
+2025-09-01 10:47:51,223 - role_awareness - INFO - TAGS_IN_RESULTS: TIMELINE, COMPLIANCE_REQUIREMENTS, BIDDER_INFO, CONTACT_INFO
+2025-09-01 10:47:51,223 - role_awareness - INFO - ROLE_EFFECTIVENESS: GENERAL | AVG_RELEVANCE: 0.500
+2025-09-01 10:47:51,223 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.500', '0.500', '0.500']
+2025-09-01 10:47:51,224 - role_awareness - INFO - ================================================================================
+2025-09-01 10:47:51,224 - role_awareness - INFO - CHUNK_ANALYSIS for query 'What compliance requirements must be met?' with role 'general':
+2025-09-01 10:47:51,225 - role_awareness - INFO -   Chunk 1: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | GENERAL_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:47:51,225 - role_awareness - INFO -   Chunk 2: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO'] | GENERAL_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:47:51,225 - role_awareness - INFO -   Chunk 3: TAGS=['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | GENERAL_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:47:51,225 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='general', Avg_Relevance=0.500, Tags_Found=4, Intent_Match=COMPLIANCE_REQUIREMENTS
+2025-09-01 10:47:51,226 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'general' | TAGS: ['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | CHUNKS: 3
+2025-09-01 10:47:51,226 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:47:51] "POST /query HTTP/1.1" 200 -
+2025-09-01 10:47:52,268 - role_awareness - INFO - RECEIVED_ROLE: 'auditor' for query: 'What compliance requirements must be met?'
+2025-09-01 10:47:52,270 - role_awareness - INFO - QUERY_START: Role='auditor', Query='What compliance requirements must be met?', Available_chunks=8
+2025-09-01 10:47:52,270 - role_awareness - INFO - FILTERING_START: Role='auditor', Query='What compliance requirements must be met?', Total_chunks=8
+2025-09-01 10:47:52,275 - role_awareness - INFO - FILTERING_RESULT: Role='auditor', Query='What compliance requirements must be met?', Intent='COMPLIANCE_REQUIREMENTS', Confidence=19, Final_chunks=3
+2025-09-01 10:49:23,535 - role_awareness - INFO - ================================================================================
+2025-09-01 10:49:23,542 - role_awareness - INFO - QUERY: 'What compliance requirements must be met?'
+2025-09-01 10:49:23,542 - role_awareness - INFO - ROLE: AUDITOR
+2025-09-01 10:49:23,542 - role_awareness - INFO - DETECTED_TAG: COMPLIANCE_REQUIREMENTS
+2025-09-01 10:49:23,542 - role_awareness - INFO - CONFIDENCE: 19
+2025-09-01 10:49:23,543 - role_awareness - INFO - CHUNKS_USED: 3
+2025-09-01 10:49:23,543 - role_awareness - INFO - TAGS_IN_RESULTS: TIMELINE, COMPLIANCE_REQUIREMENTS, BIDDER_INFO, CONTACT_INFO
+2025-09-01 10:49:23,543 - role_awareness - INFO - ROLE_EFFECTIVENESS: AUDITOR | AVG_RELEVANCE: 0.900
+2025-09-01 10:49:23,543 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.900', '0.900', '0.900']
+2025-09-01 10:49:23,544 - role_awareness - INFO - ================================================================================
+2025-09-01 10:49:23,544 - role_awareness - INFO - CHUNK_ANALYSIS for query 'What compliance requirements must be met?' with role 'auditor':
+2025-09-01 10:49:23,544 - role_awareness - INFO -   Chunk 1: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO'] | AUDITOR_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:49:23,544 - role_awareness - INFO -   Chunk 2: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | AUDITOR_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:49:23,545 - role_awareness - INFO -   Chunk 3: TAGS=['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | AUDITOR_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:49:23,545 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='auditor', Avg_Relevance=0.900, Tags_Found=4, Intent_Match=COMPLIANCE_REQUIREMENTS
+2025-09-01 10:49:23,547 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'auditor' | TAGS: ['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | CHUNKS: 3
+2025-09-01 10:49:23,547 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:49:23] "POST /query HTTP/1.1" 200 -
+2025-09-01 10:49:24,595 - role_awareness - INFO - RECEIVED_ROLE: 'procurement_officer' for query: 'What compliance requirements must be met?'
+2025-09-01 10:49:24,595 - role_awareness - INFO - QUERY_START: Role='procurement_officer', Query='What compliance requirements must be met?', Available_chunks=8
+2025-09-01 10:49:24,596 - role_awareness - INFO - FILTERING_START: Role='procurement_officer', Query='What compliance requirements must be met?', Total_chunks=8
+2025-09-01 10:49:24,602 - role_awareness - INFO - FILTERING_RESULT: Role='procurement_officer', Query='What compliance requirements must be met?', Intent='COMPLIANCE_REQUIREMENTS', Confidence=19, Final_chunks=3
+2025-09-01 10:50:31,055 - role_awareness - INFO - ================================================================================
+2025-09-01 10:50:31,064 - role_awareness - INFO - QUERY: 'What compliance requirements must be met?'
+2025-09-01 10:50:31,064 - role_awareness - INFO - ROLE: PROCUREMENT_OFFICER
+2025-09-01 10:50:31,064 - role_awareness - INFO - DETECTED_TAG: COMPLIANCE_REQUIREMENTS
+2025-09-01 10:50:31,065 - role_awareness - INFO - CONFIDENCE: 19
+2025-09-01 10:50:31,065 - role_awareness - INFO - CHUNKS_USED: 3
+2025-09-01 10:50:31,065 - role_awareness - INFO - TAGS_IN_RESULTS: TIMELINE, COMPLIANCE_REQUIREMENTS, BIDDER_INFO, CONTACT_INFO
+2025-09-01 10:50:31,065 - role_awareness - INFO - ROLE_EFFECTIVENESS: PROCUREMENT_OFFICER | AVG_RELEVANCE: 0.900
+2025-09-01 10:50:31,066 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.900', '0.900', '0.900']
+2025-09-01 10:50:31,066 - role_awareness - INFO - ================================================================================
+2025-09-01 10:50:31,066 - role_awareness - INFO - CHUNK_ANALYSIS for query 'What compliance requirements must be met?' with role 'procurement_officer':
+2025-09-01 10:50:31,066 - role_awareness - INFO -   Chunk 1: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | PROCUREMENT_OFFICER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:50:31,066 - role_awareness - INFO -   Chunk 2: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO'] | PROCUREMENT_OFFICER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:50:31,066 - role_awareness - INFO -   Chunk 3: TAGS=['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | PROCUREMENT_OFFICER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:50:31,068 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='procurement_officer', Avg_Relevance=0.900, Tags_Found=4, Intent_Match=COMPLIANCE_REQUIREMENTS
+2025-09-01 10:50:31,068 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'procurement_officer' | TAGS: ['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | CHUNKS: 3
+2025-09-01 10:50:31,070 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:50:31] "POST /query HTTP/1.1" 200 -
+2025-09-01 10:50:32,100 - role_awareness - INFO - RECEIVED_ROLE: 'policy_maker' for query: 'What compliance requirements must be met?'
+2025-09-01 10:50:32,100 - role_awareness - INFO - QUERY_START: Role='policy_maker', Query='What compliance requirements must be met?', Available_chunks=8
+2025-09-01 10:50:32,100 - role_awareness - INFO - FILTERING_START: Role='policy_maker', Query='What compliance requirements must be met?', Total_chunks=8
+2025-09-01 10:50:32,104 - role_awareness - INFO - FILTERING_RESULT: Role='policy_maker', Query='What compliance requirements must be met?', Intent='COMPLIANCE_REQUIREMENTS', Confidence=19, Final_chunks=3
+2025-09-01 10:51:40,742 - role_awareness - INFO - ================================================================================
+2025-09-01 10:51:40,798 - role_awareness - INFO - QUERY: 'What compliance requirements must be met?'
+2025-09-01 10:51:40,799 - role_awareness - INFO - ROLE: POLICY_MAKER
+2025-09-01 10:51:40,800 - role_awareness - INFO - DETECTED_TAG: COMPLIANCE_REQUIREMENTS
+2025-09-01 10:51:40,803 - role_awareness - INFO - CONFIDENCE: 19
+2025-09-01 10:51:40,805 - role_awareness - INFO - CHUNKS_USED: 3
+2025-09-01 10:51:40,806 - role_awareness - INFO - TAGS_IN_RESULTS: TIMELINE, COMPLIANCE_REQUIREMENTS, BIDDER_INFO, CONTACT_INFO
+2025-09-01 10:51:40,807 - role_awareness - INFO - ROLE_EFFECTIVENESS: POLICY_MAKER | AVG_RELEVANCE: 0.900
+2025-09-01 10:51:40,810 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.900', '0.900', '0.900']
+2025-09-01 10:51:40,811 - role_awareness - INFO - ================================================================================
+2025-09-01 10:51:40,812 - role_awareness - INFO - CHUNK_ANALYSIS for query 'What compliance requirements must be met?' with role 'policy_maker':
+2025-09-01 10:51:40,812 - role_awareness - INFO -   Chunk 1: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO'] | POLICY_MAKER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:51:40,812 - role_awareness - INFO -   Chunk 2: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | POLICY_MAKER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:51:40,813 - role_awareness - INFO -   Chunk 3: TAGS=['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | POLICY_MAKER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:51:40,813 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='policy_maker', Avg_Relevance=0.900, Tags_Found=4, Intent_Match=COMPLIANCE_REQUIREMENTS
+2025-09-01 10:51:40,814 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'policy_maker' | TAGS: ['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | CHUNKS: 3
+2025-09-01 10:51:40,814 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:51:40] "POST /query HTTP/1.1" 200 -
+2025-09-01 10:51:41,856 - role_awareness - INFO - RECEIVED_ROLE: 'bidder' for query: 'What compliance requirements must be met?'
+2025-09-01 10:51:41,858 - role_awareness - INFO - QUERY_START: Role='bidder', Query='What compliance requirements must be met?', Available_chunks=8
+2025-09-01 10:51:41,858 - role_awareness - INFO - FILTERING_START: Role='bidder', Query='What compliance requirements must be met?', Total_chunks=8
+2025-09-01 10:51:41,862 - role_awareness - INFO - FILTERING_RESULT: Role='bidder', Query='What compliance requirements must be met?', Intent='COMPLIANCE_REQUIREMENTS', Confidence=19, Final_chunks=3
+2025-09-01 10:52:45,981 - role_awareness - INFO - ================================================================================
+2025-09-01 10:52:45,997 - role_awareness - INFO - QUERY: 'What compliance requirements must be met?'
+2025-09-01 10:52:45,997 - role_awareness - INFO - ROLE: BIDDER
+2025-09-01 10:52:45,998 - role_awareness - INFO - DETECTED_TAG: COMPLIANCE_REQUIREMENTS
+2025-09-01 10:52:46,001 - role_awareness - INFO - CONFIDENCE: 19
+2025-09-01 10:52:46,001 - role_awareness - INFO - CHUNKS_USED: 3
+2025-09-01 10:52:46,002 - role_awareness - INFO - TAGS_IN_RESULTS: TIMELINE, COMPLIANCE_REQUIREMENTS, BIDDER_INFO, CONTACT_INFO
+2025-09-01 10:52:46,002 - role_awareness - INFO - ROLE_EFFECTIVENESS: BIDDER | AVG_RELEVANCE: 0.900
+2025-09-01 10:52:46,002 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.900', '0.900', '0.900']
+2025-09-01 10:52:46,003 - role_awareness - INFO - ================================================================================
+2025-09-01 10:52:46,003 - role_awareness - INFO - CHUNK_ANALYSIS for query 'What compliance requirements must be met?' with role 'bidder':
+2025-09-01 10:52:46,003 - role_awareness - INFO -   Chunk 1: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | BIDDER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:52:46,004 - role_awareness - INFO -   Chunk 2: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO'] | BIDDER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:52:46,004 - role_awareness - INFO -   Chunk 3: TAGS=['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | BIDDER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:52:46,004 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='bidder', Avg_Relevance=0.900, Tags_Found=4, Intent_Match=COMPLIANCE_REQUIREMENTS
+2025-09-01 10:52:46,004 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'bidder' | TAGS: ['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | CHUNKS: 3
+2025-09-01 10:52:46,005 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:52:46] "POST /query HTTP/1.1" 200 -
+2025-09-01 10:52:47,055 - role_awareness - INFO - RECEIVED_ROLE: 'general' for query: 'Who can I contact for questions?'
+2025-09-01 10:52:47,055 - role_awareness - INFO - QUERY_START: Role='general', Query='Who can I contact for questions?', Available_chunks=8
+2025-09-01 10:52:47,056 - role_awareness - INFO - FILTERING_START: Role='general', Query='Who can I contact for questions?', Total_chunks=8
+2025-09-01 10:52:47,061 - role_awareness - INFO - FILTERING_RESULT: Role='general', Query='Who can I contact for questions?', Intent='CONTACT_INFO', Confidence=13, Final_chunks=5
+2025-09-01 10:53:49,865 - role_awareness - INFO - ================================================================================
+2025-09-01 10:53:49,870 - role_awareness - INFO - QUERY: 'Who can I contact for questions?'
+2025-09-01 10:53:49,871 - role_awareness - INFO - ROLE: GENERAL
+2025-09-01 10:53:49,871 - role_awareness - INFO - DETECTED_TAG: CONTACT_INFO
+2025-09-01 10:53:49,871 - role_awareness - INFO - CONFIDENCE: 13
+2025-09-01 10:53:49,872 - role_awareness - INFO - CHUNKS_USED: 5
+2025-09-01 10:53:49,872 - role_awareness - INFO - TAGS_IN_RESULTS: TIMELINE, COMPLIANCE_REQUIREMENTS, TECHNICAL_SPECS, CONTACT_INFO, CONTRACT_AMOUNT, BIDDER_INFO
+2025-09-01 10:53:49,872 - role_awareness - INFO - ROLE_EFFECTIVENESS: GENERAL | AVG_RELEVANCE: 0.500
+2025-09-01 10:53:49,872 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.500', '0.500', '0.500', '0.500', '0.500']
+2025-09-01 10:53:49,873 - role_awareness - INFO - ================================================================================
+2025-09-01 10:53:49,873 - role_awareness - INFO - CHUNK_ANALYSIS for query 'Who can I contact for questions?' with role 'general':
+2025-09-01 10:53:49,873 - role_awareness - INFO -   Chunk 1: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | GENERAL_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:53:49,873 - role_awareness - INFO -   Chunk 2: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | GENERAL_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:53:49,874 - role_awareness - INFO -   Chunk 3: TAGS=['CONTACT_INFO'] | GENERAL_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.5, 'bidder': 0.5, 'policy_maker': 0.5}
+2025-09-01 10:53:49,874 - role_awareness - INFO -   Chunk 4: TAGS=['TECHNICAL_SPECS', 'CONTACT_INFO'] | GENERAL_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.5, 'bidder': 0.9, 'policy_maker': 0.5}
+2025-09-01 10:53:49,874 - role_awareness - INFO -   Chunk 5: TAGS=['CONTACT_INFO'] | GENERAL_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.5, 'bidder': 0.5, 'policy_maker': 0.5}
+2025-09-01 10:53:49,874 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='general', Avg_Relevance=0.500, Tags_Found=6, Intent_Match=CONTACT_INFO
+2025-09-01 10:53:49,874 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'general' | TAGS: ['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'TECHNICAL_SPECS', 'CONTACT_INFO', 'CONTRACT_AMOUNT', 'BIDDER_INFO'] | CHUNKS: 5
+2025-09-01 10:53:49,876 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:53:49] "POST /query HTTP/1.1" 200 -
+2025-09-01 10:53:50,907 - role_awareness - INFO - RECEIVED_ROLE: 'auditor' for query: 'Who can I contact for questions?'
+2025-09-01 10:53:50,908 - role_awareness - INFO - QUERY_START: Role='auditor', Query='Who can I contact for questions?', Available_chunks=8
+2025-09-01 10:53:50,911 - role_awareness - INFO - FILTERING_START: Role='auditor', Query='Who can I contact for questions?', Total_chunks=8
+2025-09-01 10:53:50,922 - role_awareness - INFO - FILTERING_RESULT: Role='auditor', Query='Who can I contact for questions?', Intent='CONTACT_INFO', Confidence=13, Final_chunks=5
+2025-09-01 10:55:59,181 - role_awareness - INFO - ================================================================================
+2025-09-01 10:55:59,185 - role_awareness - INFO - QUERY: 'Who can I contact for questions?'
+2025-09-01 10:55:59,185 - role_awareness - INFO - ROLE: AUDITOR
+2025-09-01 10:55:59,185 - role_awareness - INFO - DETECTED_TAG: CONTACT_INFO
+2025-09-01 10:55:59,187 - role_awareness - INFO - CONFIDENCE: 13
+2025-09-01 10:55:59,187 - role_awareness - INFO - CHUNKS_USED: 5
+2025-09-01 10:55:59,187 - role_awareness - INFO - TAGS_IN_RESULTS: TIMELINE, COMPLIANCE_REQUIREMENTS, TECHNICAL_SPECS, CONTACT_INFO, CONTRACT_AMOUNT, BIDDER_INFO
+2025-09-01 10:55:59,187 - role_awareness - INFO - ROLE_EFFECTIVENESS: AUDITOR | AVG_RELEVANCE: 0.740
+2025-09-01 10:55:59,188 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.900', '0.900', '0.900', '0.500', '0.500']
+2025-09-01 10:55:59,188 - role_awareness - INFO - ================================================================================
+2025-09-01 10:55:59,188 - role_awareness - INFO - CHUNK_ANALYSIS for query 'Who can I contact for questions?' with role 'auditor':
+2025-09-01 10:55:59,188 - role_awareness - INFO -   Chunk 1: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | AUDITOR_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:55:59,189 - role_awareness - INFO -   Chunk 2: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | AUDITOR_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:55:59,189 - role_awareness - INFO -   Chunk 3: TAGS=['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | AUDITOR_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:55:59,189 - role_awareness - INFO -   Chunk 4: TAGS=['CONTACT_INFO'] | AUDITOR_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.5, 'bidder': 0.5, 'policy_maker': 0.5}
+2025-09-01 10:55:59,190 - role_awareness - INFO -   Chunk 5: TAGS=['TECHNICAL_SPECS', 'CONTACT_INFO'] | AUDITOR_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.5, 'bidder': 0.9, 'policy_maker': 0.5}
+2025-09-01 10:55:59,190 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='auditor', Avg_Relevance=0.740, Tags_Found=6, Intent_Match=CONTACT_INFO
+2025-09-01 10:55:59,191 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'auditor' | TAGS: ['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'TECHNICAL_SPECS', 'CONTACT_INFO', 'CONTRACT_AMOUNT', 'BIDDER_INFO'] | CHUNKS: 5
+2025-09-01 10:55:59,191 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:55:59] "POST /query HTTP/1.1" 200 -
+2025-09-01 10:56:00,228 - role_awareness - INFO - RECEIVED_ROLE: 'procurement_officer' for query: 'Who can I contact for questions?'
+2025-09-01 10:56:00,229 - role_awareness - INFO - QUERY_START: Role='procurement_officer', Query='Who can I contact for questions?', Available_chunks=8
+2025-09-01 10:56:00,229 - role_awareness - INFO - FILTERING_START: Role='procurement_officer', Query='Who can I contact for questions?', Total_chunks=8
+2025-09-01 10:56:00,238 - role_awareness - INFO - FILTERING_RESULT: Role='procurement_officer', Query='Who can I contact for questions?', Intent='CONTACT_INFO', Confidence=13, Final_chunks=5
+2025-09-01 10:57:21,840 - role_awareness - INFO - ================================================================================
+2025-09-01 10:57:21,846 - role_awareness - INFO - QUERY: 'Who can I contact for questions?'
+2025-09-01 10:57:21,847 - role_awareness - INFO - ROLE: PROCUREMENT_OFFICER
+2025-09-01 10:57:21,847 - role_awareness - INFO - DETECTED_TAG: CONTACT_INFO
+2025-09-01 10:57:21,847 - role_awareness - INFO - CONFIDENCE: 13
+2025-09-01 10:57:21,847 - role_awareness - INFO - CHUNKS_USED: 5
+2025-09-01 10:57:21,848 - role_awareness - INFO - TAGS_IN_RESULTS: TIMELINE, COMPLIANCE_REQUIREMENTS, TECHNICAL_SPECS, CONTACT_INFO, CONTRACT_AMOUNT, BIDDER_INFO
+2025-09-01 10:57:21,848 - role_awareness - INFO - ROLE_EFFECTIVENESS: PROCUREMENT_OFFICER | AVG_RELEVANCE: 0.740
+2025-09-01 10:57:21,848 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.900', '0.900', '0.900', '0.500', '0.500']
+2025-09-01 10:57:21,848 - role_awareness - INFO - ================================================================================
+2025-09-01 10:57:21,848 - role_awareness - INFO - CHUNK_ANALYSIS for query 'Who can I contact for questions?' with role 'procurement_officer':
+2025-09-01 10:57:21,848 - role_awareness - INFO -   Chunk 1: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | PROCUREMENT_OFFICER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:57:21,849 - role_awareness - INFO -   Chunk 2: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | PROCUREMENT_OFFICER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:57:21,849 - role_awareness - INFO -   Chunk 3: TAGS=['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | PROCUREMENT_OFFICER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:57:21,849 - role_awareness - INFO -   Chunk 4: TAGS=['CONTACT_INFO'] | PROCUREMENT_OFFICER_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.5, 'bidder': 0.5, 'policy_maker': 0.5}
+2025-09-01 10:57:21,849 - role_awareness - INFO -   Chunk 5: TAGS=['TECHNICAL_SPECS', 'CONTACT_INFO'] | PROCUREMENT_OFFICER_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.5, 'bidder': 0.9, 'policy_maker': 0.5}
+2025-09-01 10:57:21,850 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='procurement_officer', Avg_Relevance=0.740, Tags_Found=6, Intent_Match=CONTACT_INFO
+2025-09-01 10:57:21,850 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'procurement_officer' | TAGS: ['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'TECHNICAL_SPECS', 'CONTACT_INFO', 'CONTRACT_AMOUNT', 'BIDDER_INFO'] | CHUNKS: 5
+2025-09-01 10:57:21,851 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:57:21] "POST /query HTTP/1.1" 200 -
+2025-09-01 10:57:23,071 - role_awareness - INFO - RECEIVED_ROLE: 'policy_maker' for query: 'Who can I contact for questions?'
+2025-09-01 10:57:23,078 - role_awareness - INFO - QUERY_START: Role='policy_maker', Query='Who can I contact for questions?', Available_chunks=8
+2025-09-01 10:57:23,079 - role_awareness - INFO - FILTERING_START: Role='policy_maker', Query='Who can I contact for questions?', Total_chunks=8
+2025-09-01 10:57:23,083 - role_awareness - INFO - FILTERING_RESULT: Role='policy_maker', Query='Who can I contact for questions?', Intent='CONTACT_INFO', Confidence=13, Final_chunks=5
+2025-09-01 10:58:53,180 - role_awareness - INFO - ================================================================================
+2025-09-01 10:58:53,186 - role_awareness - INFO - QUERY: 'Who can I contact for questions?'
+2025-09-01 10:58:53,186 - role_awareness - INFO - ROLE: POLICY_MAKER
+2025-09-01 10:58:53,187 - role_awareness - INFO - DETECTED_TAG: CONTACT_INFO
+2025-09-01 10:58:53,187 - role_awareness - INFO - CONFIDENCE: 13
+2025-09-01 10:58:53,187 - role_awareness - INFO - CHUNKS_USED: 5
+2025-09-01 10:58:53,187 - role_awareness - INFO - TAGS_IN_RESULTS: TIMELINE, COMPLIANCE_REQUIREMENTS, TECHNICAL_SPECS, CONTACT_INFO, CONTRACT_AMOUNT, BIDDER_INFO
+2025-09-01 10:58:53,187 - role_awareness - INFO - ROLE_EFFECTIVENESS: POLICY_MAKER | AVG_RELEVANCE: 0.740
+2025-09-01 10:58:53,188 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.900', '0.900', '0.900', '0.500', '0.500']
+2025-09-01 10:58:53,188 - role_awareness - INFO - ================================================================================
+2025-09-01 10:58:53,189 - role_awareness - INFO - CHUNK_ANALYSIS for query 'Who can I contact for questions?' with role 'policy_maker':
+2025-09-01 10:58:53,189 - role_awareness - INFO -   Chunk 1: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | POLICY_MAKER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:58:53,189 - role_awareness - INFO -   Chunk 2: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | POLICY_MAKER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:58:53,190 - role_awareness - INFO -   Chunk 3: TAGS=['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | POLICY_MAKER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 10:58:53,190 - role_awareness - INFO -   Chunk 4: TAGS=['CONTACT_INFO'] | POLICY_MAKER_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.5, 'bidder': 0.5, 'policy_maker': 0.5}
+2025-09-01 10:58:53,191 - role_awareness - INFO -   Chunk 5: TAGS=['TECHNICAL_SPECS', 'CONTACT_INFO'] | POLICY_MAKER_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.5, 'bidder': 0.9, 'policy_maker': 0.5}
+2025-09-01 10:58:53,191 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='policy_maker', Avg_Relevance=0.740, Tags_Found=6, Intent_Match=CONTACT_INFO
+2025-09-01 10:58:53,191 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'policy_maker' | TAGS: ['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'TECHNICAL_SPECS', 'CONTACT_INFO', 'CONTRACT_AMOUNT', 'BIDDER_INFO'] | CHUNKS: 5
+2025-09-01 10:58:53,192 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 10:58:53] "POST /query HTTP/1.1" 200 -
+2025-09-01 10:58:54,229 - role_awareness - INFO - RECEIVED_ROLE: 'bidder' for query: 'Who can I contact for questions?'
+2025-09-01 10:58:54,230 - role_awareness - INFO - QUERY_START: Role='bidder', Query='Who can I contact for questions?', Available_chunks=8
+2025-09-01 10:58:54,231 - role_awareness - INFO - FILTERING_START: Role='bidder', Query='Who can I contact for questions?', Total_chunks=8
+2025-09-01 10:58:54,235 - role_awareness - INFO - FILTERING_RESULT: Role='bidder', Query='Who can I contact for questions?', Intent='CONTACT_INFO', Confidence=13, Final_chunks=5
+2025-09-01 11:00:11,731 - role_awareness - INFO - ================================================================================
+2025-09-01 11:00:11,735 - role_awareness - INFO - QUERY: 'Who can I contact for questions?'
+2025-09-01 11:00:11,736 - role_awareness - INFO - ROLE: BIDDER
+2025-09-01 11:00:11,736 - role_awareness - INFO - DETECTED_TAG: CONTACT_INFO
+2025-09-01 11:00:11,736 - role_awareness - INFO - CONFIDENCE: 13
+2025-09-01 11:00:11,736 - role_awareness - INFO - CHUNKS_USED: 5
+2025-09-01 11:00:11,737 - role_awareness - INFO - TAGS_IN_RESULTS: TIMELINE, COMPLIANCE_REQUIREMENTS, TECHNICAL_SPECS, CONTACT_INFO, CONTRACT_AMOUNT, BIDDER_INFO
+2025-09-01 11:00:11,737 - role_awareness - INFO - ROLE_EFFECTIVENESS: BIDDER | AVG_RELEVANCE: 0.820
+2025-09-01 11:00:11,737 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.900', '0.900', '0.900', '0.900', '0.500']
+2025-09-01 11:00:11,738 - role_awareness - INFO - ================================================================================
+2025-09-01 11:00:11,738 - role_awareness - INFO - CHUNK_ANALYSIS for query 'Who can I contact for questions?' with role 'bidder':
+2025-09-01 11:00:11,738 - role_awareness - INFO -   Chunk 1: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | BIDDER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 11:00:11,740 - role_awareness - INFO -   Chunk 2: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | BIDDER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 11:00:11,740 - role_awareness - INFO -   Chunk 3: TAGS=['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | BIDDER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 11:00:11,740 - role_awareness - INFO -   Chunk 4: TAGS=['TECHNICAL_SPECS', 'CONTACT_INFO'] | BIDDER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.5, 'bidder': 0.9, 'policy_maker': 0.5}
+2025-09-01 11:00:11,740 - role_awareness - INFO -   Chunk 5: TAGS=['CONTACT_INFO'] | BIDDER_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.5, 'bidder': 0.5, 'policy_maker': 0.5}
+2025-09-01 11:00:11,740 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='bidder', Avg_Relevance=0.820, Tags_Found=6, Intent_Match=CONTACT_INFO
+2025-09-01 11:00:11,741 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'bidder' | TAGS: ['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'TECHNICAL_SPECS', 'CONTACT_INFO', 'CONTRACT_AMOUNT', 'BIDDER_INFO'] | CHUNKS: 5
+2025-09-01 11:00:11,742 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 11:00:11] "POST /query HTTP/1.1" 200 -
+2025-09-01 11:00:12,773 - role_awareness - INFO - RECEIVED_ROLE: 'general' for query: 'How do I submit a bid?'
+2025-09-01 11:00:12,774 - role_awareness - INFO - QUERY_START: Role='general', Query='How do I submit a bid?', Available_chunks=8
+2025-09-01 11:00:12,774 - role_awareness - INFO - FILTERING_START: Role='general', Query='How do I submit a bid?', Total_chunks=8
+2025-09-01 11:00:12,780 - role_awareness - INFO - FILTERING_RESULT: Role='general', Query='How do I submit a bid?', Intent='BIDDER_INFO', Confidence=8, Final_chunks=4
+2025-09-01 11:01:25,262 - role_awareness - INFO - ================================================================================
+2025-09-01 11:01:25,267 - role_awareness - INFO - QUERY: 'How do I submit a bid?'
+2025-09-01 11:01:25,267 - role_awareness - INFO - ROLE: GENERAL
+2025-09-01 11:01:25,267 - role_awareness - INFO - DETECTED_TAG: BIDDER_INFO
+2025-09-01 11:01:25,267 - role_awareness - INFO - CONFIDENCE: 8
+2025-09-01 11:01:25,267 - role_awareness - INFO - CHUNKS_USED: 4
+2025-09-01 11:01:25,268 - role_awareness - INFO - TAGS_IN_RESULTS: TIMELINE, COMPLIANCE_REQUIREMENTS, BIDDER_INFO, CONTACT_INFO
+2025-09-01 11:01:25,268 - role_awareness - INFO - ROLE_EFFECTIVENESS: GENERAL | AVG_RELEVANCE: 0.500
+2025-09-01 11:01:25,268 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.500', '0.500', '0.500', '0.500']
+2025-09-01 11:01:25,269 - role_awareness - INFO - ================================================================================
+2025-09-01 11:01:25,269 - role_awareness - INFO - CHUNK_ANALYSIS for query 'How do I submit a bid?' with role 'general':
+2025-09-01 11:01:25,269 - role_awareness - INFO -   Chunk 1: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | GENERAL_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 11:01:25,269 - role_awareness - INFO -   Chunk 2: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO'] | GENERAL_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 11:01:25,269 - role_awareness - INFO -   Chunk 3: TAGS=['TIMELINE', 'BIDDER_INFO'] | GENERAL_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.5}
+2025-09-01 11:01:25,269 - role_awareness - INFO -   Chunk 4: TAGS=['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | GENERAL_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 11:01:25,270 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='general', Avg_Relevance=0.500, Tags_Found=4, Intent_Match=BIDDER_INFO
+2025-09-01 11:01:25,271 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'general' | TAGS: ['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | CHUNKS: 4
+2025-09-01 11:01:25,272 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 11:01:25] "POST /query HTTP/1.1" 200 -
+2025-09-01 11:01:26,303 - role_awareness - INFO - RECEIVED_ROLE: 'auditor' for query: 'How do I submit a bid?'
+2025-09-01 11:01:26,304 - role_awareness - INFO - QUERY_START: Role='auditor', Query='How do I submit a bid?', Available_chunks=8
+2025-09-01 11:01:26,304 - role_awareness - INFO - FILTERING_START: Role='auditor', Query='How do I submit a bid?', Total_chunks=8
+2025-09-01 11:01:26,311 - role_awareness - INFO - FILTERING_RESULT: Role='auditor', Query='How do I submit a bid?', Intent='BIDDER_INFO', Confidence=8, Final_chunks=4
+2025-09-01 11:02:51,147 - role_awareness - INFO - ================================================================================
+2025-09-01 11:02:51,211 - role_awareness - INFO - QUERY: 'How do I submit a bid?'
+2025-09-01 11:02:51,211 - role_awareness - INFO - ROLE: AUDITOR
+2025-09-01 11:02:51,211 - role_awareness - INFO - DETECTED_TAG: BIDDER_INFO
+2025-09-01 11:02:51,211 - role_awareness - INFO - CONFIDENCE: 8
+2025-09-01 11:02:51,212 - role_awareness - INFO - CHUNKS_USED: 4
+2025-09-01 11:02:51,212 - role_awareness - INFO - TAGS_IN_RESULTS: TIMELINE, COMPLIANCE_REQUIREMENTS, BIDDER_INFO, CONTACT_INFO
+2025-09-01 11:02:51,212 - role_awareness - INFO - ROLE_EFFECTIVENESS: AUDITOR | AVG_RELEVANCE: 0.800
+2025-09-01 11:02:51,213 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.900', '0.900', '0.900', '0.500']
+2025-09-01 11:02:51,213 - role_awareness - INFO - ================================================================================
+2025-09-01 11:02:51,213 - role_awareness - INFO - CHUNK_ANALYSIS for query 'How do I submit a bid?' with role 'auditor':
+2025-09-01 11:02:51,213 - role_awareness - INFO -   Chunk 1: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO'] | AUDITOR_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 11:02:51,214 - role_awareness - INFO -   Chunk 2: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | AUDITOR_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 11:02:51,214 - role_awareness - INFO -   Chunk 3: TAGS=['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | AUDITOR_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 11:02:51,214 - role_awareness - INFO -   Chunk 4: TAGS=['TIMELINE', 'BIDDER_INFO'] | AUDITOR_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.5}
+2025-09-01 11:02:51,214 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='auditor', Avg_Relevance=0.800, Tags_Found=4, Intent_Match=BIDDER_INFO
+2025-09-01 11:02:51,216 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'auditor' | TAGS: ['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | CHUNKS: 4
+2025-09-01 11:02:51,217 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 11:02:51] "POST /query HTTP/1.1" 200 -
+2025-09-01 11:02:52,251 - role_awareness - INFO - RECEIVED_ROLE: 'procurement_officer' for query: 'How do I submit a bid?'
+2025-09-01 11:02:52,252 - role_awareness - INFO - QUERY_START: Role='procurement_officer', Query='How do I submit a bid?', Available_chunks=8
+2025-09-01 11:02:52,252 - role_awareness - INFO - FILTERING_START: Role='procurement_officer', Query='How do I submit a bid?', Total_chunks=8
+2025-09-01 11:02:52,261 - role_awareness - INFO - FILTERING_RESULT: Role='procurement_officer', Query='How do I submit a bid?', Intent='BIDDER_INFO', Confidence=8, Final_chunks=4
+2025-09-01 11:04:06,263 - role_awareness - INFO - ================================================================================
+2025-09-01 11:04:06,515 - role_awareness - INFO - QUERY: 'How do I submit a bid?'
+2025-09-01 11:04:06,517 - role_awareness - INFO - ROLE: PROCUREMENT_OFFICER
+2025-09-01 11:04:06,517 - role_awareness - INFO - DETECTED_TAG: BIDDER_INFO
+2025-09-01 11:04:06,517 - role_awareness - INFO - CONFIDENCE: 8
+2025-09-01 11:04:06,517 - role_awareness - INFO - CHUNKS_USED: 4
+2025-09-01 11:04:06,517 - role_awareness - INFO - TAGS_IN_RESULTS: TIMELINE, COMPLIANCE_REQUIREMENTS, BIDDER_INFO, CONTACT_INFO
+2025-09-01 11:04:06,519 - role_awareness - INFO - ROLE_EFFECTIVENESS: PROCUREMENT_OFFICER | AVG_RELEVANCE: 0.900
+2025-09-01 11:04:06,519 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.900', '0.900', '0.900', '0.900']
+2025-09-01 11:04:06,519 - role_awareness - INFO - ================================================================================
+2025-09-01 11:04:06,520 - role_awareness - INFO - CHUNK_ANALYSIS for query 'How do I submit a bid?' with role 'procurement_officer':
+2025-09-01 11:04:06,520 - role_awareness - INFO -   Chunk 1: TAGS=['TIMELINE', 'BIDDER_INFO'] | PROCUREMENT_OFFICER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.5}
+2025-09-01 11:04:06,520 - role_awareness - INFO -   Chunk 2: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | PROCUREMENT_OFFICER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 11:04:06,520 - role_awareness - INFO -   Chunk 3: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO'] | PROCUREMENT_OFFICER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 11:04:06,521 - role_awareness - INFO -   Chunk 4: TAGS=['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | PROCUREMENT_OFFICER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 11:04:06,522 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='procurement_officer', Avg_Relevance=0.900, Tags_Found=4, Intent_Match=BIDDER_INFO
+2025-09-01 11:04:06,524 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'procurement_officer' | TAGS: ['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | CHUNKS: 4
+2025-09-01 11:04:06,525 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 11:04:06] "POST /query HTTP/1.1" 200 -
+2025-09-01 11:04:07,563 - role_awareness - INFO - RECEIVED_ROLE: 'policy_maker' for query: 'How do I submit a bid?'
+2025-09-01 11:04:07,563 - role_awareness - INFO - QUERY_START: Role='policy_maker', Query='How do I submit a bid?', Available_chunks=8
+2025-09-01 11:04:07,564 - role_awareness - INFO - FILTERING_START: Role='policy_maker', Query='How do I submit a bid?', Total_chunks=8
+2025-09-01 11:04:07,576 - role_awareness - INFO - FILTERING_RESULT: Role='policy_maker', Query='How do I submit a bid?', Intent='BIDDER_INFO', Confidence=8, Final_chunks=4
+2025-09-01 11:05:26,500 - role_awareness - INFO - ================================================================================
+2025-09-01 11:05:26,504 - role_awareness - INFO - QUERY: 'How do I submit a bid?'
+2025-09-01 11:05:26,504 - role_awareness - INFO - ROLE: POLICY_MAKER
+2025-09-01 11:05:26,504 - role_awareness - INFO - DETECTED_TAG: BIDDER_INFO
+2025-09-01 11:05:26,504 - role_awareness - INFO - CONFIDENCE: 8
+2025-09-01 11:05:26,505 - role_awareness - INFO - CHUNKS_USED: 4
+2025-09-01 11:05:26,505 - role_awareness - INFO - TAGS_IN_RESULTS: TIMELINE, COMPLIANCE_REQUIREMENTS, BIDDER_INFO, CONTACT_INFO
+2025-09-01 11:05:26,505 - role_awareness - INFO - ROLE_EFFECTIVENESS: POLICY_MAKER | AVG_RELEVANCE: 0.800
+2025-09-01 11:05:26,505 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.900', '0.900', '0.900', '0.500']
+2025-09-01 11:05:26,505 - role_awareness - INFO - ================================================================================
+2025-09-01 11:05:26,505 - role_awareness - INFO - CHUNK_ANALYSIS for query 'How do I submit a bid?' with role 'policy_maker':
+2025-09-01 11:05:26,505 - role_awareness - INFO -   Chunk 1: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO'] | POLICY_MAKER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 11:05:26,506 - role_awareness - INFO -   Chunk 2: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | POLICY_MAKER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 11:05:26,506 - role_awareness - INFO -   Chunk 3: TAGS=['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | POLICY_MAKER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 11:05:26,506 - role_awareness - INFO -   Chunk 4: TAGS=['TIMELINE', 'BIDDER_INFO'] | POLICY_MAKER_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.5}
+2025-09-01 11:05:26,507 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='policy_maker', Avg_Relevance=0.800, Tags_Found=4, Intent_Match=BIDDER_INFO
+2025-09-01 11:05:26,507 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'policy_maker' | TAGS: ['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | CHUNKS: 4
+2025-09-01 11:05:26,508 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 11:05:26] "POST /query HTTP/1.1" 200 -
+2025-09-01 11:05:27,545 - role_awareness - INFO - RECEIVED_ROLE: 'bidder' for query: 'How do I submit a bid?'
+2025-09-01 11:05:27,550 - role_awareness - INFO - QUERY_START: Role='bidder', Query='How do I submit a bid?', Available_chunks=8
+2025-09-01 11:05:27,551 - role_awareness - INFO - FILTERING_START: Role='bidder', Query='How do I submit a bid?', Total_chunks=8
+2025-09-01 11:05:27,555 - role_awareness - INFO - FILTERING_RESULT: Role='bidder', Query='How do I submit a bid?', Intent='BIDDER_INFO', Confidence=8, Final_chunks=4
+2025-09-01 11:06:42,609 - role_awareness - INFO - ================================================================================
+2025-09-01 11:06:42,613 - role_awareness - INFO - QUERY: 'How do I submit a bid?'
+2025-09-01 11:06:42,613 - role_awareness - INFO - ROLE: BIDDER
+2025-09-01 11:06:42,613 - role_awareness - INFO - DETECTED_TAG: BIDDER_INFO
+2025-09-01 11:06:42,613 - role_awareness - INFO - CONFIDENCE: 8
+2025-09-01 11:06:42,613 - role_awareness - INFO - CHUNKS_USED: 4
+2025-09-01 11:06:42,613 - role_awareness - INFO - TAGS_IN_RESULTS: TIMELINE, COMPLIANCE_REQUIREMENTS, BIDDER_INFO, CONTACT_INFO
+2025-09-01 11:06:42,614 - role_awareness - INFO - ROLE_EFFECTIVENESS: BIDDER | AVG_RELEVANCE: 0.900
+2025-09-01 11:06:42,614 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.900', '0.900', '0.900', '0.900']
+2025-09-01 11:06:42,614 - role_awareness - INFO - ================================================================================
+2025-09-01 11:06:42,614 - role_awareness - INFO - CHUNK_ANALYSIS for query 'How do I submit a bid?' with role 'bidder':
+2025-09-01 11:06:42,614 - role_awareness - INFO -   Chunk 1: TAGS=['TIMELINE', 'BIDDER_INFO'] | BIDDER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.5}
+2025-09-01 11:06:42,614 - role_awareness - INFO -   Chunk 2: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | BIDDER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 11:06:42,614 - role_awareness - INFO -   Chunk 3: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO'] | BIDDER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 11:06:42,615 - role_awareness - INFO -   Chunk 4: TAGS=['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | BIDDER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 11:06:42,615 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='bidder', Avg_Relevance=0.900, Tags_Found=4, Intent_Match=BIDDER_INFO
+2025-09-01 11:06:42,615 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'bidder' | TAGS: ['TIMELINE', 'COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | CHUNKS: 4
+2025-09-01 11:06:42,617 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 11:06:42] "POST /query HTTP/1.1" 200 -
+2025-09-01 11:14:11,880 - werkzeug - INFO -  * Detected change in 'C:\\Users\\al-st\\Thesis-Optimizing-RAG-for-Querying-Locally-Stored-Public-Procurement-Docs-using-SML\\role_analysis.py', reloading
+2025-09-01 11:14:12,212 - werkzeug - INFO -  * Restarting with stat
+2025-09-01 11:14:14,680 - werkzeug - WARNING -  * Debugger is active!
+2025-09-01 11:14:14,684 - werkzeug - INFO -  * Debugger PIN: 729-816-909
+2025-09-01 11:18:14,922 - werkzeug - INFO -  * Detected change in 'C:\\Users\\al-st\\Thesis-Optimizing-RAG-for-Querying-Locally-Stored-Public-Procurement-Docs-using-SML\\role_effectiveness_summary.py', reloading
+2025-09-01 11:18:15,098 - werkzeug - INFO -  * Restarting with stat
+2025-09-01 11:18:21,873 - werkzeug - WARNING -  * Debugger is active!
+2025-09-01 11:18:21,876 - werkzeug - INFO -  * Debugger PIN: 729-816-909
+2025-09-01 11:19:05,241 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 11:19:05] "GET / HTTP/1.1" 200 -
+2025-09-01 11:19:05,257 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 11:19:05] "GET /images/logo.png HTTP/1.1" 200 -
+2025-09-01 11:19:05,261 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 11:19:05] "GET /images/local.png HTTP/1.1" 200 -
+2025-09-01 11:19:05,273 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 11:19:05] "GET /images/private.png HTTP/1.1" 200 -
+2025-09-01 11:19:05,280 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 11:19:05] "GET /css/style.css HTTP/1.1" 200 -
+2025-09-01 11:19:05,283 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 11:19:05] "GET /images/available.png HTTP/1.1" 200 -
+2025-09-01 11:19:05,333 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 11:19:05] "GET /js/script.js HTTP/1.1" 200 -
+2025-09-01 11:19:05,417 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 11:19:05] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-09-01 11:19:10,505 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 11:19:10] "POST /upload HTTP/1.1" 200 -
+2025-09-01 11:19:10,576 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 11:19:10] "GET /document-viewer.html HTTP/1.1" 200 -
+2025-09-01 11:19:10,590 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 11:19:10] "[36mGET /css/style.css HTTP/1.1[0m" 304 -
+2025-09-01 11:19:10,595 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 11:19:10] "[36mGET /images/logo.png HTTP/1.1[0m" 304 -
+2025-09-01 11:19:10,607 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 11:19:10] "GET /css/document-viewer.css HTTP/1.1" 200 -
+2025-09-01 11:19:10,632 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 11:19:10] "GET /js/document-viewer.js HTTP/1.1" 200 -
+2025-09-01 11:19:10,822 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 11:19:10] "[33mGET /status HTTP/1.1[0m" 404 -
+2025-09-01 11:19:10,967 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 11:19:10] "GET /uploads/PR-25-03-120-Rebid_merged-1.pdf HTTP/1.1" 200 -
+2025-09-01 11:20:19,327 - role_awareness - INFO - RECEIVED_ROLE: 'procurement_officer' for query: 'what is the Reference number or procurement ID?'
+2025-09-01 11:20:19,329 - role_awareness - INFO - QUERY_START: Role='procurement_officer', Query='what is the Reference number or procurement ID?', Available_chunks=16
+2025-09-01 11:20:19,330 - role_awareness - INFO - FILTERING_START: Role='procurement_officer', Query='what is the Reference number or procurement ID?', Total_chunks=16
+2025-09-01 11:20:19,335 - role_awareness - INFO - FILTERING_RESULT: Role='procurement_officer', Query='what is the Reference number or procurement ID?', Intent='None', Confidence=0, Final_chunks=5
+2025-09-01 11:21:13,848 - role_awareness - INFO - ================================================================================
+2025-09-01 11:21:13,853 - role_awareness - INFO - QUERY: 'what is the Reference number or procurement ID?'
+2025-09-01 11:21:13,853 - role_awareness - INFO - ROLE: PROCUREMENT_OFFICER
+2025-09-01 11:21:13,853 - role_awareness - INFO - DETECTED_TAG: None
+2025-09-01 11:21:13,853 - role_awareness - INFO - CONFIDENCE: 0
+2025-09-01 11:21:13,853 - role_awareness - INFO - CHUNKS_USED: 5
+2025-09-01 11:21:13,853 - role_awareness - INFO - TAGS_IN_RESULTS: COMPLIANCE_REQUIREMENTS, CONTRACT_AMOUNT, BIDDER_INFO, TIMELINE, TECHNICAL_SPECS, CONTACT_INFO
+2025-09-01 11:21:13,853 - role_awareness - INFO - ROLE_EFFECTIVENESS: PROCUREMENT_OFFICER | AVG_RELEVANCE: 0.900
+2025-09-01 11:21:13,854 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.900', '0.900', '0.900', '0.900', '0.900']
+2025-09-01 11:21:13,854 - role_awareness - INFO - ================================================================================
+2025-09-01 11:21:13,854 - role_awareness - INFO - CHUNK_ANALYSIS for query 'what is the Reference number or procurement ID?' with role 'procurement_officer':
+2025-09-01 11:21:13,854 - role_awareness - INFO -   Chunk 1: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | PROCUREMENT_OFFICER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 11:21:13,854 - role_awareness - INFO -   Chunk 2: TAGS=['COMPLIANCE_REQUIREMENTS', 'BIDDER_INFO', 'CONTACT_INFO'] | PROCUREMENT_OFFICER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 11:21:13,855 - role_awareness - INFO -   Chunk 3: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | PROCUREMENT_OFFICER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 11:21:13,855 - role_awareness - INFO -   Chunk 4: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | PROCUREMENT_OFFICER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 11:21:13,856 - role_awareness - INFO -   Chunk 5: TAGS=['TIMELINE', 'BIDDER_INFO'] | PROCUREMENT_OFFICER_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.5}
+2025-09-01 11:21:13,856 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='procurement_officer', Avg_Relevance=0.900, Tags_Found=6, Intent_Match=None
+2025-09-01 11:21:13,857 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'procurement_officer' | TAGS: ['COMPLIANCE_REQUIREMENTS', 'CONTRACT_AMOUNT', 'BIDDER_INFO', 'TIMELINE', 'TECHNICAL_SPECS', 'CONTACT_INFO'] | CHUNKS: 5
+2025-09-01 11:21:13,861 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 11:21:13] "POST /query HTTP/1.1" 200 -
+2025-09-01 11:24:59,095 - werkzeug - INFO -  * Detected change in 'C:\\Users\\al-st\\Thesis-Optimizing-RAG-for-Querying-Locally-Stored-Public-Procurement-Docs-using-SML\\app.py', reloading
+2025-09-01 11:24:59,447 - werkzeug - INFO -  * Restarting with stat
+2025-09-01 11:25:03,343 - werkzeug - WARNING -  * Debugger is active!
+2025-09-01 11:25:03,351 - werkzeug - INFO -  * Debugger PIN: 729-816-909
+2025-09-01 11:25:18,650 - werkzeug - INFO -  * Detected change in 'C:\\Users\\al-st\\Thesis-Optimizing-RAG-for-Querying-Locally-Stored-Public-Procurement-Docs-using-SML\\app.py', reloading
+2025-09-01 11:25:19,216 - werkzeug - INFO -  * Restarting with stat
+2025-09-01 11:25:22,129 - werkzeug - WARNING -  * Debugger is active!
+2025-09-01 11:25:22,134 - werkzeug - INFO -  * Debugger PIN: 729-816-909
+2025-09-01 11:27:24,082 - werkzeug - INFO -  * Detected change in 'C:\\Users\\al-st\\Thesis-Optimizing-RAG-for-Querying-Locally-Stored-Public-Procurement-Docs-using-SML\\app.py', reloading
+2025-09-01 11:27:24,404 - werkzeug - INFO -  * Restarting with stat
+2025-09-01 11:27:28,401 - werkzeug - WARNING -  * Debugger is active!
+2025-09-01 11:27:28,411 - werkzeug - INFO -  * Debugger PIN: 729-816-909
+2025-09-01 11:28:06,924 - werkzeug - INFO -  * Detected change in 'C:\\Users\\al-st\\Thesis-Optimizing-RAG-for-Querying-Locally-Stored-Public-Procurement-Docs-using-SML\\app.py', reloading
+2025-09-01 11:28:07,175 - werkzeug - INFO -  * Restarting with stat
+2025-09-01 11:28:10,157 - werkzeug - WARNING -  * Debugger is active!
+2025-09-01 11:28:10,163 - werkzeug - INFO -  * Debugger PIN: 729-816-909
+2025-09-01 11:28:11,190 - werkzeug - INFO -  * Detected change in 'C:\\Users\\al-st\\Thesis-Optimizing-RAG-for-Querying-Locally-Stored-Public-Procurement-Docs-using-SML\\app.py', reloading
+2025-09-01 11:28:11,346 - werkzeug - INFO -  * Restarting with stat
+2025-09-01 11:28:14,050 - werkzeug - WARNING -  * Debugger is active!
+2025-09-01 11:28:14,057 - werkzeug - INFO -  * Debugger PIN: 729-816-909

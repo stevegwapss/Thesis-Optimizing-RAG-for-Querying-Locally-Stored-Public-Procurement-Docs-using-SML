@@ -3,10 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document Viewer - WESDEABEN</title>
+    <title>Document Viewer - Role-Aware RAG</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/document-viewer.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <style>
+        .role-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .role-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .role-icon {
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .role-badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .response-meta {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .meta-item {
+            text-align: center;
+        }
+
+        .meta-label {
+            font-weight: 600;
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .meta-value {
+            color: #333;
+            font-weight: bold;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .tag {
+            background: #e9ecef;
+            color: #495057;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+        }
+
+        .role-selector {
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .role-selector label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .role-dropdown {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+
+        .role-dropdown:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .role-dropdown:hover {
+            border-color: #667eea;
+        }
+    </style>
 </head>
 <body>
     <!-- Header -->
@@ -60,6 +170,19 @@
                     <h3>Document Assistant</h3>
                     <div class="model-info">Powered by Local LLM</div>
                 </div>
+                
+                <!-- Role Selection Dropdown -->
+                <div class="role-selector">
+                    <label for="roleSelect">Select your role:</label>
+                    <select id="roleSelect" class="role-dropdown">
+                        <option value="general">General User</option>
+                        <option value="auditor">Auditor</option>
+                        <option value="procurement_officer">Procurement Officer</option>
+                        <option value="policy_maker">Policy Maker</option>
+                        <option value="bidder">Bidder/Supplier</option>
+                    </select>
+                </div>
+                
                 <div class="chat-messages" id="chat-messages">
                     <div class="assistant-message">Hello! I've indexed your document. You can ask me any questions about its content.</div>
                 </div>
@@ -89,5 +212,111 @@
     </footer>
 
     <script src="/js/document-viewer.js"></script>
+    <script>
+        // Role descriptions
+        const roleDescriptions = {
+            'general': 'General user - receives balanced information from all aspects of procurement documents.',
+            'auditor': 'Focus on compliance, legal requirements, proper procedures, and budget verification.',
+            'procurement_officer': 'Focus on process management, timelines, bidder coordination, and operations.',
+            'policy_maker': 'Focus on regulatory compliance, budget implications, and strategic decisions.',
+            'bidder': 'Focus on specifications, submission requirements, deadlines, and participation guidance.'
+        };
+
+        // Update role description when selection changes
+        document.getElementById('roleSelect').addEventListener('change', function() {
+            const role = this.value;
+            const description = roleDescriptions[role] || '';
+            document.getElementById('roleDescription').textContent = description;
+        });
+
+        // Initialize with default description
+        document.getElementById('roleDescription').textContent = roleDescriptions['general'];
+
+        // Enhanced query function with role support
+        async function queryDocuments() {
+            const query = document.getElementById('queryInput').value.trim();
+            const role = document.getElementById('roleSelect').value;
+            
+            if (!query) {
+                addMessage('Please enter a question.', 'error');
+                return;
+            }
+
+            // Add user message with role indicator
+            const roleDisplay = role !== 'general' ? ` (${role.replace('_', ' ').toUpperCase()})` : '';
+            addMessage(query + roleDisplay, 'user');
+            
+            // Show thinking indicator
+            const thinkingId = addMessage('Thinking...', 'bot', true);
+
+            try {
+                const response = await fetch('/query', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, role })
+                });
+
+                const result = await response.json();
+                
+                // Remove thinking indicator
+                document.getElementById(thinkingId).remove();
+
+                if (result.error) {
+                    addMessage(`Error: ${result.error}`, 'error');
+                } else {
+                    // Add role metadata to bot response
+                    const metadata = {
+                        role: result.role,
+                        contexts_used: result.contexts_used,
+                        relevant_tags: result.relevant_tags,
+                        sources: result.sources
+                    };
+                    addMessage(result.response, 'bot', false, metadata);
+                }
+            } catch (error) {
+                document.getElementById(thinkingId).remove();
+                addMessage(`Error: ${error.message}`, 'error');
+            }
+
+            // Clear input
+            document.getElementById('queryInput').value = '';
+        }
+
+        // Enhanced addMessage function with role metadata display
+        function addMessage(text, type, isThinking = false, metadata = null) {
+            const messageId = 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.id = messageId;
+            messageDiv.className = `message ${type}`;
+            
+            if (isThinking) {
+                messageDiv.innerHTML = `<div class="thinking">🤔 ${text}</div>`;
+            } else {
+                let content = `<div class="message-content">${text}</div>`;
+                
+                // Add metadata for bot responses with role info
+                if (type === 'bot' && metadata) {
+                    const roleName = (metadata.role || 'general').replace('_', ' ').toUpperCase();
+                    content += `
+                        <div class="message-metadata">
+                            <small>
+                                👤 ${roleName} | 
+                                📄 ${metadata.contexts_used || 0} contexts | 
+                                🏷️ ${(metadata.relevant_tags || []).join(', ') || 'None'}
+                            </small>
+                        </div>
+                    `;
+                }
+                
+                messageDiv.innerHTML = content;
+            }
+            
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            
+            return messageId;
+        }
+    </script>
 </body>
 </html>
