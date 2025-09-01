@@ -903,3 +903,46 @@
 2025-09-01 11:28:11,346 - werkzeug - INFO -  * Restarting with stat
 2025-09-01 11:28:14,050 - werkzeug - WARNING -  * Debugger is active!
 2025-09-01 11:28:14,057 - werkzeug - INFO -  * Debugger PIN: 729-816-909
+2025-09-01 18:22:58,899 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-09-01 18:22:58,899 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-09-01 18:22:58,902 - werkzeug - INFO -  * Restarting with stat
+2025-09-01 18:23:00,607 - werkzeug - WARNING -  * Debugger is active!
+2025-09-01 18:23:00,611 - werkzeug - INFO -  * Debugger PIN: 729-816-909
+2025-09-01 18:23:25,882 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:23:25] "[36mGET / HTTP/1.1[0m" 304 -
+2025-09-01 18:23:25,896 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:23:25] "[36mGET /images/logo.png HTTP/1.1[0m" 304 -
+2025-09-01 18:23:25,897 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:23:25] "[36mGET /css/style.css HTTP/1.1[0m" 304 -
+2025-09-01 18:23:25,898 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:23:25] "[36mGET /images/local.png HTTP/1.1[0m" 304 -
+2025-09-01 18:23:25,909 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:23:25] "[36mGET /images/private.png HTTP/1.1[0m" 304 -
+2025-09-01 18:23:25,913 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:23:25] "[36mGET /js/script.js HTTP/1.1[0m" 304 -
+2025-09-01 18:23:25,915 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:23:25] "[36mGET /images/available.png HTTP/1.1[0m" 304 -
+2025-09-01 18:23:26,004 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:23:26] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-09-01 18:23:32,327 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:23:32] "POST /upload HTTP/1.1" 200 -
+2025-09-01 18:23:32,347 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:23:32] "GET /document-viewer.html HTTP/1.1" 200 -
+2025-09-01 18:23:32,363 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:23:32] "[36mGET /css/style.css HTTP/1.1[0m" 304 -
+2025-09-01 18:23:32,363 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:23:32] "GET /js/document-viewer.js HTTP/1.1" 200 -
+2025-09-01 18:23:32,363 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:23:32] "GET /css/document-viewer.css HTTP/1.1" 200 -
+2025-09-01 18:23:32,365 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:23:32] "[36mGET /images/logo.png HTTP/1.1[0m" 304 -
+2025-09-01 18:23:33,009 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:23:33] "[33mGET /status HTTP/1.1[0m" 404 -
+2025-09-01 18:23:33,112 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:23:33] "GET /uploads/PR-25-03-120-Rebid_merged-1.pdf HTTP/1.1" 200 -
+2025-09-01 18:23:38,246 - role_awareness - INFO - RECEIVED_ROLE: 'general' for query: 'what is the budget'
+2025-09-01 18:23:38,246 - role_awareness - INFO - QUERY_START: Role='general', Query='what is the budget', Available_chunks=24
+2025-09-01 18:23:38,246 - role_awareness - INFO - FILTERING_START: Role='general', Query='what is the budget', Total_chunks=24
+2025-09-01 18:23:38,249 - role_awareness - INFO - FILTERING_RESULT: Role='general', Query='what is the budget', Intent='CONTRACT_AMOUNT', Confidence=14, Final_chunks=3
+2025-09-01 18:24:11,299 - role_awareness - INFO - ================================================================================
+2025-09-01 18:24:11,303 - role_awareness - INFO - QUERY: 'what is the budget'
+2025-09-01 18:24:11,303 - role_awareness - INFO - ROLE: GENERAL
+2025-09-01 18:24:11,303 - role_awareness - INFO - DETECTED_TAG: CONTRACT_AMOUNT
+2025-09-01 18:24:11,303 - role_awareness - INFO - CONFIDENCE: 14
+2025-09-01 18:24:11,304 - role_awareness - INFO - CHUNKS_USED: 3
+2025-09-01 18:24:11,304 - role_awareness - INFO - TAGS_IN_RESULTS: TECHNICAL_SPECS, TIMELINE, REFERENCE_INFO, CONTRACT_AMOUNT, CONTACT_INFO
+2025-09-01 18:24:11,304 - role_awareness - INFO - ROLE_EFFECTIVENESS: GENERAL | AVG_RELEVANCE: 0.500
+2025-09-01 18:24:11,304 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.500', '0.500', '0.500']
+2025-09-01 18:24:11,304 - role_awareness - INFO - ================================================================================
+2025-09-01 18:24:11,304 - role_awareness - INFO - CHUNK_ANALYSIS for query 'what is the budget' with role 'general':
+2025-09-01 18:24:11,305 - role_awareness - INFO -   Chunk 1: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO', 'REFERENCE_INFO'] | GENERAL_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 18:24:11,305 - role_awareness - INFO -   Chunk 2: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | GENERAL_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 18:24:11,305 - role_awareness - INFO -   Chunk 3: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | GENERAL_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-01 18:24:11,305 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='general', Avg_Relevance=0.500, Tags_Found=5, Intent_Match=CONTRACT_AMOUNT
+2025-09-01 18:24:11,306 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'general' | TAGS: ['TECHNICAL_SPECS', 'TIMELINE', 'REFERENCE_INFO', 'CONTRACT_AMOUNT', 'CONTACT_INFO'] | CHUNKS: 3
+2025-09-01 18:24:11,306 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:24:11] "POST /query HTTP/1.1" 200 -
