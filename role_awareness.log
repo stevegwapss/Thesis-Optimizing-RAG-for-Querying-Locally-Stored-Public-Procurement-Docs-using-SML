@@ -946,3 +946,7 @@
 2025-09-01 18:24:11,305 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='general', Avg_Relevance=0.500, Tags_Found=5, Intent_Match=CONTRACT_AMOUNT
 2025-09-01 18:24:11,306 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'general' | TAGS: ['TECHNICAL_SPECS', 'TIMELINE', 'REFERENCE_INFO', 'CONTRACT_AMOUNT', 'CONTACT_INFO'] | CHUNKS: 3
 2025-09-01 18:24:11,306 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:24:11] "POST /query HTTP/1.1" 200 -
+2025-09-01 18:27:29,908 - werkzeug - INFO -  * Detected change in 'C:\\Users\\al-st\\Thesis-Optimizing-RAG-for-Querying-Locally-Stored-Public-Procurement-Docs-using-SML\\model-training\\finetune_llama_unsloth.py', reloading
+2025-09-01 18:27:30,088 - werkzeug - INFO -  * Restarting with stat
+2025-09-01 18:27:32,150 - werkzeug - WARNING -  * Debugger is active!
+2025-09-01 18:27:32,155 - werkzeug - INFO -  * Debugger PIN: 729-816-909
