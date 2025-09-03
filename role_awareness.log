@@ -1,0 +1,21 @@
+2025-09-01 18:35:34,095 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-09-01 18:35:34,096 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-09-01 18:35:34,098 - werkzeug - INFO -  * Restarting with stat
+2025-09-01 18:35:35,508 - werkzeug - WARNING -  * Debugger is active!
+2025-09-01 18:35:35,512 - werkzeug - INFO -  * Debugger PIN: 729-816-909
+2025-09-01 18:36:08,942 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:36:08] "[36mGET / HTTP/1.1[0m" 304 -
+2025-09-01 18:36:09,128 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:36:09] "[36mGET /images/local.png HTTP/1.1[0m" 304 -
+2025-09-01 18:36:09,129 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:36:09] "[36mGET /css/style.css HTTP/1.1[0m" 304 -
+2025-09-01 18:36:09,133 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:36:09] "[36mGET /images/logo.png HTTP/1.1[0m" 304 -
+2025-09-01 18:36:09,137 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:36:09] "[36mGET /images/private.png HTTP/1.1[0m" 304 -
+2025-09-01 18:36:09,141 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:36:09] "[36mGET /images/available.png HTTP/1.1[0m" 304 -
+2025-09-01 18:36:09,142 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:36:09] "[36mGET /js/script.js HTTP/1.1[0m" 304 -
+2025-09-01 18:36:14,404 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:36:14] "POST /upload HTTP/1.1" 200 -
+2025-09-01 18:36:14,441 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:36:14] "[36mGET /document-viewer.html HTTP/1.1[0m" 304 -
+2025-09-01 18:36:14,487 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:36:14] "[36mGET /css/style.css HTTP/1.1[0m" 304 -
+2025-09-01 18:36:14,491 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:36:14] "[36mGET /images/logo.png HTTP/1.1[0m" 304 -
+2025-09-01 18:36:14,493 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:36:14] "[36mGET /css/document-viewer.css HTTP/1.1[0m" 304 -
+2025-09-01 18:36:14,496 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:36:14] "[36mGET /js/document-viewer.js HTTP/1.1[0m" 304 -
+2025-09-01 18:36:14,524 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:36:14] "[33mGET /status HTTP/1.1[0m" 404 -
+2025-09-01 18:36:14,601 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:36:14] "GET /uploads/FO-UHS-032%20Patient%20Consultation%20Record%20(1).pdf HTTP/1.1" 200 -

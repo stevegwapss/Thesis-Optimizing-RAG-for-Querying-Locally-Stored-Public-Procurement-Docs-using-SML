@@ -8,7 +8,7 @@ import faiss
 import numpy as np
 import PyPDF2
 
-# Remove sentence_transformers import
+# Using TF-IDF instead of sentence transformers for local embeddings
 from sklearn.feature_extraction.text import TfidfVectorizer
 import requests
 from pathlib import Path
@@ -18,20 +18,20 @@ import logging
 from datetime import datetime
 
 app = Flask(__name__, static_folder='.', static_url_path='')
-CORS(app)  # Enable CORS for all routes
+CORS(app)
 
-# Configuration
+# Basic configuration
 UPLOAD_FOLDER = 'uploads'
 DB_FOLDER = 'db'
-VECTOR_DIMENSION = 1000  # Changed for TF-IDF
-CHUNK_SIZE = 500  # Characters per chunk
-CHUNK_OVERLAP = 50  # Overlap between chunks
+VECTOR_DIMENSION = 1000
+CHUNK_SIZE = 500  # Characters per text chunk
+CHUNK_OVERLAP = 50
 
-# Create necessary directories
+# Create folders if they don't exist
 Path(UPLOAD_FOLDER).mkdir(exist_ok=True)
 Path(DB_FOLDER).mkdir(exist_ok=True)
 
-# Initialize local embedding model (TF-IDF)
+# Local TF-IDF embeddings instead of external API
 class LocalEmbeddings:
     def __init__(self, max_features=1000):
         self.vectorizer = TfidfVectorizer(
@@ -42,14 +42,13 @@ class LocalEmbeddings:
         self.is_fitted = False
         
     def fit(self, texts):
-        """Fit the vectorizer on the corpus"""
+        """Train the vectorizer on text corpus"""
         self.vectorizer.fit(texts)
         self.is_fitted = True
         
     def encode(self, texts):
-        """Encode texts to vectors"""
+        """Convert texts to vectors"""
         if not self.is_fitted:
-            # Fit on the provided texts if not already fitted
             self.fit(texts)
         
         if isinstance(texts, str):
@@ -60,11 +59,11 @@ class LocalEmbeddings:
 
 model = LocalEmbeddings(max_features=VECTOR_DIMENSION)
 
-# Initialize FAISS index
-faiss_index = faiss.IndexFlatIP(VECTOR_DIMENSION)  # Changed to Inner Product for TF-IDF
-document_chunks = []  # Store text chunks corresponding to vectors
+# Vector database setup
+faiss_index = faiss.IndexFlatIP(VECTOR_DIMENSION)  # Inner product for TF-IDF
+document_chunks = []  # Store text chunks with metadata
 
-# Load existing index if available
+# Load existing vector database
 def load_index():
     global faiss_index, document_chunks, model
     if os.path.exists(f"{DB_FOLDER}/index.faiss") and os.path.exists(f"{DB_FOLDER}/chunks.json"):
@@ -73,81 +72,79 @@ def load_index():
             with open(f"{DB_FOLDER}/chunks.json", 'r') as f:
                 document_chunks = json.load(f)
             
-            # If we have existing chunks, refit the model
+            # Retrain model on existing data
             if document_chunks:
                 texts = [chunk["text"] for chunk in document_chunks]
                 model.fit(texts)
-                print(f"Refitted model on {len(texts)} existing chunks")
+                print(f"Reloaded {len(texts)} chunks and retrained model")
             
-            print(f"Loaded existing index with {len(document_chunks)} chunks")
+            print(f"Loaded index with {len(document_chunks)} chunks")
         except Exception as e:
             print(f"Error loading index: {e}")
-            # Initialize new index - fix the dimension issue
             faiss_index = faiss.IndexFlatIP(VECTOR_DIMENSION)
             document_chunks = []
     else:
-        # Initialize empty index
         faiss_index = faiss.IndexFlatIP(VECTOR_DIMENSION)
         document_chunks = []
 
-# Save index
+# Save vector database
 def save_index():
-    faiss.write_index(faiss_index, f"{DB_FOLDER}/index.faiss")  # Change index to faiss_index
+    faiss.write_index(faiss_index, f"{DB_FOLDER}/index.faiss")
     with open(f"{DB_FOLDER}/chunks.json", 'w') as f:
         json.dump(document_chunks, f)
-    print(f"Index saved with {len(document_chunks)} chunks")
+    print(f"Saved index with {len(document_chunks)} chunks")
 
 def auto_tag_chunk(text):
-    """Automatically assign role tags to chunks based on content analysis"""
+    """Tag chunks based on content keywords"""
     text_lower = text.lower()
     assigned_tags = []
     
-    # Contract Amount Detection
+    # Budget/cost detection
     if any(phrase in text for phrase in ["Approved Budget Cost", "Total Budget", "Contract Amount"]):
         assigned_tags.append("CONTRACT_AMOUNT")
     
-    # Technical Specs Detection
+    # Technical specifications
     if "abc:" in text_lower and any(item in text_lower for item in ["unit", "pcs", "piece", "specifications"]):
         assigned_tags.append("TECHNICAL_SPECS")
     
-    # Timeline Detection
+    # Timeline information
     if any(phrase in text_lower for phrase in ["closing", "deadline", "submission", "on or before", "date", "time"]):
         assigned_tags.append("TIMELINE")
     
-    # Compliance Requirements Detection
+    # Legal/compliance requirements
     if any(phrase in text_lower for phrase in ["republic act", "compliance", "criteria", "eligibility", "requirements", "regulation"]):
         assigned_tags.append("COMPLIANCE_REQUIREMENTS")
     
-    # Bidder Info Detection
+    # Bidder-related info
     if any(phrase in text_lower for phrase in ["bidder", "supplier", "quotation", "philgeps", "mayor's permit", "documents"]):
         assigned_tags.append("BIDDER_INFO")
     
-    # Contact Info Detection
+    # Contact details
     if any(phrase in text_lower for phrase in ["phone", "telefax", "email", "@", "contact", "inquiries", "office"]):
         assigned_tags.append("CONTACT_INFO")
     
-    # Reference Info Detection
+    # Reference numbers and IDs
     if any(phrase in text_lower for phrase in ["reference", "rfq", "pr-", "procurement", "number", "id"]):
         assigned_tags.append("REFERENCE_INFO")
     
     return assigned_tags if assigned_tags else ["GENERAL"]
 
 def determine_chunk_priority(text, tags):
-    """Determine chunk priority based on content"""
+    """Set priority based on content importance"""
     text_lower = text.lower()
     
-    # High priority indicators
+    # High priority content
     if any(phrase in text_lower for phrase in ["approved budget cost", "closing", "republic act", "request for quotation"]):
         return "high"
     
-    # Low priority indicators  
+    # Low priority content
     if any(phrase in text_lower for phrase in ["contact", "phone", "email only"]):
         return "low"
     
     return "medium"
 
 def determine_content_type(text, tags):
-    """Determine content type based on text analysis"""
+    """Classify content type"""
     text_lower = text.lower()
     
     if any(phrase in text_lower for phrase in ["request for quotation", "approved budget cost", "project"]):
@@ -162,7 +159,7 @@ def determine_content_type(text, tags):
     return "detailed"
 
 def calculate_role_relevance(text, tags):
-    """Calculate role relevance scores based on content"""
+    """Score relevance for different user roles"""
     text_lower = text.lower()
     relevance = {
         "auditor": 0.5,
@@ -171,37 +168,33 @@ def calculate_role_relevance(text, tags):
         "policy_maker": 0.5
     }
     
-    # Auditor relevance
+    # Boost relevance based on content type
     if "COMPLIANCE_REQUIREMENTS" in tags or "CONTRACT_AMOUNT" in tags:
         relevance["auditor"] += 0.4
     
-    # Procurement Officer relevance
     if "TIMELINE" in tags or "BIDDER_INFO" in tags:
         relevance["procurement_officer"] += 0.4
     
-    # Bidder relevance
     if "TECHNICAL_SPECS" in tags or "BIDDER_INFO" in tags:
         relevance["bidder"] += 0.4
     
-    # Policy Maker relevance
     if "COMPLIANCE_REQUIREMENTS" in tags or "CONTRACT_AMOUNT" in tags:
         relevance["policy_maker"] += 0.4
     
-    # Cap at 1.0
+    # Cap at maximum
     for role in relevance:
         relevance[role] = min(1.0, relevance[role])
     
     return relevance
 
-# Enhanced text chunking function with auto-tagging
+# Text chunking with metadata
 def chunk_text(text, filename="", page_num=0):
     chunks = []
     i = 0
     while i < len(text):
-        # Get chunk with overlap
         chunk_text = text[i:i + CHUNK_SIZE]
         if chunk_text:
-            # Auto-generate tags and metadata
+            # Generate metadata for this chunk
             role_tags = auto_tag_chunk(chunk_text)
             chunk_priority = determine_chunk_priority(chunk_text, role_tags)
             content_type = determine_content_type(chunk_text, role_tags)
@@ -223,7 +216,7 @@ def chunk_text(text, filename="", page_num=0):
         i += CHUNK_SIZE - CHUNK_OVERLAP
     return chunks
 
-# Extract text from PDF
+# PDF text extraction
 def extract_pdf_text(file_path):
     chunks = []
     try:
@@ -238,7 +231,7 @@ def extract_pdf_text(file_path):
         print(f"Error processing PDF {file_path}: {e}")
     return chunks
 
-# Add a document to the index
+# Add document to vector database
 def add_document_to_index(file_path):
     global faiss_index, model
     
@@ -246,28 +239,24 @@ def add_document_to_index(file_path):
     if not chunks:
         return {"success": False, "message": "No text extracted from document"}
     
-    # Get embeddings for all chunks
+    # Prepare all texts for training
     texts = [chunk["text"] for chunk in chunks]
-    
-    # Combine with existing texts if any
     all_existing_texts = [chunk["text"] for chunk in document_chunks]
     all_texts = all_existing_texts + texts
     
-    # Refit the model on all texts (existing + new)
+    # Retrain model on all data
     model.fit(all_texts)
     
-    # Get embeddings for new chunks only
+    # Generate embeddings for new chunks
     embeddings = model.encode(texts)
-    
-    # Normalize for cosine similarity
     faiss.normalize_L2(embeddings)
     
-    # If this is the first document or model dimension changed, rebuild index
+    # Rebuild index if needed
     if not model.is_fitted or faiss_index.d != embeddings.shape[1]:
         print(f"Rebuilding index with dimension {embeddings.shape[1]}")
         faiss_index = faiss.IndexFlatIP(embeddings.shape[1])
         
-        # Re-encode and add all existing chunks
+        # Re-encode all chunks if we have existing data
         if document_chunks:
             all_embeddings = model.encode(all_existing_texts + texts)
             faiss.normalize_L2(all_embeddings)
@@ -275,17 +264,16 @@ def add_document_to_index(file_path):
         else:
             faiss_index.add(embeddings)
     else:
-        # Just add new embeddings
         faiss_index.add(embeddings)
     
-    # Store chunk information
+    # Store chunk metadata
     for chunk in chunks:
         document_chunks.append(chunk)
     
     save_index()
     return {"success": True, "chunks_added": len(chunks)}
 
-# Role-aware configurations - Updated with your specified roles
+# Role-specific configurations
 ROLE_TAGS = {
     'auditor': ['COMPLIANCE', 'BIDDER_INFO', 'BUDGET'],
     'procurement_officer': ['TIMELINE', 'BIDDER_INFO', 'BUDGET', 'SPECIFICATIONS'],
@@ -300,7 +288,7 @@ ROLE_PROMPTS = {
     'bidder': "You are helping a bidder/supplier. Focus on specifications, submission requirements, deadlines, and what bidders need to know to participate successfully."
 }
 
-# role configurations with strict keyword mappings
+# Keyword mapping for content detection
 STRICT_TAG_KEYWORDS = {
     'CONTRACT_AMOUNT': ['budget', 'cost', 'amount', 'price', 'php', 'contract amount', 'approved budget', 'total cost', 'total budget'],
     'TIMELINE': ['deadline', 'closing', 'submission', 'date', 'time', 'schedule', 'timeline', 'when', 'due date'],
@@ -335,18 +323,17 @@ ROLE_CONTEXTS = {
 }
 
 def detect_query_intent(query):
-    """Detect the primary intent/tag of the query based on keywords - Enhanced version"""
+    """Figure out what the user is asking about"""
     query_lower = query.lower()
     
-    # Score each tag based on keyword matches
+    # Score each category based on keyword matches
     tag_scores = defaultdict(int)
     
-    # Enhanced scoring system
     for tag, keywords in STRICT_TAG_KEYWORDS.items():
         for keyword in keywords:
             keyword_lower = keyword.lower()
             
-            # Exact phrase match (highest score)
+            # Exact phrase match gets highest score
             if keyword_lower in query_lower:
                 # Check for word boundaries to avoid partial matches
                 import re
@@ -354,10 +341,9 @@ def detect_query_intent(query):
                 if re.search(pattern, query_lower):
                     tag_scores[tag] += 5
                 else:
-                    # Partial match but still relevant
                     tag_scores[tag] += 2
             
-            # Check for synonym/related word matches
+            # Additional synonym matches
             if tag == 'CONTRACT_AMOUNT' and any(word in query_lower for word in ['cost', 'money', 'price', 'budget', 'amount']):
                 tag_scores[tag] += 1
             elif tag == 'TIMELINE' and any(word in query_lower for word in ['when', 'deadline', 'time', 'date', 'schedule']):
@@ -371,21 +357,21 @@ def detect_query_intent(query):
             elif tag == 'CONTACT_INFO' and any(word in query_lower for word in ['who', 'contact', 'reach', 'phone', 'email']):
                 tag_scores[tag] += 1
     
-    # Return the highest scoring tag or None if no clear match
+    # Return best match if confident enough
     if tag_scores:
         best_tag = max(tag_scores, key=tag_scores.get)
         best_score = tag_scores[best_tag]
         
         print(f"DEBUG: Intent detection - Query: '{query}', Scores: {dict(tag_scores)}, Best: {best_tag}({best_score})")
         
-        if best_score >= 2:  # Minimum threshold for strict filtering
+        if best_score >= 2:  # Minimum confidence threshold
             return best_tag, best_score
     
     print(f"DEBUG: Intent detection - No clear intent found for query: '{query}'")
     return None, 0
 
 def apply_strict_tag_filtering(chunks, required_tag, fallback_allowed=True):
-    """Apply strict tag filtering - only return chunks with the required tag"""
+    """Filter chunks by specific tag"""
     if not required_tag:
         return chunks
     
@@ -396,45 +382,43 @@ def apply_strict_tag_filtering(chunks, required_tag, fallback_allowed=True):
         if required_tag in chunk_tags:
             filtered_chunks.append(chunk)
     
-    # If no chunks found and fallback is allowed, return original chunks
+    # Fall back to all chunks if nothing found
     if not filtered_chunks and fallback_allowed:
         return chunks
     
     return filtered_chunks
 
 def prioritize_chunks(chunks, role):
-    """Prioritize chunks based on content type and role preferences - Legacy function"""
-    # Just call the enhanced version
+    """Keep for backward compatibility"""
     return prioritize_chunks_enhanced(chunks, role)
 
 def enhanced_chunk_filtering(query, role, all_chunks, top_k=5):
-    """Enhanced filtering with better role-specific prioritization"""
+    """Smart filtering based on query intent and user role"""
     
     print(f"DEBUG: enhanced_chunk_filtering called with role: '{role}', query: '{query}'")
     role_logger.info(f"FILTERING_START: Role='{role}', Query='{query}', Total_chunks={len(all_chunks)}")
     
-    # Step 1: Detect query intent
+    # First, detect what the user is asking about
     required_tag, confidence = detect_query_intent(query)
     print(f"DEBUG: Detected intent: {required_tag} with confidence: {confidence}")
     
-    # Step 2: Apply semantic similarity filtering first
+    # Get semantically similar chunks first
     candidate_chunks = []
     if model.is_fitted and len(all_chunks) > 0:
         query_embedding = model.encode([query])
         faiss.normalize_L2(query_embedding)
         D, I = faiss_index.search(query_embedding, min(len(all_chunks), top_k * 3))
         
-        # Get initial candidate chunks
+        # Get candidate chunks from search results
         for idx in I[0]:
             if idx < len(all_chunks):
                 candidate_chunks.append(all_chunks[idx])
     else:
-        # If no embeddings available, use all chunks
         candidate_chunks = all_chunks[:top_k * 3]
     
     print(f"DEBUG: Initial candidates from semantic search: {len(candidate_chunks)}")
     
-    # Step 3: Apply strict tag filtering if intent is clear
+    # Filter by detected intent if confident
     used_fallback = False
     if required_tag and confidence >= 2:
         print(f"DEBUG: Applying strict tag filtering for tag: {required_tag}")
@@ -442,7 +426,6 @@ def enhanced_chunk_filtering(query, role, all_chunks, top_k=5):
         print(f"DEBUG: After tag filtering: {len(filtered_chunks)} chunks")
         
         if len(filtered_chunks) < len(candidate_chunks):
-            # Tag filtering was applied
             candidate_chunks = filtered_chunks
             print(f"DEBUG: Tag filtering reduced chunks to: {len(candidate_chunks)}")
         if not filtered_chunks:
@@ -450,17 +433,17 @@ def enhanced_chunk_filtering(query, role, all_chunks, top_k=5):
             candidate_chunks = apply_strict_tag_filtering(candidate_chunks, required_tag, fallback_allowed=True)
             print(f"DEBUG: Used fallback, chunks: {len(candidate_chunks)}")
     
-    # Step 4: Apply role-specific prioritization - This is the KEY improvement
+    # Apply role-specific prioritization
     print(f"DEBUG: Applying role-specific prioritization for role: {role}")
     prioritized_chunks = prioritize_chunks_enhanced(candidate_chunks, role)
     
-    # Step 5: Take top_k chunks
+    # Return top results
     final_chunks = prioritized_chunks[:top_k]
     
-    # Step 6: Add role-specific context framing
+    # Get role context for response framing
     role_context = ROLE_CONTEXTS.get(role, {})
     
-    # Log the filtering results
+    # Log results
     role_logger.info(f"FILTERING_RESULT: Role='{role}', Query='{query}', Intent='{required_tag}', Confidence={confidence}, Final_chunks={len(final_chunks)}")
     
     return {
@@ -475,13 +458,13 @@ def enhanced_chunk_filtering(query, role, all_chunks, top_k=5):
     }
 
 def prioritize_chunks_enhanced(chunks, role):
-    """Enhanced chunk prioritization with better role-specific scoring"""
+    """Score and sort chunks based on role preferences"""
     if not chunks:
         return chunks
     
     print(f"DEBUG: prioritize_chunks_enhanced called with role: '{role}', chunks: {len(chunks)}")
     
-    # Get role context for priority tags
+    # Get role-specific priority tags
     role_context = ROLE_CONTEXTS.get(role, {})
     priority_tags = role_context.get('priority_tags', [])
     
@@ -496,7 +479,7 @@ def prioritize_chunks_enhanced(chunks, role):
         chunk_priority = metadata.get('chunk_priority', 'medium')
         score += priority_map.get(chunk_priority, 2)
         
-        # Content type scoring (prefer summary over detailed for most roles)
+        # Content type preference
         content_type = metadata.get('content_type', 'detailed')
         if role == 'policy_maker' and content_type in ['summary', 'regulatory']:
             score += 2
@@ -505,27 +488,27 @@ def prioritize_chunks_enhanced(chunks, role):
         elif content_type == 'summary':
             score += 1
         
-        # Role-specific tag preferences - MAJOR ENHANCEMENT
+        # Role-specific tag matching
         chunk_tags = metadata.get('role_tags', [])
         tag_bonus = 0
         for tag in chunk_tags:
             if tag in priority_tags:
-                tag_bonus += 2  # Significant bonus for matching priority tags
+                tag_bonus += 2  # Bonus for matching priority tags
         score += tag_bonus
         
-        # Role relevance score - CRITICAL FIX: Use the ACTUAL role, not 'general'
+        # Role relevance score
         role_relevance = metadata.get('role_relevance', {}).get(role, 0.5)
-        relevance_bonus = role_relevance * 3  # Scale up the relevance impact
+        relevance_bonus = role_relevance * 3
         score += relevance_bonus
         
         print(f"DEBUG: Chunk scoring - Tags: {chunk_tags}, Priority_tags: {priority_tags}, Tag_bonus: {tag_bonus}, Role_relevance: {role_relevance}, Total_score: {score}")
         
         return score
     
-    # Sort by score (highest first) and return
+    # Sort by score
     scored_chunks = sorted(chunks, key=chunk_score, reverse=True)
     
-    # Log the top scores for debugging
+    # Debug top scores
     for i, chunk in enumerate(scored_chunks[:3]):
         score = chunk_score(chunk)
         tags = chunk.get('metadata', {}).get('role_tags', [])
@@ -535,7 +518,7 @@ def prioritize_chunks_enhanced(chunks, role):
     return scored_chunks
 
 def create_fallback_response(query, role):
-    """Create a structured fallback response when no relevant chunks are found"""
+    """Generate helpful response when no relevant chunks found"""
     role_context = ROLE_CONTEXTS.get(role, {})
     
     fallback_message = f"""I couldn't find specific information to answer your query: "{query}".
@@ -550,7 +533,7 @@ Please rephrase your question or ask about specific aspects like budget, timelin
     
     return fallback_message
 
-# Add logging configuration
+# Logging setup
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -560,13 +543,11 @@ logging.basicConfig(
     ]
 )
 
-# Create specialized loggers
 role_logger = logging.getLogger('role_awareness')
 
 def log_query_result(query, role, detected_tag, confidence, chunks_used, role_relevance_scores, tags_used):
-    """Enhanced logging of query processing results with tag and relevance details"""
+    """Log detailed query processing results"""
     
-    # Create a clear separator for each new query
     role_logger.info("="*80)
     role_logger.info(f"🔍 NEW QUERY PROCESSED")
     role_logger.info(f"QUERY: '{query}'")
@@ -585,25 +566,25 @@ def log_query_result(query, role, detected_tag, confidence, chunks_used, role_re
     
     role_logger.info("="*80)
 
-# Query Ollama using retrieval augmentation
+# Basic Ollama query function
 def query_ollama(query, top_k=3):
     # Get query embedding
     query_embedding = model.encode([query])
     faiss.normalize_L2(query_embedding)
     
-    # Search in FAISS
+    # Search for relevant chunks
     D, I = faiss_index.search(query_embedding, top_k)
     
     if len(I[0]) == 0:
         return {"response": "No relevant information found. Please upload some documents first."}
     
-    # Get relevant contexts
+    # Build context from relevant chunks
     contexts = []
     for idx in I[0]:
         if idx < len(document_chunks):
             contexts.append(document_chunks[idx]["text"])
     
-    # Build prompt with context
+    # Create prompt with context
     context_text = "\n\n".join(contexts)
     prompt = f"""
     You are an expert in procurement documents. 
@@ -626,7 +607,7 @@ def query_ollama(query, top_k=3):
                 "prompt": prompt,
                 "stream": False,
                 "options": {
-                    "num_gpu": 0  # Force CPU mode
+                    "num_gpu": 0  # Use CPU
                 }
             }
         )
@@ -638,19 +619,18 @@ def query_ollama(query, top_k=3):
     except Exception as e:
         return {"error": f"Error querying Ollama: {str(e)}"}
 
-# Enhanced query function with role-aware filtering
+# Role-aware query function
 def query_ollama_with_role(query, role='general', top_k=5):
-    # Get query embedding
+    # Get similar chunks
     query_embedding = model.encode([query])
     faiss.normalize_L2(query_embedding)
     
-    # Search in FAISS
-    D, I = faiss_index.search(query_embedding, top_k * 2)  # Get more results to filter
+    D, I = faiss_index.search(query_embedding, top_k * 2)  # Get extra to filter
     
     if len(I[0]) == 0:
         return {"response": "No relevant information found. Please upload some documents first."}
     
-    # Filter and score contexts based on role
+    # Score chunks by role relevance
     contexts = []
     role_tags = ROLE_TAGS.get(role, [])
     
@@ -658,14 +638,14 @@ def query_ollama_with_role(query, role='general', top_k=5):
         if idx < len(document_chunks):
             chunk = document_chunks[idx]
             
-            # Calculate role relevance score
-            relevance_score = 1.0  # Default score
+            # Calculate relevance score
+            relevance_score = 1.0
             if 'role_tags' in chunk.get('metadata', {}):
                 chunk_tags = chunk['metadata']['role_tags']
-                # Boost score if chunk has relevant role tags
+                # Boost for matching tags
                 tag_match = len(set(chunk_tags) & set(role_tags))
                 if tag_match > 0:
-                    relevance_score = 1.0 + (tag_match * 0.3)  # Boost by 30% per matching tag
+                    relevance_score = 1.0 + (tag_match * 0.3)
             
             if 'role_relevance' in chunk.get('metadata', {}):
                 role_relevance = chunk['metadata']['role_relevance'].get(role, 0.5)
@@ -678,7 +658,7 @@ def query_ollama_with_role(query, role='general', top_k=5):
                 'source': chunk.get('metadata', {}).get('source', 'unknown')
             })
     
-    # Sort by relevance score and take top_k
+    # Sort by relevance and take top results
     contexts.sort(key=lambda x: x['score'], reverse=True)
     contexts = contexts[:top_k]
     
@@ -730,9 +710,9 @@ def query_ollama_with_role(query, role='general', top_k=5):
     except Exception as e:
         return {"error": f"Error querying Ollama: {str(e)}"}
 
-# Enhanced query function with strict filtering
+# Main query function with enhanced filtering
 def query_ollama_with_strict_filtering(query, role='general', top_k=5):
-    """Enhanced query function with strict tag filtering and role-specific processing"""
+    """Main query function with smart filtering and role-specific processing"""
     
     print(f"DEBUG: query_ollama_with_strict_filtering called with role: '{role}', query: '{query}'")
     role_logger.info(f"QUERY_START: Role='{role}', Query='{query}', Available_chunks={len(document_chunks)}")
@@ -741,21 +721,21 @@ def query_ollama_with_strict_filtering(query, role='general', top_k=5):
         log_query_result(query, role, None, 0, 0, [], [])
         return {"response": "No relevant information found. Please upload some documents first."}
     
-    # Apply enhanced filtering
+    # Apply smart filtering
     filter_result = enhanced_chunk_filtering(query, role, document_chunks, top_k)
     
     chunks = filter_result['chunks']
 
-    # Extract role relevance scores for the SPECIFIC role (not general)
+    # Extract role relevance scores for the current role
     role_relevance_scores = []
     all_tags_used = set()
     
     for chunk in chunks:
-        # Get role relevance score for the CURRENT SELECTED role
+        # Get relevance score for current role
         relevance = chunk.get('metadata', {}).get('role_relevance', {}).get(role, 0.5)
         role_relevance_scores.append(relevance)
         
-        # Collect all tags used in selected chunks
+        # Collect tags from selected chunks
         chunk_tags = chunk.get('metadata', {}).get('role_tags', [])
         all_tags_used.update(chunk_tags)
 
@@ -765,7 +745,7 @@ def query_ollama_with_strict_filtering(query, role='general', top_k=5):
     print(f"DEBUG: Tags used: {tags_used_list}")
     print(f"DEBUG: Number of chunks selected: {len(chunks)}")
 
-    # Check if we have relevant chunks
+    # Handle case where no relevant chunks found
     if not chunks:
         log_query_result(
             query,
@@ -785,19 +765,19 @@ def query_ollama_with_strict_filtering(query, role='general', top_k=5):
             "is_fallback": True
         }
     
-    # Build enhanced context with role-specific framing
+    # Build context for Ollama
     contexts_text = []
     for chunk in chunks:
         contexts_text.append(chunk['text'])
     
     context_text = "\n\n".join(contexts_text)
     
-    # Build role-specific prompt with better context
+    # Build role-specific prompt
     role_framing = filter_result.get('role_framing', '')
     role_emphasis = filter_result.get('role_emphasis', '')
     detected_intent = filter_result.get('detected_intent', '')
     
-    # Enhanced role-specific prompting
+    # Role-specific instructions
     role_specific_instruction = ""
     if role == 'auditor':
         role_specific_instruction = "Focus on compliance, legal requirements, budget verification, and procedural correctness. Highlight any potential issues or red flags."
@@ -838,18 +818,18 @@ def query_ollama_with_strict_filtering(query, role='general', top_k=5):
         )
         
         if response.status_code == 200:
-            # Log AFTER successful response generation with the CORRECT role
+            # Log successful query
             log_query_result(
                 query,
-                role,  # Use the actual selected role
+                role,
                 filter_result.get('detected_intent'),
                 filter_result.get('intent_confidence', 0),
                 len(chunks),
-                role_relevance_scores,  # These should now be for the correct role
+                role_relevance_scores,
                 tags_used_list
             )
             
-            # Also log detailed chunk analysis with correct role focus
+            # Log detailed chunk analysis
             role_logger.info(f"CHUNK_ANALYSIS for query '{query}' with role '{role}':")
             for i, chunk in enumerate(chunks):
                 chunk_tags = chunk.get('metadata', {}).get('role_tags', [])
@@ -857,14 +837,14 @@ def query_ollama_with_strict_filtering(query, role='general', top_k=5):
                 role_specific_relevance = chunk_relevance.get(role, 0.5)
                 role_logger.info(f"  Chunk {i+1}: TAGS={chunk_tags} | {role.upper()}_RELEVANCE={role_specific_relevance:.3f} | ALL_RELEVANCE={chunk_relevance}")
             
-            # Log role-specific effectiveness
+            # Log effectiveness metrics
             avg_relevance = sum(role_relevance_scores) / len(role_relevance_scores) if role_relevance_scores else 0.5
             role_logger.info(f"ROLE_EFFECTIVENESS: Role='{role}', Avg_Relevance={avg_relevance:.3f}, Tags_Found={len(tags_used_list)}, Intent_Match={detected_intent}")
             
             response_data = {
                 "response": response.json()["response"],
                 "role": role,
-                "confirmed_role": role,  # Add explicit confirmation
+                "confirmed_role": role,
                 "contexts_used": len(chunks),
                 "relevant_tags": list(set([tag for chunk in chunks for tag in chunk.get('metadata', {}).get('role_tags', [])])),
                 "sources": list(set([chunk.get('metadata', {}).get('source', 'unknown') for chunk in chunks])),
@@ -887,36 +867,35 @@ def query_ollama_with_strict_filtering(query, role='general', top_k=5):
 
 # Flask routes
 @app.route('/')
-def serve_index():  # Renamed from 'index' to 'serve_index'
+def serve_index():
     return send_from_directory('.', 'index.html')
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    print("Upload endpoint called!")  # Debug
+    print("Upload endpoint called!")
     
     if 'file' not in request.files:
-        print("No file part in request")  # Debug
+        print("No file part in request")
         return jsonify({"error": "No file part"}), 400
     
     file = request.files['file']
     if file.filename == '':
-        print("No selected file")  # Debug
+        print("No selected file")
         return jsonify({"error": "No selected file"}), 400
     
     if not file.filename.lower().endswith('.pdf'):
-        print(f"Invalid file type: {file.filename}")  # Debug
+        print(f"Invalid file type: {file.filename}")
         return jsonify({"error": "Only PDF files are supported"}), 400
     
-    print(f"Processing file: {file.filename}")  # Debug
+    print(f"Processing file: {file.filename}")
     
-    # Save file temporarily
+    # Save and process file
     temp_path = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(temp_path)
-    print(f"File saved to: {temp_path}")  # Debug
+    print(f"File saved to: {temp_path}")
     
-    # Process file
     result = add_document_to_index(temp_path)
-    print(f"Processing result: {result}")  # Debug
+    print(f"Processing result: {result}")
     
     return jsonify(result)
 
@@ -926,18 +905,18 @@ def query():
     if not data or 'query' not in data:
         return jsonify({"error": "No query provided"}), 400
 
-    # Extract role more carefully with better validation
+    # Extract and validate role
     role = data.get('role', 'general')
     
-    # Debug logging to track role (terminal only)
+    # Debug logging
     print(f"DEBUG: Received request data: {data}")
     print(f"DEBUG: Extracted role: '{role}' (type: {type(role)})")
     
-    # Clean up role string and ensure it's valid
+    # Clean up role string
     if isinstance(role, str):
         role = role.strip().lower()
     
-    # Map frontend values to backend values if needed
+    # Validate role
     role_mapping = {
         'general': 'general',
         'auditor': 'auditor',
@@ -946,7 +925,6 @@ def query():
         'bidder': 'bidder'
     }
     
-    # Ensure role is valid
     if role in role_mapping:
         role = role_mapping[role]
     else:
@@ -956,7 +934,7 @@ def query():
     
     print(f"DEBUG: Final role being used: '{role}'")
     
-    # Log role switching very prominently
+    # Log role switch
     role_logger.info("🔄" + "="*50 + "🔄")
     role_logger.info(f"🎭 ROLE SWITCH: Now operating as '{role.upper()}'")
     role_logger.info(f"📝 Query: '{data['query']}'")
@@ -964,14 +942,14 @@ def query():
     
     role_logger.info(f"RECEIVED_ROLE: '{role}' for query: '{data['query']}'")
     
-    # Call the enhanced query function with explicit role confirmation
+    # Process query with confirmed role
     result = query_ollama_with_strict_filtering(data['query'], role)
     
-    # Add role confirmation to response for debugging
+    # Clean up response
     clean_result = {
         "response": result.get("response", ""),
         "role": role,
-        "confirmed_role": role,  # Explicit confirmation
+        "confirmed_role": role,
         "contexts_used": result.get("contexts_used", 0),
         "relevant_tags": result.get("relevant_tags", []),
         "is_fallback": result.get("is_fallback", False),
@@ -986,7 +964,7 @@ def query():
 
 @app.route('/get-roles', methods=['GET'])
 def get_roles():
-    """Get available roles for the dropdown"""
+    """Return available roles for the frontend"""
     return jsonify({
         "roles": list(ROLE_TAGS.keys()),
         "role_descriptions": ROLE_PROMPTS
@@ -994,7 +972,7 @@ def get_roles():
 
 @app.route('/analyze-chunks', methods=['GET'])
 def analyze_chunks():
-    """Analyze the current chunks for role-aware tags"""
+    """Analyze current chunks for debugging"""
     analysis = {
         "total_chunks": len(document_chunks),
         "chunks_with_role_tags": 0,
@@ -1025,7 +1003,7 @@ def analyze_chunks():
 
 @app.route('/analyze-tagging', methods=['GET'])
 def analyze_tagging():
-    """Analyze tagging consistency across all documents"""
+    """Analyze tagging consistency across documents"""
     analysis = {
         "total_chunks": len(document_chunks),
         "documents": {},
@@ -1057,7 +1035,7 @@ def analyze_tagging():
             for tag in role_tags:
                 analysis["tag_distribution"][tag] = analysis["tag_distribution"].get(tag, 0) + 1
     
-    # Convert sets to lists for JSON serialization
+    # Convert sets to lists for JSON
     for doc_info in analysis["documents"].values():
         doc_info["tags"] = list(doc_info["tags"])
     
@@ -1079,7 +1057,7 @@ def check_ollama_connection():
     except:
         return False
 
-# Initialize index on startup
+# Initialize on startup
 load_index()
 
 if __name__ == '__main__':
