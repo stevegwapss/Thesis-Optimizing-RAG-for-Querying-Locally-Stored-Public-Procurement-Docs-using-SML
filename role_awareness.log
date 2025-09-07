@@ -19,3 +19,255 @@
 2025-09-01 18:36:14,496 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:36:14] "[36mGET /js/document-viewer.js HTTP/1.1[0m" 304 -
 2025-09-01 18:36:14,524 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:36:14] "[33mGET /status HTTP/1.1[0m" 404 -
 2025-09-01 18:36:14,601 - werkzeug - INFO - 127.0.0.1 - - [01/Sep/2025 18:36:14] "GET /uploads/FO-UHS-032%20Patient%20Consultation%20Record%20(1).pdf HTTP/1.1" 200 -
+2025-09-03 21:33:29,523 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-09-03 21:33:29,523 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-09-03 21:33:29,526 - werkzeug - INFO -  * Restarting with stat
+2025-09-03 21:33:31,131 - werkzeug - WARNING -  * Debugger is active!
+2025-09-03 21:33:31,135 - werkzeug - INFO -  * Debugger PIN: 729-816-909
+2025-09-03 21:33:50,984 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:33:50] "GET / HTTP/1.1" 200 -
+2025-09-03 21:33:51,001 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:33:51] "GET /css/style.css HTTP/1.1" 200 -
+2025-09-03 21:33:51,005 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:33:51] "GET /images/logo.png HTTP/1.1" 200 -
+2025-09-03 21:33:51,017 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:33:51] "GET /images/local.png HTTP/1.1" 200 -
+2025-09-03 21:33:51,023 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:33:51] "GET /images/private.png HTTP/1.1" 200 -
+2025-09-03 21:33:51,026 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:33:51] "GET /images/available.png HTTP/1.1" 200 -
+2025-09-03 21:33:51,028 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:33:51] "GET /js/script.js HTTP/1.1" 200 -
+2025-09-03 21:33:51,213 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:33:51] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-09-03 21:34:41,558 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:34:41] "[36mGET / HTTP/1.1[0m" 304 -
+2025-09-03 21:34:41,575 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:34:41] "[36mGET /css/style.css HTTP/1.1[0m" 304 -
+2025-09-03 21:34:41,577 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:34:41] "[36mGET /images/local.png HTTP/1.1[0m" 304 -
+2025-09-03 21:34:41,577 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:34:41] "[36mGET /images/logo.png HTTP/1.1[0m" 304 -
+2025-09-03 21:34:41,583 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:34:41] "[36mGET /images/private.png HTTP/1.1[0m" 304 -
+2025-09-03 21:34:41,592 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:34:41] "[36mGET /images/available.png HTTP/1.1[0m" 304 -
+2025-09-03 21:34:41,598 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:34:41] "[36mGET /js/script.js HTTP/1.1[0m" 304 -
+2025-09-03 21:46:25,207 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:46:25] "POST /upload HTTP/1.1" 200 -
+2025-09-03 21:46:25,228 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:46:25] "GET /document-viewer.html HTTP/1.1" 200 -
+2025-09-03 21:46:25,251 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:46:25] "[36mGET /css/style.css HTTP/1.1[0m" 304 -
+2025-09-03 21:46:25,254 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:46:25] "GET /css/document-viewer.css HTTP/1.1" 200 -
+2025-09-03 21:46:25,255 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:46:25] "GET /js/document-viewer.js HTTP/1.1" 200 -
+2025-09-03 21:46:25,259 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:46:25] "[36mGET /images/logo.png HTTP/1.1[0m" 304 -
+2025-09-03 21:46:26,525 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:46:26] "[33mGET /status HTTP/1.1[0m" 404 -
+2025-09-03 21:46:26,626 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:46:26] "GET /uploads/PR-25-03-120-Rebid_merged-1.pdf HTTP/1.1" 200 -
+2025-09-03 21:51:25,777 - role_awareness - INFO - RECEIVED_ROLE: 'auditor' for query: 'what is the budget'
+2025-09-03 21:51:25,777 - role_awareness - INFO - QUERY_START: Role='auditor', Query='what is the budget', Available_chunks=36
+2025-09-03 21:51:25,777 - role_awareness - INFO - FILTERING_START: Role='auditor', Query='what is the budget', Total_chunks=36
+2025-09-03 21:51:25,782 - role_awareness - INFO - FILTERING_RESULT: Role='auditor', Query='what is the budget', Intent='CONTRACT_AMOUNT', Confidence=14, Final_chunks=4
+2025-09-03 21:51:29,886 - role_awareness - ERROR - Error querying Ollama: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/generate (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001E4E3A27890>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))
+2025-09-03 21:51:29,887 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'auditor' | TAGS: [] | CHUNKS: 0
+2025-09-03 21:51:29,888 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:51:29] "POST /query HTTP/1.1" 200 -
+2025-09-03 21:52:30,491 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-09-03 21:52:30,491 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-09-03 21:52:30,493 - werkzeug - INFO -  * Restarting with stat
+2025-09-03 21:52:32,029 - werkzeug - WARNING -  * Debugger is active!
+2025-09-03 21:52:32,033 - werkzeug - INFO -  * Debugger PIN: 729-816-909
+2025-09-03 21:52:37,246 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:52:37] "[36mGET /document-viewer.html HTTP/1.1[0m" 304 -
+2025-09-03 21:52:37,257 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:52:37] "[36mGET /css/style.css HTTP/1.1[0m" 304 -
+2025-09-03 21:52:37,261 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:52:37] "[36mGET /css/document-viewer.css HTTP/1.1[0m" 304 -
+2025-09-03 21:52:37,266 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:52:37] "[36mGET /images/logo.png HTTP/1.1[0m" 304 -
+2025-09-03 21:52:37,271 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:52:37] "[36mGET /js/document-viewer.js HTTP/1.1[0m" 304 -
+2025-09-03 21:52:37,323 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:52:37] "[33mGET /status HTTP/1.1[0m" 404 -
+2025-09-03 21:52:37,430 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:52:37] "[36mGET /uploads/PR-25-03-120-Rebid_merged-1.pdf HTTP/1.1[0m" 304 -
+2025-09-03 21:52:47,020 - role_awareness - INFO - RECEIVED_ROLE: 'auditor' for query: 'what i the budget'
+2025-09-03 21:52:47,020 - role_awareness - INFO - QUERY_START: Role='auditor', Query='what i the budget', Available_chunks=36
+2025-09-03 21:52:47,021 - role_awareness - INFO - FILTERING_START: Role='auditor', Query='what i the budget', Total_chunks=36
+2025-09-03 21:52:47,031 - role_awareness - INFO - FILTERING_RESULT: Role='auditor', Query='what i the budget', Intent='CONTRACT_AMOUNT', Confidence=14, Final_chunks=4
+2025-09-03 21:52:51,127 - role_awareness - ERROR - Error querying Ollama: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/generate (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x00000154497EABD0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))
+2025-09-03 21:52:51,128 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'auditor' | TAGS: [] | CHUNKS: 0
+2025-09-03 21:52:51,128 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:52:51] "POST /query HTTP/1.1" 200 -
+2025-09-03 21:53:50,752 - role_awareness - INFO - RECEIVED_ROLE: 'auditor' for query: 'what is the budget'
+2025-09-03 21:53:50,752 - role_awareness - INFO - QUERY_START: Role='auditor', Query='what is the budget', Available_chunks=36
+2025-09-03 21:53:50,753 - role_awareness - INFO - FILTERING_START: Role='auditor', Query='what is the budget', Total_chunks=36
+2025-09-03 21:53:50,758 - role_awareness - INFO - FILTERING_RESULT: Role='auditor', Query='what is the budget', Intent='CONTRACT_AMOUNT', Confidence=14, Final_chunks=4
+2025-09-03 21:55:10,910 - role_awareness - INFO - ================================================================================
+2025-09-03 21:55:10,913 - role_awareness - INFO - QUERY: 'what is the budget'
+2025-09-03 21:55:10,913 - role_awareness - INFO - ROLE: AUDITOR
+2025-09-03 21:55:10,913 - role_awareness - INFO - DETECTED_TAG: CONTRACT_AMOUNT
+2025-09-03 21:55:10,914 - role_awareness - INFO - CONFIDENCE: 14
+2025-09-03 21:55:10,914 - role_awareness - INFO - CHUNKS_USED: 4
+2025-09-03 21:55:10,914 - role_awareness - INFO - TAGS_IN_RESULTS: CONTRACT_AMOUNT, CONTACT_INFO, REFERENCE_INFO, TECHNICAL_SPECS, TIMELINE
+2025-09-03 21:55:10,914 - role_awareness - INFO - ROLE_EFFECTIVENESS: AUDITOR | AVG_RELEVANCE: 0.900
+2025-09-03 21:55:10,914 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.900', '0.900', '0.900', '0.900']
+2025-09-03 21:55:10,915 - role_awareness - INFO - ================================================================================
+2025-09-03 21:55:10,915 - role_awareness - INFO - CHUNK_ANALYSIS for query 'what is the budget' with role 'auditor':
+2025-09-03 21:55:10,915 - role_awareness - INFO -   Chunk 1: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO', 'REFERENCE_INFO'] | AUDITOR_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-03 21:55:10,915 - role_awareness - INFO -   Chunk 2: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO', 'REFERENCE_INFO'] | AUDITOR_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-03 21:55:10,916 - role_awareness - INFO -   Chunk 3: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | AUDITOR_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-03 21:55:10,916 - role_awareness - INFO -   Chunk 4: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | AUDITOR_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-03 21:55:10,916 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='auditor', Avg_Relevance=0.900, Tags_Found=5, Intent_Match=CONTRACT_AMOUNT
+2025-09-03 21:55:10,917 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'auditor' | TAGS: ['CONTRACT_AMOUNT', 'CONTACT_INFO', 'REFERENCE_INFO', 'TECHNICAL_SPECS', 'TIMELINE'] | CHUNKS: 4
+2025-09-03 21:55:10,918 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:55:10] "POST /query HTTP/1.1" 200 -
+2025-09-03 21:57:47,207 - role_awareness - INFO - RECEIVED_ROLE: 'auditor' for query: 'can you generate a table?'
+2025-09-03 21:57:47,207 - role_awareness - INFO - QUERY_START: Role='auditor', Query='can you generate a table?', Available_chunks=36
+2025-09-03 21:57:47,207 - role_awareness - INFO - FILTERING_START: Role='auditor', Query='can you generate a table?', Total_chunks=36
+2025-09-03 21:57:47,212 - role_awareness - INFO - FILTERING_RESULT: Role='auditor', Query='can you generate a table?', Intent='TECHNICAL_SPECS', Confidence=5, Final_chunks=5
+2025-09-03 21:59:38,422 - role_awareness - INFO - ================================================================================
+2025-09-03 21:59:38,427 - role_awareness - INFO - QUERY: 'can you generate a table?'
+2025-09-03 21:59:38,427 - role_awareness - INFO - ROLE: AUDITOR
+2025-09-03 21:59:38,428 - role_awareness - INFO - DETECTED_TAG: TECHNICAL_SPECS
+2025-09-03 21:59:38,428 - role_awareness - INFO - CONFIDENCE: 5
+2025-09-03 21:59:38,428 - role_awareness - INFO - CHUNKS_USED: 5
+2025-09-03 21:59:38,428 - role_awareness - INFO - TAGS_IN_RESULTS: CONTRACT_AMOUNT, CONTACT_INFO, REFERENCE_INFO, TECHNICAL_SPECS, TIMELINE
+2025-09-03 21:59:38,429 - role_awareness - INFO - ROLE_EFFECTIVENESS: AUDITOR | AVG_RELEVANCE: 0.580
+2025-09-03 21:59:38,429 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.900', '0.500', '0.500', '0.500', '0.500']
+2025-09-03 21:59:38,429 - role_awareness - INFO - ================================================================================
+2025-09-03 21:59:38,429 - role_awareness - INFO - CHUNK_ANALYSIS for query 'can you generate a table?' with role 'auditor':
+2025-09-03 21:59:38,430 - role_awareness - INFO -   Chunk 1: TAGS=['CONTRACT_AMOUNT', 'TECHNICAL_SPECS', 'TIMELINE', 'CONTACT_INFO'] | AUDITOR_RELEVANCE=0.900 | ALL_RELEVANCE={'auditor': 0.9, 'procurement_officer': 0.9, 'bidder': 0.9, 'policy_maker': 0.9}
+2025-09-03 21:59:38,430 - role_awareness - INFO -   Chunk 2: TAGS=['TECHNICAL_SPECS', 'CONTACT_INFO', 'REFERENCE_INFO'] | AUDITOR_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.5, 'bidder': 0.9, 'policy_maker': 0.5}
+2025-09-03 21:59:38,430 - role_awareness - INFO -   Chunk 3: TAGS=['TECHNICAL_SPECS', 'CONTACT_INFO', 'REFERENCE_INFO'] | AUDITOR_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.5, 'bidder': 0.9, 'policy_maker': 0.5}
+2025-09-03 21:59:38,430 - role_awareness - INFO -   Chunk 4: TAGS=['TECHNICAL_SPECS', 'CONTACT_INFO'] | AUDITOR_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.5, 'bidder': 0.9, 'policy_maker': 0.5}
+2025-09-03 21:59:38,431 - role_awareness - INFO -   Chunk 5: TAGS=['TECHNICAL_SPECS', 'CONTACT_INFO'] | AUDITOR_RELEVANCE=0.500 | ALL_RELEVANCE={'auditor': 0.5, 'procurement_officer': 0.5, 'bidder': 0.9, 'policy_maker': 0.5}
+2025-09-03 21:59:38,431 - role_awareness - INFO - ROLE_EFFECTIVENESS: Role='auditor', Avg_Relevance=0.580, Tags_Found=5, Intent_Match=TECHNICAL_SPECS
+2025-09-03 21:59:38,431 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'auditor' | TAGS: ['CONTRACT_AMOUNT', 'CONTACT_INFO', 'REFERENCE_INFO', 'TECHNICAL_SPECS', 'TIMELINE'] | CHUNKS: 5
+2025-09-03 21:59:38,433 - werkzeug - INFO - 127.0.0.1 - - [03/Sep/2025 21:59:38] "POST /query HTTP/1.1" 200 -
+2025-09-07 03:13:25,971 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-09-07 03:13:25,973 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-09-07 03:13:25,977 - werkzeug - INFO -  * Restarting with stat
+2025-09-07 03:13:37,608 - werkzeug - WARNING -  * Debugger is active!
+2025-09-07 03:13:37,616 - werkzeug - INFO -  * Debugger PIN: 729-816-909
+2025-09-07 03:14:52,283 - werkzeug - INFO -  * Detected change in 'C:\\Users\\al-st\\Thesis-Optimizing-RAG-for-Querying-Locally-Stored-Public-Procurement-Docs-using-SML\\app.py', reloading
+2025-09-07 03:14:54,279 - werkzeug - INFO -  * Restarting with stat
+2025-09-07 03:15:00,510 - werkzeug - WARNING -  * Debugger is active!
+2025-09-07 03:15:00,529 - werkzeug - INFO -  * Debugger PIN: 729-816-909
+2025-09-07 03:20:10,802 - werkzeug - INFO -  * Detected change in 'C:\\Users\\al-st\\Thesis-Optimizing-RAG-for-Querying-Locally-Stored-Public-Procurement-Docs-using-SML\\app.py', reloading
+2025-09-07 03:20:11,065 - werkzeug - INFO -  * Restarting with stat
+2025-09-07 03:20:12,828 - werkzeug - WARNING -  * Debugger is active!
+2025-09-07 03:20:12,831 - werkzeug - INFO -  * Debugger PIN: 729-816-909
+2025-09-07 03:20:22,653 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:20:22] "GET / HTTP/1.1" 200 -
+2025-09-07 03:20:22,672 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:20:22] "GET /images/logo.png HTTP/1.1" 200 -
+2025-09-07 03:20:22,673 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:20:22] "GET /images/local.png HTTP/1.1" 200 -
+2025-09-07 03:20:22,691 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:20:22] "GET /css/style.css HTTP/1.1" 200 -
+2025-09-07 03:20:22,696 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:20:22] "GET /images/private.png HTTP/1.1" 200 -
+2025-09-07 03:20:22,700 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:20:22] "GET /images/available.png HTTP/1.1" 200 -
+2025-09-07 03:20:22,793 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:20:22] "GET /js/script.js HTTP/1.1" 200 -
+2025-09-07 03:20:22,815 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:20:22] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-09-07 03:20:42,346 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:20:42] "[36mGET / HTTP/1.1[0m" 304 -
+2025-09-07 03:20:42,357 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:20:42] "[36mGET /css/style.css HTTP/1.1[0m" 304 -
+2025-09-07 03:20:42,359 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:20:42] "[36mGET /images/logo.png HTTP/1.1[0m" 304 -
+2025-09-07 03:20:42,361 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:20:42] "[36mGET /images/local.png HTTP/1.1[0m" 304 -
+2025-09-07 03:20:42,368 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:20:42] "[36mGET /images/private.png HTTP/1.1[0m" 304 -
+2025-09-07 03:20:42,370 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:20:42] "[36mGET /images/available.png HTTP/1.1[0m" 304 -
+2025-09-07 03:20:42,372 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:20:42] "[36mGET /js/script.js HTTP/1.1[0m" 304 -
+2025-09-07 03:20:47,491 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:20:47] "[35m[1mPOST /upload HTTP/1.1[0m" 500 -
+2025-09-07 03:21:35,360 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:21:35] "[36mGET / HTTP/1.1[0m" 304 -
+2025-09-07 03:21:35,373 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:21:35] "[36mGET /css/style.css HTTP/1.1[0m" 304 -
+2025-09-07 03:21:35,373 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:21:35] "[36mGET /images/logo.png HTTP/1.1[0m" 304 -
+2025-09-07 03:21:35,375 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:21:35] "[36mGET /images/local.png HTTP/1.1[0m" 304 -
+2025-09-07 03:21:35,379 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:21:35] "[36mGET /images/private.png HTTP/1.1[0m" 304 -
+2025-09-07 03:21:35,383 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:21:35] "[36mGET /images/available.png HTTP/1.1[0m" 304 -
+2025-09-07 03:21:35,386 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:21:35] "[36mGET /js/script.js HTTP/1.1[0m" 304 -
+2025-09-07 03:21:39,679 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:21:39] "[35m[1mPOST /upload HTTP/1.1[0m" 500 -
+2025-09-07 03:21:42,614 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:21:42] "[36mGET /css/style.css HTTP/1.1[0m" 304 -
+2025-09-07 03:21:42,635 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:21:42] "[33mGET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1[0m" 404 -
+2025-09-07 03:23:04,128 - werkzeug - INFO -  * Detected change in 'C:\\Users\\al-st\\Thesis-Optimizing-RAG-for-Querying-Locally-Stored-Public-Procurement-Docs-using-SML\\app.py', reloading
+2025-09-07 03:23:04,491 - werkzeug - INFO -  * Restarting with stat
+2025-09-07 03:23:06,867 - werkzeug - WARNING -  * Debugger is active!
+2025-09-07 03:23:06,871 - werkzeug - INFO -  * Debugger PIN: 729-816-909
+2025-09-07 03:23:14,926 - werkzeug - INFO -  * Detected change in 'C:\\Users\\al-st\\Thesis-Optimizing-RAG-for-Querying-Locally-Stored-Public-Procurement-Docs-using-SML\\app.py', reloading
+2025-09-07 03:23:15,063 - werkzeug - INFO -  * Restarting with stat
+2025-09-07 03:23:16,541 - werkzeug - WARNING -  * Debugger is active!
+2025-09-07 03:23:16,545 - werkzeug - INFO -  * Debugger PIN: 729-816-909
+2025-09-07 03:23:31,847 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:23:31] "[36mGET / HTTP/1.1[0m" 304 -
+2025-09-07 03:23:31,862 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:23:31] "[36mGET /images/logo.png HTTP/1.1[0m" 304 -
+2025-09-07 03:23:31,864 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:23:31] "[36mGET /css/style.css HTTP/1.1[0m" 304 -
+2025-09-07 03:23:31,865 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:23:31] "[36mGET /images/local.png HTTP/1.1[0m" 304 -
+2025-09-07 03:23:31,875 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:23:31] "[36mGET /js/script.js HTTP/1.1[0m" 304 -
+2025-09-07 03:23:31,878 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:23:31] "[36mGET /images/private.png HTTP/1.1[0m" 304 -
+2025-09-07 03:23:31,880 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:23:31] "[36mGET /images/available.png HTTP/1.1[0m" 304 -
+2025-09-07 03:23:34,580 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:23:34] "GET / HTTP/1.1" 200 -
+2025-09-07 03:23:34,594 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:23:34] "GET /css/style.css HTTP/1.1" 200 -
+2025-09-07 03:23:34,595 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:23:34] "GET /images/logo.png HTTP/1.1" 200 -
+2025-09-07 03:23:34,597 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:23:34] "GET /images/local.png HTTP/1.1" 200 -
+2025-09-07 03:23:34,600 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:23:34] "GET /js/script.js HTTP/1.1" 200 -
+2025-09-07 03:23:34,601 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:23:34] "GET /images/private.png HTTP/1.1" 200 -
+2025-09-07 03:23:34,607 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:23:34] "GET /images/available.png HTTP/1.1" 200 -
+2025-09-07 03:23:34,660 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:23:34] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-09-07 03:23:39,498 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:23:39] "POST /upload HTTP/1.1" 200 -
+2025-09-07 03:23:39,614 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:23:39] "GET /document-viewer.html HTTP/1.1" 200 -
+2025-09-07 03:23:39,622 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:23:39] "[36mGET /css/style.css HTTP/1.1[0m" 304 -
+2025-09-07 03:23:39,629 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:23:39] "[36mGET /images/logo.png HTTP/1.1[0m" 304 -
+2025-09-07 03:23:39,639 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:23:39] "GET /css/document-viewer.css HTTP/1.1" 200 -
+2025-09-07 03:23:39,672 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:23:39] "GET /js/document-viewer.js HTTP/1.1" 200 -
+2025-09-07 03:23:39,803 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:23:39] "[33mGET /status HTTP/1.1[0m" 404 -
+2025-09-07 03:23:39,898 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:23:39] "GET /uploads/PR-25-03-120-Rebid_merged-1.pdf HTTP/1.1" 200 -
+2025-09-07 03:23:55,686 - role_awareness - INFO - RECEIVED_ROLE: 'general' for query: 'what is the budget'
+2025-09-07 03:23:55,687 - role_awareness - INFO - QUERY_START: Role='general', Query='what is the budget', Available_chunks=8
+2025-09-07 03:23:55,687 - role_awareness - INFO - FILTERING_START: Role='general', Query='what is the budget', Total_chunks=8
+2025-09-07 03:23:55,690 - role_awareness - INFO - TARGETED_SEARCH: Role='general', Intent='CONTRACT_AMOUNT', Target_tags=['CONTRACT_AMOUNT'], Results=1
+2025-09-07 03:24:43,858 - role_awareness - INFO - ================================================================================
+2025-09-07 03:24:43,871 - role_awareness - INFO - QUERY: 'what is the budget'
+2025-09-07 03:24:43,871 - role_awareness - INFO - ROLE: GENERAL
+2025-09-07 03:24:43,871 - role_awareness - INFO - DETECTED_TAG: CONTRACT_AMOUNT
+2025-09-07 03:24:43,872 - role_awareness - INFO - CONFIDENCE: 14
+2025-09-07 03:24:43,872 - role_awareness - INFO - CHUNKS_USED: 1
+2025-09-07 03:24:43,872 - role_awareness - INFO - TAGS_IN_RESULTS: TECHNICAL_SPECS, REFERENCE_INFO, CONTACT_INFO
+2025-09-07 03:24:43,872 - role_awareness - INFO - ROLE_EFFECTIVENESS: GENERAL | AVG_RELEVANCE: 0.500
+2025-09-07 03:24:43,872 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.500']
+2025-09-07 03:24:43,872 - role_awareness - INFO - ================================================================================
+2025-09-07 03:24:43,873 - role_awareness - INFO - TARGETED_SEARCH_ANALYSIS for query 'what is the budget' with role 'general':
+2025-09-07 03:24:43,873 - role_awareness - INFO -   Target_content_types: ['CONTRACT_AMOUNT']
+2025-09-07 03:24:43,873 - role_awareness - INFO -   Matched_content_types: ['CONTRACT_AMOUNT']
+2025-09-07 03:24:43,873 - role_awareness - INFO -   Chunks_from_targeted_search: 1
+2025-09-07 03:24:43,874 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'general' | TAGS: ['TECHNICAL_SPECS', 'REFERENCE_INFO', 'CONTACT_INFO'] | CHUNKS: 1
+2025-09-07 03:24:43,882 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:24:43] "POST /query HTTP/1.1" 200 -
+2025-09-07 03:25:21,831 - role_awareness - INFO - RECEIVED_ROLE: 'auditor' for query: 'what is the budget'
+2025-09-07 03:25:21,831 - role_awareness - INFO - QUERY_START: Role='auditor', Query='what is the budget', Available_chunks=8
+2025-09-07 03:25:21,832 - role_awareness - INFO - FILTERING_START: Role='auditor', Query='what is the budget', Total_chunks=8
+2025-09-07 03:25:21,859 - role_awareness - INFO - TARGETED_SEARCH: Role='auditor', Intent='CONTRACT_AMOUNT', Target_tags=['CONTRACT_AMOUNT'], Results=1
+2025-09-07 03:25:59,919 - role_awareness - INFO - ================================================================================
+2025-09-07 03:25:59,922 - role_awareness - INFO - QUERY: 'what is the budget'
+2025-09-07 03:25:59,922 - role_awareness - INFO - ROLE: AUDITOR
+2025-09-07 03:25:59,923 - role_awareness - INFO - DETECTED_TAG: CONTRACT_AMOUNT
+2025-09-07 03:25:59,923 - role_awareness - INFO - CONFIDENCE: 14
+2025-09-07 03:25:59,923 - role_awareness - INFO - CHUNKS_USED: 1
+2025-09-07 03:25:59,923 - role_awareness - INFO - TAGS_IN_RESULTS: TECHNICAL_SPECS, REFERENCE_INFO, CONTACT_INFO
+2025-09-07 03:25:59,923 - role_awareness - INFO - ROLE_EFFECTIVENESS: AUDITOR | AVG_RELEVANCE: 0.500
+2025-09-07 03:25:59,923 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.500']
+2025-09-07 03:25:59,923 - role_awareness - INFO - ================================================================================
+2025-09-07 03:25:59,924 - role_awareness - INFO - TARGETED_SEARCH_ANALYSIS for query 'what is the budget' with role 'auditor':
+2025-09-07 03:25:59,924 - role_awareness - INFO -   Target_content_types: ['CONTRACT_AMOUNT']
+2025-09-07 03:25:59,924 - role_awareness - INFO -   Matched_content_types: ['CONTRACT_AMOUNT']
+2025-09-07 03:25:59,924 - role_awareness - INFO -   Chunks_from_targeted_search: 1
+2025-09-07 03:25:59,925 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'auditor' | TAGS: ['TECHNICAL_SPECS', 'REFERENCE_INFO', 'CONTACT_INFO'] | CHUNKS: 1
+2025-09-07 03:25:59,926 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 03:25:59] "POST /query HTTP/1.1" 200 -
+2025-09-07 11:10:30,867 - role_awareness - INFO - RECEIVED_ROLE: 'auditor' for query: 'but what is the approved budget'
+2025-09-07 11:10:30,868 - role_awareness - INFO - QUERY_START: Role='auditor', Query='but what is the approved budget', Available_chunks=8
+2025-09-07 11:10:30,868 - role_awareness - INFO - FILTERING_START: Role='auditor', Query='but what is the approved budget', Total_chunks=8
+2025-09-07 11:10:30,905 - role_awareness - INFO - TARGETED_SEARCH: Role='auditor', Intent='CONTRACT_AMOUNT', Target_tags=['CONTRACT_AMOUNT'], Results=1
+2025-09-07 11:11:23,726 - role_awareness - INFO - ================================================================================
+2025-09-07 11:11:23,755 - role_awareness - INFO - QUERY: 'but what is the approved budget'
+2025-09-07 11:11:23,755 - role_awareness - INFO - ROLE: AUDITOR
+2025-09-07 11:11:23,755 - role_awareness - INFO - DETECTED_TAG: CONTRACT_AMOUNT
+2025-09-07 11:11:23,755 - role_awareness - INFO - CONFIDENCE: 19
+2025-09-07 11:11:23,755 - role_awareness - INFO - CHUNKS_USED: 1
+2025-09-07 11:11:23,755 - role_awareness - INFO - TAGS_IN_RESULTS: TECHNICAL_SPECS, REFERENCE_INFO, CONTACT_INFO
+2025-09-07 11:11:23,755 - role_awareness - INFO - ROLE_EFFECTIVENESS: AUDITOR | AVG_RELEVANCE: 0.500
+2025-09-07 11:11:23,756 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.500']
+2025-09-07 11:11:23,756 - role_awareness - INFO - ================================================================================
+2025-09-07 11:11:23,756 - role_awareness - INFO - TARGETED_SEARCH_ANALYSIS for query 'but what is the approved budget' with role 'auditor':
+2025-09-07 11:11:23,756 - role_awareness - INFO -   Target_content_types: ['CONTRACT_AMOUNT']
+2025-09-07 11:11:23,756 - role_awareness - INFO -   Matched_content_types: ['CONTRACT_AMOUNT']
+2025-09-07 11:11:23,756 - role_awareness - INFO -   Chunks_from_targeted_search: 1
+2025-09-07 11:11:23,760 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'auditor' | TAGS: ['TECHNICAL_SPECS', 'REFERENCE_INFO', 'CONTACT_INFO'] | CHUNKS: 1
+2025-09-07 11:11:23,768 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 11:11:23] "POST /query HTTP/1.1" 200 -
+2025-09-07 11:14:37,619 - role_awareness - INFO - RECEIVED_ROLE: 'auditor' for query: 'what do you mean, what is the total approved budget for the contract'
+2025-09-07 11:14:37,620 - role_awareness - INFO - QUERY_START: Role='auditor', Query='what do you mean, what is the total approved budget for the contract', Available_chunks=8
+2025-09-07 11:14:37,620 - role_awareness - INFO - FILTERING_START: Role='auditor', Query='what do you mean, what is the total approved budget for the contract', Total_chunks=8
+2025-09-07 11:14:37,657 - role_awareness - INFO - TARGETED_SEARCH: Role='auditor', Intent='CONTRACT_AMOUNT', Target_tags=['CONTRACT_AMOUNT'], Results=1
+2025-09-07 11:15:28,625 - role_awareness - INFO - ================================================================================
+2025-09-07 11:15:28,641 - role_awareness - INFO - QUERY: 'what do you mean, what is the total approved budget for the contract'
+2025-09-07 11:15:28,641 - role_awareness - INFO - ROLE: AUDITOR
+2025-09-07 11:15:28,642 - role_awareness - INFO - DETECTED_TAG: CONTRACT_AMOUNT
+2025-09-07 11:15:28,642 - role_awareness - INFO - CONFIDENCE: 19
+2025-09-07 11:15:28,642 - role_awareness - INFO - CHUNKS_USED: 1
+2025-09-07 11:15:28,642 - role_awareness - INFO - TAGS_IN_RESULTS: TECHNICAL_SPECS, REFERENCE_INFO, CONTACT_INFO
+2025-09-07 11:15:28,643 - role_awareness - INFO - ROLE_EFFECTIVENESS: AUDITOR | AVG_RELEVANCE: 0.500
+2025-09-07 11:15:28,643 - role_awareness - INFO - INDIVIDUAL_RELEVANCE_SCORES: ['0.500']
+2025-09-07 11:15:28,643 - role_awareness - INFO - ================================================================================
+2025-09-07 11:15:28,644 - role_awareness - INFO - TARGETED_SEARCH_ANALYSIS for query 'what do you mean, what is the total approved budget for the contract' with role 'auditor':
+2025-09-07 11:15:28,644 - role_awareness - INFO -   Target_content_types: ['CONTRACT_AMOUNT']
+2025-09-07 11:15:28,644 - role_awareness - INFO -   Matched_content_types: ['CONTRACT_AMOUNT']
+2025-09-07 11:15:28,644 - role_awareness - INFO -   Chunks_from_targeted_search: 1
+2025-09-07 11:15:28,650 - role_awareness - INFO - FINAL_RESPONSE_ROLE: 'auditor' | TAGS: ['TECHNICAL_SPECS', 'REFERENCE_INFO', 'CONTACT_INFO'] | CHUNKS: 1
+2025-09-07 11:15:28,658 - werkzeug - INFO - 127.0.0.1 - - [07/Sep/2025 11:15:28] "POST /query HTTP/1.1" 200 -

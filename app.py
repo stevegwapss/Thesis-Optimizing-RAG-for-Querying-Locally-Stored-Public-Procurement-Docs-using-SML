@@ -63,36 +63,144 @@ model = LocalEmbeddings(max_features=VECTOR_DIMENSION)
 faiss_index = faiss.IndexFlatIP(VECTOR_DIMENSION)  # Inner product for TF-IDF
 document_chunks = []  # Store text chunks with metadata
 
+# Enhanced indexing system with content-specific indexes
+class ContentSpecificIndexer:
+    def __init__(self, vector_dimension=1000):
+        self.vector_dimension = vector_dimension
+        self.indexes = {}
+        self.chunk_mappings = {}
+        self.is_initialized = False
+        
+    def initialize_indexes(self, actual_dimension):
+        """Initialize indexes with the actual embedding dimension"""
+        self.vector_dimension = actual_dimension
+        self.indexes = {
+            'CONTRACT_AMOUNT': faiss.IndexFlatIP(actual_dimension),
+            'TIMELINE': faiss.IndexFlatIP(actual_dimension),
+            'COMPLIANCE_REQUIREMENTS': faiss.IndexFlatIP(actual_dimension),
+            'TECHNICAL_SPECS': faiss.IndexFlatIP(actual_dimension),
+            'BIDDER_INFO': faiss.IndexFlatIP(actual_dimension),
+            'CONTACT_INFO': faiss.IndexFlatIP(actual_dimension),
+            'REFERENCE_INFO': faiss.IndexFlatIP(actual_dimension),
+            'GENERAL': faiss.IndexFlatIP(actual_dimension)
+        }
+        self.chunk_mappings = {tag: [] for tag in self.indexes.keys()}
+        self.is_initialized = True
+        print(f"Initialized content-specific indexes with dimension: {actual_dimension}")
+        
+    def add_chunk(self, chunk, embedding):
+        """Add chunk to appropriate content-specific indexes"""
+        # Initialize indexes if not done yet
+        if not self.is_initialized:
+            self.initialize_indexes(embedding.shape[0])
+        
+        # Ensure embedding is 2D
+        if embedding.ndim == 1:
+            embedding = embedding.reshape(1, -1)
+        
+        chunk_tags = chunk.get('metadata', {}).get('role_tags', ['GENERAL'])
+        
+        # Add to each relevant index based on tags
+        for tag in chunk_tags:
+            if tag in self.indexes:
+                # Add embedding to specific index
+                self.indexes[tag].add(embedding)
+                # Track chunk mapping - store the global chunk index
+                chunk_global_index = len(document_chunks)  # This will be the index after appending
+                self.chunk_mappings[tag].append(chunk_global_index)
+                
+    def search_targeted(self, query_embedding, target_tags, top_k=5):
+        """Search only in relevant content-specific indexes"""
+        all_results = []
+        
+        # Ensure query embedding is 2D
+        if query_embedding.ndim == 1:
+            query_embedding = query_embedding.reshape(1, -1)
+        
+        for tag in target_tags:
+            if tag in self.indexes and self.indexes[tag].ntotal > 0:
+                try:
+                    # Search in specific index
+                    D, I = self.indexes[tag].search(query_embedding, min(top_k, self.indexes[tag].ntotal))
+                    
+                    # Map back to original chunk indices
+                    for score, idx in zip(D[0], I[0]):
+                        if idx < len(self.chunk_mappings[tag]):
+                            original_idx = self.chunk_mappings[tag][idx]
+                            all_results.append((score, original_idx, tag))
+                except Exception as e:
+                    print(f"Error searching in {tag} index: {e}")
+                    continue
+        
+        # Sort by relevance score and return top results
+        all_results.sort(key=lambda x: x[0], reverse=True)
+        return all_results[:top_k]
+    
+    def rebuild_indexes(self, all_chunks, model):
+        """Rebuild all indexes from scratch"""
+        if not all_chunks:
+            return
+            
+        # Get actual embedding dimension
+        sample_text = all_chunks[0]["text"]
+        sample_embedding = model.encode([sample_text])
+        actual_dimension = sample_embedding.shape[1]
+        
+        # Initialize with correct dimension
+        self.initialize_indexes(actual_dimension)
+        
+        # Re-add all chunks
+        all_texts = [chunk["text"] for chunk in all_chunks]
+        embeddings = model.encode(all_texts)
+        faiss.normalize_L2(embeddings)
+        
+        for i, (chunk, embedding) in enumerate(zip(all_chunks, embeddings)):
+            # Temporarily set the global index for mapping
+            temp_doc_chunks_len = len(document_chunks)
+            document_chunks.append(None)  # Placeholder
+            self.add_chunk(chunk, embedding)
+            document_chunks.pop()  # Remove placeholder
+
+# Replace the simple FAISS index with content-specific indexer
+content_indexer = ContentSpecificIndexer(VECTOR_DIMENSION)
+
 # Load existing vector database
 def load_index():
-    global faiss_index, document_chunks, model
-    if os.path.exists(f"{DB_FOLDER}/index.faiss") and os.path.exists(f"{DB_FOLDER}/chunks.json"):
+    global content_indexer, document_chunks, model
+    if os.path.exists(f"{DB_FOLDER}/chunks.json"):
         try:
-            faiss_index = faiss.read_index(f"{DB_FOLDER}/index.faiss")
+            # Load chunk data
             with open(f"{DB_FOLDER}/chunks.json", 'r') as f:
                 document_chunks = json.load(f)
             
-            # Retrain model on existing data
+            # Initialize new content indexer
+            content_indexer = ContentSpecificIndexer(VECTOR_DIMENSION)
+            
+            # Retrain model and rebuild indexes if we have data
             if document_chunks:
                 texts = [chunk["text"] for chunk in document_chunks]
                 model.fit(texts)
                 print(f"Reloaded {len(texts)} chunks and retrained model")
+                
+                # Rebuild content-specific indexes
+                content_indexer.rebuild_indexes(document_chunks, model)
+                print(f"Rebuilt content-specific indexes with {len(document_chunks)} chunks")
             
-            print(f"Loaded index with {len(document_chunks)} chunks")
         except Exception as e:
             print(f"Error loading index: {e}")
-            faiss_index = faiss.IndexFlatIP(VECTOR_DIMENSION)
+            content_indexer = ContentSpecificIndexer(VECTOR_DIMENSION)
             document_chunks = []
     else:
-        faiss_index = faiss.IndexFlatIP(VECTOR_DIMENSION)
+        content_indexer = ContentSpecificIndexer(VECTOR_DIMENSION)
         document_chunks = []
 
 # Save vector database
 def save_index():
-    faiss.write_index(faiss_index, f"{DB_FOLDER}/index.faiss")
+    # Just save chunk data - indexes will be rebuilt on load
     with open(f"{DB_FOLDER}/chunks.json", 'w') as f:
         json.dump(document_chunks, f)
-    print(f"Saved index with {len(document_chunks)} chunks")
+    
+    print(f"Saved chunks data with {len(document_chunks)} chunks")
 
 def auto_tag_chunk(text):
     """Tag chunks based on content keywords"""
@@ -233,7 +341,7 @@ def extract_pdf_text(file_path):
 
 # Add document to vector database
 def add_document_to_index(file_path):
-    global faiss_index, model
+    global content_indexer, model
     
     chunks = extract_pdf_text(file_path)
     if not chunks:
@@ -251,24 +359,16 @@ def add_document_to_index(file_path):
     embeddings = model.encode(texts)
     faiss.normalize_L2(embeddings)
     
-    # Rebuild index if needed
-    if not model.is_fitted or faiss_index.d != embeddings.shape[1]:
-        print(f"Rebuilding index with dimension {embeddings.shape[1]}")
-        faiss_index = faiss.IndexFlatIP(embeddings.shape[1])
-        
-        # Re-encode all chunks if we have existing data
-        if document_chunks:
-            all_embeddings = model.encode(all_existing_texts + texts)
-            faiss.normalize_L2(all_embeddings)
-            faiss_index.add(all_embeddings)
-        else:
-            faiss_index.add(embeddings)
-    else:
-        faiss_index.add(embeddings)
+    # Initialize content indexer if needed
+    if not content_indexer.is_initialized:
+        content_indexer.initialize_indexes(embeddings.shape[1])
     
-    # Store chunk metadata
-    for chunk in chunks:
+    # Add chunks and their embeddings to content-specific indexes
+    for chunk, embedding in zip(chunks, embeddings):
+        # Add chunk to document_chunks first to get correct global index
         document_chunks.append(chunk)
+        # Then add to content indexer
+        content_indexer.add_chunk(chunk, embedding)
     
     save_index()
     return {"success": True, "chunks_added": len(chunks)}
@@ -393,64 +493,66 @@ def prioritize_chunks(chunks, role):
     return prioritize_chunks_enhanced(chunks, role)
 
 def enhanced_chunk_filtering(query, role, all_chunks, top_k=5):
-    """Smart filtering based on query intent and user role"""
+    """Smart filtering using content-specific indexes for targeted search"""
     
-    print(f"DEBUG: enhanced_chunk_filtering called with role: '{role}', query: '{query}'")
+    print(f"DEBUG: enhanced_chunk_filtering with targeted indexing - role: '{role}', query: '{query}'")
     role_logger.info(f"FILTERING_START: Role='{role}', Query='{query}', Total_chunks={len(all_chunks)}")
     
-    # First, detect what the user is asking about
+    # Detect what the user is asking about
     required_tag, confidence = detect_query_intent(query)
     print(f"DEBUG: Detected intent: {required_tag} with confidence: {confidence}")
     
-    # Get semantically similar chunks first
+    # Determine which content indexes to search
+    target_tags = []
+    if required_tag and confidence >= 2:
+        # High confidence - search only specific content type
+        target_tags = [required_tag]
+        print(f"DEBUG: High confidence search - targeting only: {target_tags}")
+    else:
+        # Lower confidence - search role-relevant content types
+        role_context = ROLE_CONTEXTS.get(role, {})
+        target_tags = role_context.get('priority_tags', ['GENERAL'])
+        print(f"DEBUG: Role-based search - targeting: {target_tags}")
+    
+    # Perform targeted search using content-specific indexes
     candidate_chunks = []
-    if model.is_fitted and len(all_chunks) > 0:
+    if model.is_fitted and len(all_chunks) > 0 and content_indexer.is_initialized:
         query_embedding = model.encode([query])
         faiss.normalize_L2(query_embedding)
-        D, I = faiss_index.search(query_embedding, min(len(all_chunks), top_k * 3))
         
-        # Get candidate chunks from search results
-        for idx in I[0]:
-            if idx < len(all_chunks):
-                candidate_chunks.append(all_chunks[idx])
+        # Search only relevant content indexes
+        search_results = content_indexer.search_targeted(query_embedding, target_tags, top_k * 2)
+        
+        # Convert results back to chunks
+        for score, chunk_idx, content_tag in search_results:
+            if chunk_idx < len(all_chunks):
+                chunk = all_chunks[chunk_idx].copy()
+                chunk['_search_score'] = score
+                chunk['_matched_tag'] = content_tag
+                candidate_chunks.append(chunk)
+        
+        print(f"DEBUG: Targeted search found {len(candidate_chunks)} candidates from {len(target_tags)} content types")
     else:
-        candidate_chunks = all_chunks[:top_k * 3]
-    
-    print(f"DEBUG: Initial candidates from semantic search: {len(candidate_chunks)}")
-    
-    # Filter by detected intent if confident
-    used_fallback = False
-    if required_tag and confidence >= 2:
-        print(f"DEBUG: Applying strict tag filtering for tag: {required_tag}")
-        filtered_chunks = apply_strict_tag_filtering(candidate_chunks, required_tag, fallback_allowed=True)
-        print(f"DEBUG: After tag filtering: {len(filtered_chunks)} chunks")
-        
-        if len(filtered_chunks) < len(candidate_chunks):
-            candidate_chunks = filtered_chunks
-            print(f"DEBUG: Tag filtering reduced chunks to: {len(candidate_chunks)}")
-        if not filtered_chunks:
-            used_fallback = True
-            candidate_chunks = apply_strict_tag_filtering(candidate_chunks, required_tag, fallback_allowed=True)
-            print(f"DEBUG: Used fallback, chunks: {len(candidate_chunks)}")
+        # Fallback to tag-based filtering if indexes not ready
+        print("DEBUG: Falling back to tag-based filtering")
+        candidate_chunks = apply_strict_tag_filtering(all_chunks, required_tag, fallback_allowed=True)[:top_k * 2]
     
     # Apply role-specific prioritization
-    print(f"DEBUG: Applying role-specific prioritization for role: {role}")
     prioritized_chunks = prioritize_chunks_enhanced(candidate_chunks, role)
-    
-    # Return top results
     final_chunks = prioritized_chunks[:top_k]
     
     # Get role context for response framing
     role_context = ROLE_CONTEXTS.get(role, {})
     
-    # Log results
-    role_logger.info(f"FILTERING_RESULT: Role='{role}', Query='{query}', Intent='{required_tag}', Confidence={confidence}, Final_chunks={len(final_chunks)}")
+    # Log results with targeted search info
+    role_logger.info(f"TARGETED_SEARCH: Role='{role}', Intent='{required_tag}', Target_tags={target_tags}, Results={len(final_chunks)}")
     
     return {
         'chunks': final_chunks,
         'detected_intent': required_tag,
         'intent_confidence': confidence,
-        'used_fallback': used_fallback,
+        'target_tags': target_tags,
+        'targeted_search': content_indexer.is_initialized,
         'role_framing': role_context.get('framing', ''),
         'role_emphasis': role_context.get('emphasis', ''),
         'total_candidates': len(candidate_chunks),
@@ -712,50 +814,46 @@ def query_ollama_with_role(query, role='general', top_k=5):
 
 # Main query function with enhanced filtering
 def query_ollama_with_strict_filtering(query, role='general', top_k=5):
-    """Main query function with smart filtering and role-specific processing"""
+    """Main query function with targeted content-specific indexing"""
     
-    print(f"DEBUG: query_ollama_with_strict_filtering called with role: '{role}', query: '{query}'")
+    print(f"DEBUG: query_ollama_with_strict_filtering with targeted indexing - role: '{role}', query: '{query}'")
     role_logger.info(f"QUERY_START: Role='{role}', Query='{query}', Available_chunks={len(document_chunks)}")
     
     if len(document_chunks) == 0:
         log_query_result(query, role, None, 0, 0, [], [])
         return {"response": "No relevant information found. Please upload some documents first."}
     
-    # Apply smart filtering
+    # Apply enhanced filtering with targeted indexing
     filter_result = enhanced_chunk_filtering(query, role, document_chunks, top_k)
     
     chunks = filter_result['chunks']
 
-    # Extract role relevance scores for the current role
+    # Extract role relevance scores and metadata
     role_relevance_scores = []
     all_tags_used = set()
+    matched_content_types = set()
     
     for chunk in chunks:
-        # Get relevance score for current role
         relevance = chunk.get('metadata', {}).get('role_relevance', {}).get(role, 0.5)
         role_relevance_scores.append(relevance)
         
-        # Collect tags from selected chunks
         chunk_tags = chunk.get('metadata', {}).get('role_tags', [])
         all_tags_used.update(chunk_tags)
+        
+        # Track which content types were matched
+        if '_matched_tag' in chunk:
+            matched_content_types.add(chunk['_matched_tag'])
 
     tags_used_list = list(all_tags_used)
+    matched_types_list = list(matched_content_types)
 
-    print(f"DEBUG: Role relevance scores for role '{role}': {role_relevance_scores}")
-    print(f"DEBUG: Tags used: {tags_used_list}")
-    print(f"DEBUG: Number of chunks selected: {len(chunks)}")
+    print(f"DEBUG: Targeted search matched content types: {matched_types_list}")
+    print(f"DEBUG: Role relevance scores: {role_relevance_scores}")
+    print(f"DEBUG: Selected {len(chunks)} chunks from targeted search")
 
-    # Handle case where no relevant chunks found
+    # Handle no results case
     if not chunks:
-        log_query_result(
-            query,
-            role,
-            filter_result.get('detected_intent'),
-            filter_result.get('intent_confidence', 0),
-            0,
-            [],
-            []
-        )
+        log_query_result(query, role, filter_result.get('detected_intent'), 0, 0, [], [])
         fallback_response = create_fallback_response(query, role)
         return {
             "response": fallback_response,
@@ -765,17 +863,17 @@ def query_ollama_with_strict_filtering(query, role='general', top_k=5):
             "is_fallback": True
         }
     
-    # Build context for Ollama
+    # Build context with targeted content emphasis
     contexts_text = []
     for chunk in chunks:
         contexts_text.append(chunk['text'])
     
     context_text = "\n\n".join(contexts_text)
     
-    # Build role-specific prompt
+    # Enhanced prompt with targeted search context
     role_framing = filter_result.get('role_framing', '')
-    role_emphasis = filter_result.get('role_emphasis', '')
     detected_intent = filter_result.get('detected_intent', '')
+    target_tags = filter_result.get('target_tags', [])
     
     # Role-specific instructions
     role_specific_instruction = ""
@@ -793,14 +891,15 @@ def query_ollama_with_strict_filtering(query, role='general', top_k=5):
     
     {role_specific_instruction}
     
+    {f"This response is based on targeted search for: {', '.join(target_tags)}" if target_tags else ""}
     {f"The query appears to be about: {detected_intent}" if detected_intent else ""}
     
-    Context information:
+    Context information (from targeted content search):
     {context_text}
     
     Query: {query}
     
-    Provide a clear, role-appropriate answer based only on the provided context. If the information is not in the context, say that you don't know but suggest relevant next steps.
+    Provide a clear, role-appropriate answer based only on the provided context. The context has been specifically selected for relevance to your query, so focus on the most pertinent information.
     """
     
     # Query Ollama
@@ -818,42 +917,34 @@ def query_ollama_with_strict_filtering(query, role='general', top_k=5):
         )
         
         if response.status_code == 200:
-            # Log successful query
-            log_query_result(
-                query,
-                role,
-                filter_result.get('detected_intent'),
-                filter_result.get('intent_confidence', 0),
-                len(chunks),
-                role_relevance_scores,
-                tags_used_list
-            )
+            # Log successful targeted query
+            log_query_result(query, role, detected_intent, filter_result.get('intent_confidence', 0), len(chunks), role_relevance_scores, tags_used_list)
             
-            # Log detailed chunk analysis
-            role_logger.info(f"CHUNK_ANALYSIS for query '{query}' with role '{role}':")
-            for i, chunk in enumerate(chunks):
-                chunk_tags = chunk.get('metadata', {}).get('role_tags', [])
-                chunk_relevance = chunk.get('metadata', {}).get('role_relevance', {})
-                role_specific_relevance = chunk_relevance.get(role, 0.5)
-                role_logger.info(f"  Chunk {i+1}: TAGS={chunk_tags} | {role.upper()}_RELEVANCE={role_specific_relevance:.3f} | ALL_RELEVANCE={chunk_relevance}")
+            # Log targeted search effectiveness
+            role_logger.info(f"TARGETED_SEARCH_ANALYSIS for query '{query}' with role '{role}':")
+            role_logger.info(f"  Target_content_types: {target_tags}")
+            role_logger.info(f"  Matched_content_types: {matched_types_list}")
+            role_logger.info(f"  Chunks_from_targeted_search: {len(chunks)}")
             
-            # Log effectiveness metrics
             avg_relevance = sum(role_relevance_scores) / len(role_relevance_scores) if role_relevance_scores else 0.5
-            role_logger.info(f"ROLE_EFFECTIVENESS: Role='{role}', Avg_Relevance={avg_relevance:.3f}, Tags_Found={len(tags_used_list)}, Intent_Match={detected_intent}")
             
             response_data = {
                 "response": response.json()["response"],
                 "role": role,
                 "confirmed_role": role,
                 "contexts_used": len(chunks),
-                "relevant_tags": list(set([tag for chunk in chunks for tag in chunk.get('metadata', {}).get('role_tags', [])])),
+                "relevant_tags": tags_used_list,
+                "matched_content_types": matched_types_list,
+                "target_content_types": target_tags,
                 "sources": list(set([chunk.get('metadata', {}).get('source', 'unknown') for chunk in chunks])),
                 "filtering_info": filter_result,
                 "is_fallback": False,
+                "targeted_search": True,
                 "role_effectiveness": {
                     "avg_relevance": avg_relevance,
                     "tags_found": len(tags_used_list),
-                    "intent_detected": detected_intent
+                    "intent_detected": detected_intent,
+                    "search_precision": len(matched_types_list) / max(1, len(target_tags))
                 }
             }
             
@@ -865,7 +956,6 @@ def query_ollama_with_strict_filtering(query, role='general', top_k=5):
         role_logger.error(f"Error querying Ollama: {str(e)}")
         return {"error": f"Error querying Ollama: {str(e)}"}
 
-# Flask routes
 @app.route('/')
 def serve_index():
     return send_from_directory('.', 'index.html')
@@ -1047,6 +1137,34 @@ def analyze_tagging():
             if role_relevance.get(role, 0) > 0.7:  # High relevance threshold
                 chunks_for_role += 1
         analysis["role_coverage"][role] = chunks_for_role
+    
+    return jsonify(analysis)
+
+@app.route('/analyze-index-efficiency', methods=['GET'])
+def analyze_index_efficiency():
+    """Analyze the efficiency of content-specific indexing"""
+    analysis = {
+        "total_chunks": len(document_chunks),
+        "content_index_distribution": {},
+        "index_sizes": {},
+        "search_efficiency": {},
+        "indexer_initialized": content_indexer.is_initialized
+    }
+    
+    if content_indexer.is_initialized:
+        # Analyze distribution across content indexes
+        for tag, chunks in content_indexer.chunk_mappings.items():
+            analysis["content_index_distribution"][tag] = len(chunks)
+            analysis["index_sizes"][tag] = content_indexer.indexes[tag].ntotal
+        
+        # Calculate search efficiency metrics
+        total_indexed = sum(analysis["index_sizes"].values())
+        for tag, size in analysis["index_sizes"].items():
+            if total_indexed > 0:
+                analysis["search_efficiency"][tag] = {
+                    "percentage_of_total": (size / total_indexed) * 100,
+                    "search_reduction": ((total_indexed - size) / total_indexed) * 100 if size < total_indexed else 0
+                }
     
     return jsonify(analysis)
 
