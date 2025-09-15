@@ -6,6 +6,7 @@
     <title>Document Viewer - Role-Aware RAG</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/document-viewer.css">
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAACAAACAAAAAgIAAgAAAAIAAgACAgAAAwMDAAICAgAAAAP8AAP8AAAD//wD/AAAA/wD/AP//AAD///8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
     <style>
         .role-section {
@@ -153,18 +154,7 @@
         
         <!-- Main Content Area -->
         <div class="main-content">
-            <!-- PDF Viewer -->
-            <div class="pdf-viewer">
-                <div id="pdf-container">
-                    <canvas id="pdf-render"></canvas>
-                    <div class="pdf-loading" id="pdf-loading">
-                        <div class="spinner"></div>
-                        <p>Loading document...</p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Chat Interface -->
+            <!-- Chat Interface (Main Area) -->
             <div class="chat-interface">
                 <div class="chat-header">
                     <h3>Document Assistant</h3>
@@ -184,16 +174,30 @@
                 </div>
                 
                 <div class="chat-messages" id="chat-messages">
-                    <div class="assistant-message">Hello! I've indexed your document. You can ask me any questions about its content.</div>
+                    <div class="assistant-message">Hello! I've indexed your document(s). You can ask me any questions about the content.</div>
                 </div>
                 <div class="chat-input">
-                    <input type="text" id="query-input" placeholder="Ask about this document...">
+                    <input type="text" id="query-input" placeholder="Ask about your documents...">
                     <button id="send-button">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="22" y1="2" x2="11" y2="13"></line>
                             <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                         </svg>
                     </button>
+                </div>
+            </div>
+            
+            <!-- PDF Viewer (Sidebar) -->
+            <div class="pdf-viewer">
+                <div class="pdf-viewer-header">
+                    <h4>Document Preview</h4>
+                </div>
+                <div id="pdf-container">
+                    <canvas id="pdf-render"></canvas>
+                    <div class="pdf-loading" id="pdf-loading">
+                        <div class="spinner"></div>
+                        <p>Loading document...</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -301,9 +305,9 @@
                     content += `
                         <div class="message-metadata">
                             <small>
-                                👤 ${roleName} | 
-                                📄 ${metadata.contexts_used || 0} contexts | 
-                                🏷️ ${(metadata.relevant_tags || []).join(', ') || 'None'}
+                                ${roleName} | 
+                                 ${metadata.contexts_used || 0} contexts | 
+                                 ${(metadata.relevant_tags || []).join(', ') || 'None'}
                             </small>
                         </div>
                     `;

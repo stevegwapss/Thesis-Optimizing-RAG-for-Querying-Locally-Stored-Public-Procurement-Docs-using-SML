@@ -60,8 +60,245 @@ class LocalEmbeddings:
 model = LocalEmbeddings(max_features=VECTOR_DIMENSION)
 
 # Vector database setup
-faiss_index = faiss.IndexFlatIP(VECTOR_DIMENSION)  # Inner product for TF-IDF
+faiss_index = faiss.IndexFlatIP(VECTOR_DIMENSION)  
 document_chunks = []  # Store text chunks with metadata
+
+import glob
+from concurrent.futures import ThreadPoolExecutor
+import threading
+import time
+
+# Global variable to track processing progress
+processing_progress = {
+    'total_files': 0,
+    'processed_files': 0,
+    'current_file': '',
+    'status': 'idle', 
+    'errors': [],
+    'start_time': None,
+    'folder_path': ''
+}
+progress_lock = threading.Lock()
+
+def reset_progress():
+    """Reset progress tracking for new session"""
+    global processing_progress
+    with progress_lock:
+        processing_progress.update({
+            'total_files': 0,
+            'processed_files': 0,
+            'current_file': '',
+            'status': 'idle',
+            'errors': [],
+            'start_time': None,
+            'folder_path': ''
+        })
+        print(f"DEBUG: Progress reset - processed_files = {processing_progress['processed_files']}")
+
+def update_progress(status=None, current_file=None, increment_processed=False, error=None):
+    """Thread-safe progress update"""
+    global processing_progress
+    with progress_lock:
+        if status:
+            processing_progress['status'] = status
+        if current_file:
+            processing_progress['current_file'] = current_file
+        if increment_processed:
+            processing_progress['processed_files'] += 1
+            print(f"DEBUG: Incremented counter to {processing_progress['processed_files']}")
+        if error:
+            processing_progress['errors'].append(error)
+
+def process_single_file(file_path, copy_to_uploads=False):
+    """Process a single file and return results"""
+    try:
+        update_progress(current_file=os.path.basename(file_path))
+        
+        # Copy file to uploads directory if requested (for folder uploads)
+        uploaded_file_path = None
+        if copy_to_uploads:
+            try:
+                filename = os.path.basename(file_path)
+                target_path = os.path.join(UPLOAD_FOLDER, filename)
+                
+                # Check if the exact same file already exists
+                if os.path.exists(target_path):
+                    if os.path.getsize(file_path) == os.path.getsize(target_path):
+                        print(f"File {filename} already exists with same size, skipping copy")
+                        uploaded_file_path = target_path
+                    else:
+                        base_name, ext = os.path.splitext(filename)
+                        counter = 1
+                        while os.path.exists(os.path.join(UPLOAD_FOLDER, filename)):
+                            filename = f"{base_name}_{counter}{ext}"
+                            counter += 1
+                        
+                        uploaded_file_path = os.path.join(UPLOAD_FOLDER, filename)
+                        import shutil
+                        shutil.copy2(file_path, uploaded_file_path)
+                        print(f"Copied {file_path} to {uploaded_file_path}")
+                else:
+                    # File doesn't exist, copy it
+                    uploaded_file_path = target_path
+                    import shutil
+                    shutil.copy2(file_path, uploaded_file_path)
+                    print(f"Copied {file_path} to {uploaded_file_path}")
+                    
+            except Exception as e:
+                print(f"Warning: Could not copy file to uploads directory: {e}")
+                # Continue with processing even if copy fails
+        
+        # Extract chunks from file
+        chunks = extract_pdf_text(file_path)
+        if not chunks:
+            error_msg = f"No text extracted from {os.path.basename(file_path)}"
+            update_progress(error=error_msg)
+            return {"success": False, "file": file_path, "error": error_msg, "chunks": 0}
+
+        return {
+            "success": True, 
+            "file": file_path, 
+            "uploaded_file": uploaded_file_path or file_path,
+            "chunks": chunks, 
+            "chunks_count": len(chunks)
+        }
+        
+    except Exception as e:
+        error_msg = f"Error processing {os.path.basename(file_path)}: {str(e)}"
+        update_progress(error=error_msg)
+        return {"success": False, "file": file_path, "error": error_msg, "chunks": 0}
+
+def batch_index_files(file_results):
+    """Efficiently batch index all processed files"""
+    global content_indexer, model
+    
+    try:
+        # Collect all chunks and texts
+        all_new_chunks = []
+        
+        for result in file_results:
+            if result["success"]:
+                all_new_chunks.extend(result["chunks"])
+        
+        if not all_new_chunks:
+            return {"success": False, "message": "No valid chunks to index"}
+        
+        # Prepare texts for model training
+        new_texts = [chunk["text"] for chunk in all_new_chunks]
+        existing_texts = [chunk["text"] for chunk in document_chunks]
+        all_texts = existing_texts + new_texts
+        
+        # Retrain model on all data (existing + new)
+        print(f"Retraining model on {len(all_texts)} total texts...")
+        model.fit(all_texts)
+        
+        # Generate embeddings for all new chunks at once
+        print(f"Generating embeddings for {len(new_texts)} new chunks...")
+        embeddings = model.encode(new_texts)
+        faiss.normalize_L2(embeddings)
+        
+        # Initialize content indexer if needed with correct dimension
+        if embeddings.shape[1] != content_indexer.vector_dimension:
+            print(f"Rebuilding content indexer with dimension {embeddings.shape[1]}")
+            content_indexer = ContentSpecificIndexer(embeddings.shape[1])
+        
+        # Batch add all chunks to indexes
+        print("Adding chunks to content-specific indexes...")
+        for chunk, embedding in zip(all_new_chunks, embeddings):
+            document_chunks.append(chunk)
+            content_indexer.add_chunk(chunk, embedding)
+        
+        # Save everything once at the end
+        save_index()
+        
+        return {
+            "success": True, 
+            "total_chunks_added": len(all_new_chunks),
+            "total_files_processed": sum(1 for r in file_results if r["success"]),
+            "total_files_failed": sum(1 for r in file_results if not r["success"])
+        }
+        
+    except Exception as e:
+        return {"success": False, "message": f"Batch indexing failed: {str(e)}"}
+
+def process_folder_contents(folder_path, max_workers=3):
+    """Process all PDF files in a folder efficiently"""
+    global processing_progress
+    
+    try:
+        # Reset progress tracking for new session
+        reset_progress()
+        
+        # Find all PDF files in folder and subfolders
+        pdf_files = []
+        for extension in ['*.pdf', '*.PDF']:
+            pdf_files.extend(glob.glob(os.path.join(folder_path, '**', extension), recursive=True))
+        
+        if not pdf_files:
+            return {"success": False, "message": "No PDF files found in the specified folder"}
+        
+        # Initialize progress tracking
+        update_progress(status='processing')
+        with progress_lock:
+            processing_progress.update({
+                'total_files': len(pdf_files),
+                'processed_files': 0,  # Explicitly reset counter
+                'start_time': time.time(),
+                'errors': [],
+                'current_file': ''
+            })
+            print(f"DEBUG: Progress initialized - total={len(pdf_files)}, processed={processing_progress['processed_files']}")
+        
+        print(f"Found {len(pdf_files)} PDF files to process")
+        
+        # Process files in parallel (but limit concurrency to avoid memory issues)
+        file_results = []
+        
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # Submit all file processing tasks - copy files to uploads directory for folder uploads
+            future_to_file = {executor.submit(process_single_file, file_path, True): file_path 
+                            for file_path in pdf_files}
+            
+            # Collect results as they complete
+            for future in future_to_file:
+                result = future.result()
+                file_results.append(result)
+                # Only increment for successful file processing, not pages
+                if result["success"]:
+                    update_progress(increment_processed=True)
+                
+                print(f"Processed {processing_progress['processed_files']}/{processing_progress['total_files']}: "
+                      f"{os.path.basename(result['file'])} - {'Success' if result['success'] else 'Failed'}")
+        
+        # Batch index all successful results
+        print("Starting batch indexing...")
+        index_result = batch_index_files(file_results)
+        
+        # Update final status
+        if index_result["success"]:
+            update_progress(status='completed')
+            return {
+                "success": True,
+                "message": f"Successfully processed {len(pdf_files)} files",
+                "total_files": len(pdf_files),
+                "successful_files": index_result["total_files_processed"],
+                "failed_files": index_result["total_files_failed"],
+                "total_chunks_added": index_result["total_chunks_added"],
+                "errors": processing_progress['errors'],
+                "folder_path": folder_path
+            }
+        else:
+            update_progress(status='error')
+            return {
+                "success": False,
+                "message": index_result["message"],
+                "errors": processing_progress['errors'],
+                "folder_path": folder_path
+            }
+            
+    except Exception as e:
+        update_progress(status='error', error=str(e))
+        return {"success": False, "message": f"Folder processing failed: {str(e)}", "folder_path": folder_path}
 
 # Enhanced indexing system with content-specific indexes
 class ContentSpecificIndexer:
@@ -106,7 +343,7 @@ class ContentSpecificIndexer:
                 # Add embedding to specific index
                 self.indexes[tag].add(embedding)
                 # Track chunk mapping - store the global chunk index
-                chunk_global_index = len(document_chunks)  # This will be the index after appending
+                chunk_global_index = len(document_chunks) - 1  # Current index since chunk was just added
                 self.chunk_mappings[tag].append(chunk_global_index)
                 
     def search_targeted(self, query_embedding, target_tags, top_k=5):
@@ -138,28 +375,19 @@ class ContentSpecificIndexer:
     
     def rebuild_indexes(self, all_chunks, model):
         """Rebuild all indexes from scratch"""
-        if not all_chunks:
-            return
-            
-        # Get actual embedding dimension
-        sample_text = all_chunks[0]["text"]
-        sample_embedding = model.encode([sample_text])
-        actual_dimension = sample_embedding.shape[1]
-        
-        # Initialize with correct dimension
-        self.initialize_indexes(actual_dimension)
+        # Reset indexes
+        for tag in self.indexes:
+            self.indexes[tag] = faiss.IndexFlatIP(self.vector_dimension)
+            self.chunk_mappings[tag] = []
         
         # Re-add all chunks
-        all_texts = [chunk["text"] for chunk in all_chunks]
-        embeddings = model.encode(all_texts)
-        faiss.normalize_L2(embeddings)
-        
-        for i, (chunk, embedding) in enumerate(zip(all_chunks, embeddings)):
-            # Temporarily set the global index for mapping
-            temp_doc_chunks_len = len(document_chunks)
-            document_chunks.append(None)  # Placeholder
-            self.add_chunk(chunk, embedding)
-            document_chunks.pop()  # Remove placeholder
+        if all_chunks:
+            all_texts = [chunk["text"] for chunk in all_chunks]
+            embeddings = model.encode(all_texts)
+            faiss.normalize_L2(embeddings)
+            
+            for i, (chunk, embedding) in enumerate(zip(all_chunks, embeddings)):
+                self.add_chunk(chunk, embedding)
 
 # Replace the simple FAISS index with content-specific indexer
 content_indexer = ContentSpecificIndexer(VECTOR_DIMENSION)
@@ -167,27 +395,28 @@ content_indexer = ContentSpecificIndexer(VECTOR_DIMENSION)
 # Load existing vector database
 def load_index():
     global content_indexer, document_chunks, model
-    if os.path.exists(f"{DB_FOLDER}/chunks.json"):
+    if os.path.exists(f"{DB_FOLDER}/content_indexes.pkl") and os.path.exists(f"{DB_FOLDER}/chunks.json"):
         try:
+            import pickle
+            
             # Load chunk data
             with open(f"{DB_FOLDER}/chunks.json", 'r') as f:
                 document_chunks = json.load(f)
             
-            # Initialize new content indexer
-            content_indexer = ContentSpecificIndexer(VECTOR_DIMENSION)
+            # Load content-specific indexes
+            with open(f"{DB_FOLDER}/content_indexes.pkl", 'rb') as f:
+                index_data = pickle.load(f)
+                content_indexer.indexes = index_data['indexes']
+                content_indexer.chunk_mappings = index_data['mappings']
             
-            # Retrain model and rebuild indexes if we have data
+            # Retrain model on existing data
             if document_chunks:
                 texts = [chunk["text"] for chunk in document_chunks]
                 model.fit(texts)
-                print(f"Reloaded {len(texts)} chunks and retrained model")
-                
-                # Rebuild content-specific indexes
-                content_indexer.rebuild_indexes(document_chunks, model)
-                print(f"Rebuilt content-specific indexes with {len(document_chunks)} chunks")
+                print(f"Loaded content-specific indexes with {len(document_chunks)} chunks")
             
         except Exception as e:
-            print(f"Error loading index: {e}")
+            print(f"Error loading indexes: {e}")
             content_indexer = ContentSpecificIndexer(VECTOR_DIMENSION)
             document_chunks = []
     else:
@@ -196,11 +425,21 @@ def load_index():
 
 # Save vector database
 def save_index():
-    # Just save chunk data - indexes will be rebuilt on load
+    import pickle
+    
+    # Save chunk data
     with open(f"{DB_FOLDER}/chunks.json", 'w') as f:
         json.dump(document_chunks, f)
     
-    print(f"Saved chunks data with {len(document_chunks)} chunks")
+    # Save content-specific indexes
+    index_data = {
+        'indexes': content_indexer.indexes,
+        'mappings': content_indexer.chunk_mappings
+    }
+    with open(f"{DB_FOLDER}/content_indexes.pkl", 'wb') as f:
+        pickle.dump(index_data, f)
+    
+    print(f"Saved content-specific indexes with {len(document_chunks)} chunks")
 
 def auto_tag_chunk(text):
     """Tag chunks based on content keywords"""
@@ -359,16 +598,10 @@ def add_document_to_index(file_path):
     embeddings = model.encode(texts)
     faiss.normalize_L2(embeddings)
     
-    # Initialize content indexer if needed
-    if not content_indexer.is_initialized:
-        content_indexer.initialize_indexes(embeddings.shape[1])
-    
-    # Add chunks and their embeddings to content-specific indexes
+    # Add to content-specific indexes
     for chunk, embedding in zip(chunks, embeddings):
-        # Add chunk to document_chunks first to get correct global index
-        document_chunks.append(chunk)
-        # Then add to content indexer
         content_indexer.add_chunk(chunk, embedding)
+        document_chunks.append(chunk)
     
     save_index()
     return {"success": True, "chunks_added": len(chunks)}
@@ -516,7 +749,7 @@ def enhanced_chunk_filtering(query, role, all_chunks, top_k=5):
     
     # Perform targeted search using content-specific indexes
     candidate_chunks = []
-    if model.is_fitted and len(all_chunks) > 0 and content_indexer.is_initialized:
+    if model.is_fitted and len(all_chunks) > 0:
         query_embedding = model.encode([query])
         faiss.normalize_L2(query_embedding)
         
@@ -533,8 +766,7 @@ def enhanced_chunk_filtering(query, role, all_chunks, top_k=5):
         
         print(f"DEBUG: Targeted search found {len(candidate_chunks)} candidates from {len(target_tags)} content types")
     else:
-        # Fallback to tag-based filtering if indexes not ready
-        print("DEBUG: Falling back to tag-based filtering")
+        # Fallback to tag-based filtering
         candidate_chunks = apply_strict_tag_filtering(all_chunks, required_tag, fallback_allowed=True)[:top_k * 2]
     
     # Apply role-specific prioritization
@@ -552,7 +784,7 @@ def enhanced_chunk_filtering(query, role, all_chunks, top_k=5):
         'detected_intent': required_tag,
         'intent_confidence': confidence,
         'target_tags': target_tags,
-        'targeted_search': content_indexer.is_initialized,
+        'targeted_search': True,
         'role_framing': role_context.get('framing', ''),
         'role_emphasis': role_context.get('emphasis', ''),
         'total_candidates': len(candidate_chunks),
@@ -960,6 +1192,20 @@ def query_ollama_with_strict_filtering(query, role='general', top_k=5):
 def serve_index():
     return send_from_directory('.', 'index.html')
 
+@app.route('/uploads/<filename>')
+def serve_uploaded_file(filename):
+    """Serve uploaded PDF files"""
+    return send_from_directory(UPLOAD_FOLDER, filename)
+
+@app.route('/status', methods=['GET'])
+def get_status():
+    """Get system status - mainly for Ollama connection check"""
+    return jsonify({
+        "success": True,
+        "ollama_status": "connected",  # Simplified for now
+        "message": "System operational"
+    })
+
 @app.route('/upload', methods=['POST'])
 def upload_file():
     print("Upload endpoint called!")
@@ -1147,24 +1393,22 @@ def analyze_index_efficiency():
         "total_chunks": len(document_chunks),
         "content_index_distribution": {},
         "index_sizes": {},
-        "search_efficiency": {},
-        "indexer_initialized": content_indexer.is_initialized
+        "search_efficiency": {}
     }
     
-    if content_indexer.is_initialized:
-        # Analyze distribution across content indexes
-        for tag, chunks in content_indexer.chunk_mappings.items():
-            analysis["content_index_distribution"][tag] = len(chunks)
-            analysis["index_sizes"][tag] = content_indexer.indexes[tag].ntotal
-        
-        # Calculate search efficiency metrics
-        total_indexed = sum(analysis["index_sizes"].values())
-        for tag, size in analysis["index_sizes"].items():
-            if total_indexed > 0:
-                analysis["search_efficiency"][tag] = {
-                    "percentage_of_total": (size / total_indexed) * 100,
-                    "search_reduction": ((total_indexed - size) / total_indexed) * 100 if size < total_indexed else 0
-                }
+    # Analyze distribution across content indexes
+    for tag, chunks in content_indexer.chunk_mappings.items():
+        analysis["content_index_distribution"][tag] = len(chunks)
+        analysis["index_sizes"][tag] = content_indexer.indexes[tag].ntotal
+    
+    # Calculate search efficiency metrics
+    total_indexed = sum(analysis["index_sizes"].values())
+    for tag, size in analysis["index_sizes"].items():
+        if total_indexed > 0:
+            analysis["search_efficiency"][tag] = {
+                "percentage_of_total": (size / total_indexed) * 100,
+                "search_reduction": ((total_indexed - size) / total_indexed) * 100 if size < total_indexed else 0
+            }
     
     return jsonify(analysis)
 
@@ -1177,6 +1421,129 @@ def check_ollama_connection():
 
 # Initialize on startup
 load_index()
+
+@app.route('/upload-folder', methods=['POST'])
+def upload_folder():
+    """Handle folder path upload and process all PDFs in it"""
+    data = request.json
+    
+    if not data or 'folder_path' not in data:
+        return jsonify({"error": "No folder path provided"}), 400
+    
+    folder_path = data['folder_path']
+    
+    # Validate folder path
+    if not os.path.exists(folder_path):
+        return jsonify({"error": "Folder path does not exist"}), 400
+    
+    if not os.path.isdir(folder_path):
+        return jsonify({"error": "Path is not a directory"}), 400
+    
+    print(f"Processing folder: {folder_path}")
+    
+    # Get optional parameters
+    max_workers = data.get('max_workers', 3)  # Limit concurrent processing
+    
+    # Process folder in background (for large folders)
+    def process_in_background():
+        # Set folder path in progress tracking
+        global processing_progress
+        with progress_lock:
+            processing_progress['folder_path'] = folder_path
+        
+        result = process_folder_contents(folder_path, max_workers)
+        print(f"Folder processing completed: {result}")
+    
+    # Start background processing
+    thread = threading.Thread(target=process_in_background)
+    thread.daemon = True
+    thread.start()
+    
+    return jsonify({
+        "success": True,
+        "message": f"Started processing folder: {folder_path}",
+        "status": "processing_started"
+    })
+
+@app.route('/upload-progress', methods=['GET'])
+def get_upload_progress():
+    """Get current upload/processing progress"""
+    global processing_progress
+    with progress_lock:
+        progress_copy = processing_progress.copy()
+        
+        # Calculate elapsed time and ETA
+        if progress_copy['start_time'] and progress_copy['status'] == 'processing':
+            elapsed = time.time() - progress_copy['start_time']
+            if progress_copy['processed_files'] > 0:
+                avg_time_per_file = elapsed / progress_copy['processed_files']
+                remaining_files = progress_copy['total_files'] - progress_copy['processed_files']
+                eta_seconds = avg_time_per_file * remaining_files
+                progress_copy['eta_seconds'] = eta_seconds
+                progress_copy['elapsed_seconds'] = elapsed
+            
+        return jsonify(progress_copy)
+
+@app.route('/database-stats', methods=['GET'])
+def get_database_stats():
+    """Get current database statistics"""
+    try:
+        chunks_file = f"{DB_FOLDER}/chunks.json"
+        if os.path.exists(chunks_file):
+            with open(chunks_file, 'r') as f:
+                chunks = json.load(f)
+            
+            # Count unique source files and build file info
+            unique_sources = set()
+            file_info = {}
+            
+            for chunk in chunks:
+                source = chunk.get('metadata', {}).get('source', 'unknown')
+                unique_sources.add(source)
+                
+                if source not in file_info:
+                    # Check if file exists in uploads directory
+                    filename = os.path.basename(source)
+                    upload_path = os.path.join(UPLOAD_FOLDER, filename)
+                    
+                    file_info[source] = {
+                        'original_path': source,
+                        'filename': filename,
+                        'available_in_uploads': os.path.exists(upload_path),
+                        'upload_url': f'/uploads/{filename}' if os.path.exists(upload_path) else None
+                    }
+            
+            return jsonify({
+                "success": True,
+                "total_chunks": len(chunks),
+                "unique_files": len(unique_sources),
+                "files": list(unique_sources),
+                "file_details": file_info
+            })
+        else:
+            return jsonify({
+                "success": True,
+                "total_chunks": 0,
+                "unique_files": 0,
+                "files": [],
+                "file_details": {}
+            })
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        })
+
+@app.route('/cancel-processing', methods=['POST'])
+def cancel_processing():
+    """Cancel ongoing folder processing"""
+    global processing_progress
+    with progress_lock:
+        if processing_progress['status'] == 'processing':
+            processing_progress['status'] = 'cancelled'
+            return jsonify({"success": True, "message": "Processing cancelled"})
+        else:
+            return jsonify({"success": False, "message": "No active processing to cancel"})
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
