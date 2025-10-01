@@ -37,6 +37,12 @@ document.addEventListener('DOMContentLoaded', function() {
     function init() {
         console.log('Document viewer init called');
         
+        // Check if required DOM elements exist
+        if (!documentName) {
+            console.error('documentName element not found');
+            return;
+        }
+        
         const fileName = sessionStorage.getItem('uploadedPdf');
         const pdfDataStr = sessionStorage.getItem('pdfData');
         const uploadedFolder = sessionStorage.getItem('uploadedFolder');
@@ -57,45 +63,347 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         if (!fileName) {
-            console.log('No fileName found, redirecting to index.html');
-            // No document found, redirect back to upload page
-            window.location.href = 'index.html';
+            console.log('No fileName found, trying to load available files');
+            // Try to load files from the server
+            loadAvailableFiles();
             return;
         }
         
         console.log('Processing single file upload for:', fileName);
-        documentName.textContent = fileName;
-        
-        if (pdfDataStr) {
-            pdfData = JSON.parse(pdfDataStr);
-            
-            // Check if the file was already uploaded to the server
-            if (pdfData.uploaded) {
-                // Load the PDF 
-                loadPdf(pdfData.url);
-            } else if (pdfData.base64) {
-                // Convert base64 to Uint8Array for PDF.js
-                const binaryString = atob(pdfData.base64.split(',')[1]);
-                const bytes = new Uint8Array(binaryString.length);
-                for (let i = 0; i < binaryString.length; i++) {
-                    bytes[i] = binaryString.charCodeAt(i);
-                }
-                
-                // Upload to server first
-                uploadPdfToServer(fileName, bytes, function() {
-                    // Then load it
-                    loadPdf(bytes);
-                });
-            } else {
-                // Fallback to sample PDF
-                loadSamplePdf();
-            }
-        } else {
-            // Fallback to sample PDF
-            loadSamplePdf();
+        if (documentName) {
+            documentName.textContent = fileName;
         }
         
+        // Always try to load the file from the server first
+        const serverUrl = `http://127.0.0.1:5000/uploads/${fileName}`;
+        console.log('Trying to load PDF from server:', serverUrl);
+        
+        loadPdfFromServer(serverUrl, fileName);
+        
         // Initialize chat
+        initChat();
+    }
+    
+    // Load available files from server
+    function loadAvailableFiles() {
+        console.log('Loading available files from server...');
+        
+        fetch('http://127.0.0.1:5000/files')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.files && data.files.length > 0) {
+                console.log('Found available files:', data.files);
+                
+                // Set the first available file as the document name
+                const firstFile = data.files[0];
+                if (documentName) {
+                    documentName.textContent = firstFile;
+                }
+                
+                // Try to load the first available PDF
+                const serverUrl = `http://127.0.0.1:5000/uploads/${firstFile}`;
+                loadPdfFromServer(serverUrl, firstFile);
+                
+                // Show file list in PDF viewer
+                showFileListInViewer(data.file_statistics);
+            } else {
+                console.log('No files available, showing upload message');
+                showNoFilesMessage();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading files:', error);
+            showNoFilesMessage();
+        });
+        
+        // Initialize chat anyway
+        initChat();
+    }
+    
+    // Load PDF from server URL
+    function loadPdfFromServer(url, filename) {
+        console.log('Loading PDF from URL:', url);
+        const loadingIndicator = document.getElementById('pdf-loading');
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'flex';
+        }
+        
+        pdfjsLib.getDocument(url).promise.then(function(pdf) {
+            console.log('PDF loaded successfully:', filename);
+            pdfDoc = pdf;
+            
+            // Update page controls
+            if (totalPagesEl) {
+                totalPagesEl.textContent = pdf.numPages;
+            }
+            currentPage = 1;
+            if (currentPageEl) {
+                currentPageEl.textContent = currentPage;
+            }
+            
+            // Update navigation button states
+            if (prevButton) {
+                prevButton.disabled = currentPage <= 1;
+            }
+            if (nextButton) {
+                nextButton.disabled = currentPage >= pdf.numPages;
+            }
+            
+            // Render first page
+            renderPage(currentPage);
+        }).catch(function(error) {
+            console.error('Error loading PDF from server:', error);
+            console.log('Trying fallback loading method...');
+            
+            // Fallback: try to load as direct file
+            loadPdfFallback(filename);
+        })
+        .finally(() => {
+            if (loadingIndicator) {
+                loadingIndicator.style.display = 'none';
+            }
+        });
+    }
+    
+    // Fallback PDF loading
+    function loadPdfFallback(filename) {
+        console.log('Using fallback loading for:', filename);
+        
+        // Show message instead of trying to load placeholder
+        const pdfContainer = document.getElementById('pdf-container');
+        if (pdfContainer) {
+            pdfContainer.innerHTML = `
+                <div class="pdf-error">
+                    <div class="error-icon">📄</div>
+                    <h3>Document: ${filename}</h3>
+                    <p>Preview not available</p>
+                    <p>The document has been processed and is available for querying.</p>
+                    <button onclick="location.reload()" class="reload-btn">Reload Page</button>
+                </div>
+            `;
+        }
+    }
+    
+    // Show file list in viewer with PDF thumbnails
+    function showFileListInViewer(fileStats) {
+        const pdfContainer = document.getElementById('pdf-container');
+        if (!pdfContainer || !fileStats) return;
+        
+        const files = Object.keys(fileStats);
+        
+        pdfContainer.innerHTML = `
+            <div class="file-list">
+                <div class="file-list-header">
+                    <h3>📁 Available Documents</h3>
+                    <p>Click on any document to view it</p>
+                </div>
+                <div class="file-grid" id="file-grid">
+                    ${files.map((filename, index) => `
+                        <div class="file-card ${index === 0 ? 'active' : ''}" 
+                             onclick="loadSelectedFile('${filename}')" 
+                             data-filename="${filename}">
+                            <div class="file-thumbnail" id="thumbnail-${index}">
+                                <canvas id="canvas-${index}" width="120" height="160"></canvas>
+                                <div class="thumbnail-loading">Loading...</div>
+                            </div>
+                            <div class="file-card-info">
+                                <div class="file-name" title="${filename}">${filename}</div>
+                                <div class="file-stats">
+                                    <span class="chunk-count">${fileStats[filename].total_chunks} chunks</span>
+                                    ${fileStats[filename].available_in_uploads ? 
+                                        '<span class="status-available">✅</span>' : 
+                                        '<span class="status-unavailable">❌</span>'
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+        
+        // Generate thumbnails for each file
+        files.forEach((filename, index) => {
+            if (fileStats[filename].available_in_uploads) {
+                generatePdfThumbnail(filename, index);
+            } else {
+                showThumbnailError(index, "Preview unavailable");
+            }
+        });
+    }
+    
+    // Load selected file - make this global
+    window.loadSelectedFile = function(filename) {
+        console.log('Loading selected file:', filename);
+        if (documentName) {
+            documentName.textContent = filename;
+        }
+        
+        // Clear the file grid and show the main PDF viewer
+        const pdfContainer = document.getElementById('pdf-container');
+        if (pdfContainer) {
+            pdfContainer.innerHTML = `
+                <div class="pdf-viewer-controls">
+                    <button id="back-to-list" onclick="backToFileList()" class="back-button">
+                        ← Back to File List
+                    </button>
+                </div>
+                <canvas id="pdf-render"></canvas>
+                <div class="pdf-loading" id="pdf-loading">
+                    <div class="spinner"></div>
+                    <p>Loading document...</p>
+                </div>
+            `;
+        }
+        
+        // Re-initialize canvas context
+        const canvas = document.getElementById('pdf-render');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+        }
+        
+        const serverUrl = `http://127.0.0.1:5000/uploads/${filename}`;
+        console.log('Loading PDF from:', serverUrl);
+        
+        // Load the PDF for full viewing
+        loadPdfFromServer(serverUrl, filename);
+        
+        // Update active file in grid
+        const fileCards = document.querySelectorAll('.file-card');
+        fileCards.forEach(card => {
+            card.classList.remove('active');
+            if (card.dataset.filename === filename) {
+                card.classList.add('active');
+            }
+        });
+        
+        // Also update active file in old list format (backward compatibility)
+        const fileItems = document.querySelectorAll('.file-item');
+        fileItems.forEach(item => {
+            item.classList.remove('active');
+            if (item.dataset.filename === filename) {
+                item.classList.add('active');
+            }
+        });
+    };
+    
+    // Back to file list function - make this global
+    window.backToFileList = function() {
+        console.log('Returning to file list');
+        
+        // Reset document name
+        if (documentName) {
+            const folderUploadResult = sessionStorage.getItem('folderUploadResult');
+            if (folderUploadResult) {
+                const folderResult = JSON.parse(folderUploadResult);
+                const folderName = folderResult.folder_path ? 
+                    folderResult.folder_path.split('/').pop() || folderResult.folder_path.split('\\').pop() : 
+                    'Processed Folder';
+                documentName.textContent = `📁 ${folderName}`;
+            } else {
+                documentName.textContent = 'Available Documents';
+            }
+        }
+        
+        // Reload available files and show thumbnail grid
+        loadAvailableFiles();
+    };
+    
+    // Generate PDF thumbnail
+    function generatePdfThumbnail(filename, index) {
+        const canvas = document.getElementById(`canvas-${index}`);
+        const thumbnailContainer = document.getElementById(`thumbnail-${index}`);
+        const loadingIndicator = thumbnailContainer.querySelector('.thumbnail-loading');
+        
+        if (!canvas) return;
+        
+        const ctx = canvas.getContext('2d');
+        const serverUrl = `http://127.0.0.1:5000/uploads/${filename}`;
+        
+        // Show loading state
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'block';
+        }
+        
+        pdfjsLib.getDocument(serverUrl).promise.then(function(pdf) {
+            // Get first page
+            return pdf.getPage(1);
+        }).then(function(page) {
+            // Calculate scale to fit thumbnail
+            const viewport = page.getViewport({ scale: 1 });
+            const scale = Math.min(120 / viewport.width, 160 / viewport.height);
+            const scaledViewport = page.getViewport({ scale });
+            
+            // Set canvas size
+            canvas.height = scaledViewport.height;
+            canvas.width = scaledViewport.width;
+            
+            // Render PDF page into canvas
+            const renderContext = {
+                canvasContext: ctx,
+                viewport: scaledViewport
+            };
+            
+            return page.render(renderContext).promise;
+        }).then(function() {
+            // Hide loading indicator
+            if (loadingIndicator) {
+                loadingIndicator.style.display = 'none';
+            }
+            console.log(`Thumbnail generated for ${filename}`);
+        }).catch(function(error) {
+            console.error(`Error generating thumbnail for ${filename}:`, error);
+            showThumbnailError(index, "Failed to load");
+        });
+    }
+    
+    // Show thumbnail error
+    function showThumbnailError(index, message) {
+        const canvas = document.getElementById(`canvas-${index}`);
+        const thumbnailContainer = document.getElementById(`thumbnail-${index}`);
+        const loadingIndicator = thumbnailContainer.querySelector('.thumbnail-loading');
+        
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#f8f9fa';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw error icon
+            ctx.fillStyle = '#6c757d';
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('📄', canvas.width / 2, canvas.height / 2 - 10);
+            
+            ctx.font = '10px Arial';
+            ctx.fillText(message, canvas.width / 2, canvas.height / 2 + 10);
+        }
+        
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'none';
+        }
+    }
+    
+    // Show no files message
+    function showNoFilesMessage() {
+        if (documentName) {
+            documentName.textContent = 'No documents found';
+        }
+        
+        const pdfContainer = document.getElementById('pdf-container');
+        if (pdfContainer) {
+            pdfContainer.innerHTML = `
+                <div class="no-files">
+                    <div class="no-files-icon">📂</div>
+                    <h3>No Documents Available</h3>
+                    <p>Upload some PDF documents to get started.</p>
+                    <button onclick="window.location.href='index.html'" class="upload-btn">
+                        Go to Upload Page
+                    </button>
+                </div>
+            `;
+        }
+        
+        // Initialize chat anyway
         initChat();
         
         // Check Ollama connection status
@@ -106,34 +414,38 @@ document.addEventListener('DOMContentLoaded', function() {
     async function handleFolderUpload(folderResult) {
         console.log('handleFolderUpload called with:', folderResult);
         
-        // Get real-time database stats instead of using cached values
+        // Get real-time file statistics from the files endpoint
         try {
-            const response = await fetch('/database-stats');
+            const response = await fetch('/files');
             const stats = await response.json();
             
             if (stats.success) {
-                // Use real-time stats instead of cached folderResult
-                const actualFileCount = stats.unique_files;
+                // Use real-time stats 
+                const actualFileCount = stats.total_files || 0;
                 console.log('Real-time file count:', actualFileCount);
                 
                 // Update document name with actual count
                 const folderName = folderResult.folder_path ? folderResult.folder_path.split('/').pop() || folderResult.folder_path.split('\\').pop() : 'Processed Folder';
-                documentName.textContent = `📁 ${folderName} (${actualFileCount} files processed)`;
+                if (documentName) {
+                    documentName.textContent = `📁 ${folderName} (${actualFileCount} files processed)`;
+                }
                 
-                // Update folderResult with real data
-                folderResult.processed_files = actualFileCount;
-                folderResult.successful_files = actualFileCount;
-                folderResult.total_files = actualFileCount;
+                // Show the file list with thumbnails
+                if (stats.file_statistics) {
+                    console.log('Showing file list with thumbnails', stats.file_statistics);
+                    showFileListInViewer(stats.file_statistics);
+                } else {
+                    console.log('No file statistics, showing basic summary');
+                    showFolderSummary(folderResult);
+                }
             }
         } catch (error) {
-            console.error('Error fetching database stats:', error);
-            // Fall back to cached values if request fails
+            console.error('Error fetching file stats:', error);
+            // Fall back to basic summary if request fails
+            showFolderSummary(folderResult);
         }
         
-        console.log('Document name updated to:', documentName.textContent);
-        
-        // Replace PDF container content with folder summary
-        showFolderSummary(folderResult);
+        console.log('Document name updated to:', documentName ? documentName.textContent : 'null');
         
         // Initialize chat for querying across all documents
         initChat();
@@ -387,7 +699,19 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Render a specific page
     function renderPage(pageNumber) {
-        loadingIndicator.style.display = 'flex';
+        const loadingIndicator = document.getElementById('pdf-loading');
+        const canvas = document.getElementById('pdf-render');
+        
+        if (!pdfDoc || !canvas) {
+            console.error('PDF document or canvas not available');
+            return;
+        }
+        
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'flex';
+        }
+        
+        const ctx = canvas.getContext('2d');
         
         pdfDoc.getPage(pageNumber).then(function(page) {
             const viewport = page.getViewport({ scale });
@@ -403,13 +727,26 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             
             page.render(renderContext).promise.then(function() {
-                loadingIndicator.style.display = 'none';
-                currentPageEl.textContent = pageNumber;
+                if (loadingIndicator) {
+                    loadingIndicator.style.display = 'none';
+                }
+                if (currentPageEl) {
+                    currentPageEl.textContent = pageNumber;
+                }
                 
                 // Update button states
-                prevButton.disabled = pageNumber <= 1;
-                nextButton.disabled = pageNumber >= pdfDoc.numPages;
+                if (prevButton) {
+                    prevButton.disabled = pageNumber <= 1;
+                }
+                if (nextButton) {
+                    nextButton.disabled = pageNumber >= pdfDoc.numPages;
+                }
             });
+        }).catch(function(error) {
+            console.error('Error rendering page:', error);
+            if (loadingIndicator) {
+                loadingIndicator.style.display = 'none';
+            }
         });
     }
     
@@ -592,10 +929,18 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Add event listeners
-    prevButton.addEventListener('click', goPrevPage);
-    nextButton.addEventListener('click', goNextPage);
-    zoomInButton.addEventListener('click', zoomIn);
-    zoomOutButton.addEventListener('click', zoomOut);
+    if (prevButton) {
+        prevButton.addEventListener('click', goPrevPage);
+    }
+    if (nextButton) {
+        nextButton.addEventListener('click', goNextPage);
+    }
+    if (zoomInButton) {
+        zoomInButton.addEventListener('click', zoomIn);
+    }
+    if (zoomOutButton) {
+        zoomOutButton.addEventListener('click', zoomOut);
+    }
     
     // Initialize
     init();

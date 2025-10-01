@@ -7,6 +7,7 @@ import tempfile
 import faiss
 import numpy as np
 import PyPDF2
+from typing import List, Dict, Tuple, Union
 
 # Using TF-IDF instead of sentence transformers for local embeddings
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -306,6 +307,7 @@ class ContentSpecificIndexer:
         self.vector_dimension = vector_dimension
         self.indexes = {}
         self.chunk_mappings = {}
+        self.file_mappings = {}  # Track chunks by source file
         self.is_initialized = False
         
     def initialize_indexes(self, actual_dimension):
@@ -322,6 +324,7 @@ class ContentSpecificIndexer:
             'GENERAL': faiss.IndexFlatIP(actual_dimension)
         }
         self.chunk_mappings = {tag: [] for tag in self.indexes.keys()}
+        self.file_mappings = {}  # Track chunks by source file: {filename: [chunk_indices]}
         self.is_initialized = True
         print(f"Initialized content-specific indexes with dimension: {actual_dimension}")
         
@@ -336,6 +339,7 @@ class ContentSpecificIndexer:
             embedding = embedding.reshape(1, -1)
         
         chunk_tags = chunk.get('metadata', {}).get('role_tags', ['GENERAL'])
+        source_file = chunk.get('metadata', {}).get('source', 'unknown')
         
         # Add to each relevant index based on tags
         for tag in chunk_tags:
@@ -345,9 +349,15 @@ class ContentSpecificIndexer:
                 # Track chunk mapping - store the global chunk index
                 chunk_global_index = len(document_chunks) - 1  # Current index since chunk was just added
                 self.chunk_mappings[tag].append(chunk_global_index)
+        
+        # Track file mapping
+        if source_file not in self.file_mappings:
+            self.file_mappings[source_file] = []
+        chunk_global_index = len(document_chunks) - 1
+        self.file_mappings[source_file].append(chunk_global_index)
                 
-    def search_targeted(self, query_embedding, target_tags, top_k=5):
-        """Search only in relevant content-specific indexes"""
+    def search_targeted(self, query_embedding, target_tags, top_k=5, source_file=None):
+        """Search only in relevant content-specific indexes, optionally filtered by source file"""
         all_results = []
         
         # Ensure query embedding is 2D
@@ -364,6 +374,13 @@ class ContentSpecificIndexer:
                     for score, idx in zip(D[0], I[0]):
                         if idx < len(self.chunk_mappings[tag]):
                             original_idx = self.chunk_mappings[tag][idx]
+                            
+                            # Filter by source file if specified
+                            if source_file:
+                                chunk_source = document_chunks[original_idx].get('metadata', {}).get('source', '')
+                                if chunk_source != source_file:
+                                    continue
+                            
                             all_results.append((score, original_idx, tag))
                 except Exception as e:
                     print(f"Error searching in {tag} index: {e}")
@@ -380,6 +397,9 @@ class ContentSpecificIndexer:
             self.indexes[tag] = faiss.IndexFlatIP(self.vector_dimension)
             self.chunk_mappings[tag] = []
         
+        # Reset file mappings
+        self.file_mappings = {}
+        
         # Re-add all chunks
         if all_chunks:
             all_texts = [chunk["text"] for chunk in all_chunks]
@@ -388,6 +408,44 @@ class ContentSpecificIndexer:
             
             for i, (chunk, embedding) in enumerate(zip(all_chunks, embeddings)):
                 self.add_chunk(chunk, embedding)
+    
+    def rebuild_file_mappings_from_chunks(self, all_chunks):
+        """Rebuild file mappings from existing chunk data"""
+        self.file_mappings = {}
+        for i, chunk in enumerate(all_chunks):
+            source_file = chunk.get('metadata', {}).get('source', 'unknown')
+            if source_file not in self.file_mappings:
+                self.file_mappings[source_file] = []
+            self.file_mappings[source_file].append(i)
+        
+        print(f"Rebuilt file mappings for {len(self.file_mappings)} files:")
+        for filename, indices in self.file_mappings.items():
+            print(f"  {filename}: {len(indices)} chunks")
+    
+    def get_files_list(self):
+        """Get list of all source files in the index"""
+        return list(self.file_mappings.keys())
+    
+    def get_chunks_by_file(self, source_file):
+        """Get all chunk indices for a specific source file"""
+        return self.file_mappings.get(source_file, [])
+    
+    def get_file_stats(self):
+        """Get statistics about files and their chunks"""
+        stats = {}
+        for filename, chunk_indices in self.file_mappings.items():
+            chunks = [document_chunks[i] for i in chunk_indices if i < len(document_chunks)]
+            tag_counts = {}
+            for chunk in chunks:
+                tags = chunk.get('metadata', {}).get('role_tags', [])
+                for tag in tags:
+                    tag_counts[tag] = tag_counts.get(tag, 0) + 1
+            
+            stats[filename] = {
+                'total_chunks': len(chunk_indices),
+                'tag_distribution': tag_counts
+            }
+        return stats
 
 # Replace the simple FAISS index with content-specific indexer
 content_indexer = ContentSpecificIndexer(VECTOR_DIMENSION)
@@ -408,12 +466,19 @@ def load_index():
                 index_data = pickle.load(f)
                 content_indexer.indexes = index_data['indexes']
                 content_indexer.chunk_mappings = index_data['mappings']
+                content_indexer.file_mappings = index_data.get('file_mappings', {})  # Backward compatibility
+            
+            # If file_mappings is empty, rebuild it from existing chunks
+            if not content_indexer.file_mappings and document_chunks:
+                print("File mappings not found or empty, rebuilding from existing chunks...")
+                content_indexer.rebuild_file_mappings_from_chunks(document_chunks)
             
             # Retrain model on existing data
             if document_chunks:
                 texts = [chunk["text"] for chunk in document_chunks]
                 model.fit(texts)
                 print(f"Loaded content-specific indexes with {len(document_chunks)} chunks")
+                print(f"File mappings loaded for {len(content_indexer.file_mappings)} files")
             
         except Exception as e:
             print(f"Error loading indexes: {e}")
@@ -434,47 +499,320 @@ def save_index():
     # Save content-specific indexes
     index_data = {
         'indexes': content_indexer.indexes,
-        'mappings': content_indexer.chunk_mappings
+        'mappings': content_indexer.chunk_mappings,
+        'file_mappings': content_indexer.file_mappings
     }
     with open(f"{DB_FOLDER}/content_indexes.pkl", 'wb') as f:
         pickle.dump(index_data, f)
     
     print(f"Saved content-specific indexes with {len(document_chunks)} chunks")
 
+def tag_procurement_sections(text: str) -> List[Dict[str, str]]:
+    """
+    Automatically labels key sections of Philippine government procurement PDFs.
+    
+    This function uses regular expressions and keyword heuristics to identify section headings
+    and capture the following text until the next heading, providing more efficient and 
+    accurate section tagging than simple keyword-based approaches.
+    
+    Args:
+        text (str): The full OCR-extracted text from a procurement PDF
+        
+    Returns:
+        List[Dict[str, str]]: List of dictionaries with keys:
+            - 'section_tag': One of the predefined tags or 'UNLABELED'
+            - 'content': The text content for that section
+            
+    Tags detected:
+        - CONTRACT_AMOUNT: Budget information, approved costs, contract values
+        - BIDDER_INFO: Bidder requirements, supplier information, eligibility
+        - COMPLIANCE_REQUIREMENTS: Regulatory requirements, documentation needed
+        - LEGAL_CLAUSES: Legal references, acts, regulations, terms and conditions
+        - TIMELINE: Deadlines, submission dates, important dates
+        - TECHNICAL_SPECS: Product specifications, technical requirements, descriptions
+        - EVALUATION_CRITERIA: Evaluation methods, award criteria, selection process
+        - UNLABELED: Sections that don't match any predefined patterns
+    """
+    
+    # Define section patterns with comprehensive regex and keywords
+    SECTION_PATTERNS = {
+        'CONTRACT_AMOUNT': {
+            'keywords': [
+                'approved budget cost', 'total budget', 'contract amount', 'abc:', 'budget',
+                'cost', 'amount', 'price', 'php', 'peso', 'financial', 'funding'
+            ],
+            'headings': [
+                r'(?:contract|budget|cost|amount|financial|funding).*(?:amount|cost|budget)',
+                r'approved.*budget.*cost',
+                r'total.*(?:budget|amount|cost)',
+                r'abc\s*:'
+            ]
+        },
+        'BIDDER_INFO': {
+            'keywords': [
+                'bidder', 'supplier', 'contractor', 'vendor', 'philgeps', 'registration',
+                'eligibility', 'qualification', 'bidding', 'quotation', 'proposal'
+            ],
+            'headings': [
+                r'(?:bidder|supplier|contractor|vendor).*(?:info|information|requirements|details)',
+                r'eligibility.*(?:requirements|criteria)',
+                r'bidding.*(?:process|requirements|information)',
+                r'philgeps.*registration'
+            ]
+        },
+        'COMPLIANCE_REQUIREMENTS': {
+            'keywords': [
+                'compliance', 'requirements', 'documentary', 'documents', 'permit',
+                'license', 'certification', 'registration', 'submission', 'documentary requirements'
+            ],
+            'headings': [
+                r'(?:compliance|documentary).*requirements',
+                r'required.*documents',
+                r'submission.*requirements',
+                r'eligibility.*requirements'
+            ]
+        },
+        'LEGAL_CLAUSES': {
+            'keywords': [
+                'republic act', 'ra', 'implementing rules', 'regulations', 'irr',
+                'government procurement reform act', 'legal', 'terms and conditions',
+                'contract terms', 'provisions'
+            ],
+            'headings': [
+                r'(?:legal|contract).*(?:terms|clauses|provisions)',
+                r'terms.*and.*conditions',
+                r'republic.*act',
+                r'implementing.*rules.*regulations',
+                r'government.*procurement.*reform.*act'
+            ]
+        },
+        'TIMELINE': {
+            'keywords': [
+                'deadline', 'closing', 'submission', 'date', 'time', 'schedule',
+                'on or before', 'not later than', 'timeline', 'calendar'
+            ],
+            'headings': [
+                r'(?:deadline|closing|submission).*(?:date|time)',
+                r'important.*dates',
+                r'schedule.*of.*activities',
+                r'timeline',
+                r'on.*or.*before'
+            ]
+        },
+        'TECHNICAL_SPECS': {
+            'keywords': [
+                'specifications', 'technical', 'description', 'features', 'unit',
+                'pcs', 'piece', 'dimensions', 'capacity', 'performance', 'standards'
+            ],
+            'headings': [
+                r'(?:technical|product).*specifications',
+                r'item.*description',
+                r'scope.*of.*work',
+                r'technical.*requirements',
+                r'product.*details'
+            ]
+        },
+        'EVALUATION_CRITERIA': {
+            'keywords': [
+                'evaluation', 'criteria', 'award', 'selection', 'assessment',
+                'ranking', 'scoring', 'lowest calculated', 'responsive bid'
+            ],
+            'headings': [
+                r'evaluation.*criteria',
+                r'award.*criteria',
+                r'selection.*process',
+                r'assessment.*method',
+                r'bid.*evaluation'
+            ]
+        }
+    }
+    
+    # Common heading patterns for Philippine procurement documents
+    HEADING_PATTERNS = [
+        # Numbered headings: 1., 1.1, 1.1.1
+        r'^\s*\d+(?:\.\d+)*\.?\s+(.+)$',
+        # Roman numerals: I., II., III.
+        r'^\s*(?:[IVX]+)\.?\s+(.+)$',
+        # Alphabetic: A., B., C.
+        r'^\s*[A-Z]\.?\s+(.+)$',
+        # All caps lines (potential section headers)
+        r'^\s*([A-Z][A-Z\s]{5,})$',
+        # Colon-based headers: "SECTION:"
+        r'^\s*([A-Z][A-Z\s]+):\s*(.*)$'
+    ]
+    
+    def extract_sections_by_headings(text: str) -> List[Tuple[int, str, str]]:
+        """Extract sections based on heading patterns."""
+        lines = text.split('\n')
+        sections = []
+        current_section = {'start': 0, 'heading': '', 'content': []}
+        
+        for i, line in enumerate(lines):
+            line = line.strip()
+            if not line:
+                if current_section['content']:
+                    current_section['content'].append('')
+                continue
+                
+            # Check if line matches any heading pattern
+            is_heading = False
+            heading_text = ''
+            
+            for pattern in HEADING_PATTERNS:
+                match = re.match(pattern, line, re.IGNORECASE)
+                if match:
+                    heading_text = match.group(1) if match.groups() else line
+                    is_heading = True
+                    break
+            
+            if is_heading and current_section['content']:
+                # Save previous section
+                content = '\n'.join(current_section['content']).strip()
+                if content:
+                    sections.append((current_section['start'], current_section['heading'], content))
+                
+                # Start new section
+                current_section = {'start': i, 'heading': heading_text, 'content': []}
+            elif is_heading:
+                # First heading
+                current_section = {'start': i, 'heading': heading_text, 'content': []}
+            else:
+                # Add to current section content
+                current_section['content'].append(line)
+        
+        # Don't forget the last section
+        if current_section['content']:
+            content = '\n'.join(current_section['content']).strip()
+            if content:
+                sections.append((current_section['start'], current_section['heading'], content))
+        
+        return sections
+    
+    def classify_section(heading: str, content: str) -> str:
+        """Classify a section based on heading and content."""
+        text_to_analyze = (heading + ' ' + content).lower()
+        
+        # Score each section type
+        scores = {}
+        for section_tag, patterns in SECTION_PATTERNS.items():
+            score = 0
+            
+            # Check keywords
+            for keyword in patterns['keywords']:
+                if keyword.lower() in text_to_analyze:
+                    score += 1
+            
+            # Check heading patterns (higher weight)
+            for heading_pattern in patterns['headings']:
+                if re.search(heading_pattern, text_to_analyze, re.IGNORECASE):
+                    score += 3
+            
+            scores[section_tag] = score
+        
+        # Return the highest scoring section tag
+        if scores and max(scores.values()) > 0:
+            return max(scores, key=scores.get)
+        
+        return 'UNLABELED'
+    
+    def merge_overlapping_sections(sections: List[Dict[str, str]]) -> List[Dict[str, str]]:
+        """Merge sections with the same tag that are adjacent."""
+        if not sections:
+            return sections
+        
+        merged = [sections[0]]
+        
+        for current in sections[1:]:
+            last = merged[-1]
+            
+            # Merge if same tag and content is related
+            if (last['section_tag'] == current['section_tag'] and 
+                last['section_tag'] != 'UNLABELED' and
+                len(last['content']) < 1000):  # Don't merge very long sections
+                
+                merged[-1]['content'] += '\n\n' + current['content']
+            else:
+                merged.append(current)
+        
+        return merged
+    
+    # Main processing
+    if not text or not text.strip():
+        return [{'section_tag': 'UNLABELED', 'content': ''}]
+    
+    # Extract sections based on headings
+    heading_sections = extract_sections_by_headings(text)
+    
+    # If no clear headings found, fallback to keyword-based chunking
+    if not heading_sections:
+        # Split text into paragraphs and classify each
+        paragraphs = [p.strip() for p in text.split('\n\n') if p.strip()]
+        heading_sections = [(0, '', para) for para in paragraphs]
+    
+    # Classify and create result sections
+    result_sections = []
+    for start_pos, heading, content in heading_sections:
+        section_tag = classify_section(heading, content)
+        result_sections.append({
+            'section_tag': section_tag,
+            'content': content
+        })
+    
+    # Merge overlapping sections
+    result_sections = merge_overlapping_sections(result_sections)
+    
+    # Ensure we have at least one section
+    if not result_sections:
+        result_sections = [{'section_tag': 'UNLABELED', 'content': text}]
+    
+    return result_sections
+
+
 def auto_tag_chunk(text):
-    """Tag chunks based on content keywords"""
+    """
+    Enhanced chunk tagging using the new section-based approach.
+    Converts the new section tagging to the old tag format for backward compatibility.
+    """
+    sections = tag_procurement_sections(text)
+    tags = list(set(section['section_tag'] for section in sections))
+    
+    # Remove UNLABELED if there are other tags
+    if 'UNLABELED' in tags and len(tags) > 1:
+        tags.remove('UNLABELED')
+    
+    # Convert UNLABELED to GENERAL for backward compatibility
+    if 'UNLABELED' in tags:
+        tags = ['GENERAL']
+    
+    # Add legacy tags for backward compatibility
+    legacy_tag_mapping = {
+        'CONTRACT_AMOUNT': 'CONTRACT_AMOUNT',
+        'BIDDER_INFO': 'BIDDER_INFO', 
+        'COMPLIANCE_REQUIREMENTS': 'COMPLIANCE_REQUIREMENTS',
+        'LEGAL_CLAUSES': 'COMPLIANCE_REQUIREMENTS',  # Map to existing tag
+        'TIMELINE': 'TIMELINE',
+        'TECHNICAL_SPECS': 'TECHNICAL_SPECS',
+        'EVALUATION_CRITERIA': 'BIDDER_INFO'  # Map to existing tag
+    }
+    
+    # Convert to legacy tags and add missing ones
+    legacy_tags = []
     text_lower = text.lower()
-    assigned_tags = []
     
-    # Budget/cost detection
-    if any(phrase in text for phrase in ["Approved Budget Cost", "Total Budget", "Contract Amount"]):
-        assigned_tags.append("CONTRACT_AMOUNT")
+    for tag in tags:
+        if tag in legacy_tag_mapping:
+            legacy_tags.append(legacy_tag_mapping[tag])
     
-    # Technical specifications
-    if "abc:" in text_lower and any(item in text_lower for item in ["unit", "pcs", "piece", "specifications"]):
-        assigned_tags.append("TECHNICAL_SPECS")
-    
-    # Timeline information
-    if any(phrase in text_lower for phrase in ["closing", "deadline", "submission", "on or before", "date", "time"]):
-        assigned_tags.append("TIMELINE")
-    
-    # Legal/compliance requirements
-    if any(phrase in text_lower for phrase in ["republic act", "compliance", "criteria", "eligibility", "requirements", "regulation"]):
-        assigned_tags.append("COMPLIANCE_REQUIREMENTS")
-    
-    # Bidder-related info
-    if any(phrase in text_lower for phrase in ["bidder", "supplier", "quotation", "philgeps", "mayor's permit", "documents"]):
-        assigned_tags.append("BIDDER_INFO")
-    
-    # Contact details
+    # Add additional legacy tags based on keywords (for backward compatibility)
     if any(phrase in text_lower for phrase in ["phone", "telefax", "email", "@", "contact", "inquiries", "office"]):
-        assigned_tags.append("CONTACT_INFO")
+        if "CONTACT_INFO" not in legacy_tags:
+            legacy_tags.append("CONTACT_INFO")
     
-    # Reference numbers and IDs
     if any(phrase in text_lower for phrase in ["reference", "rfq", "pr-", "procurement", "number", "id"]):
-        assigned_tags.append("REFERENCE_INFO")
+        if "REFERENCE_INFO" not in legacy_tags:
+            legacy_tags.append("REFERENCE_INFO")
     
-    return assigned_tags if assigned_tags else ["GENERAL"]
+    return legacy_tags if legacy_tags else ["GENERAL"]
 
 def determine_chunk_priority(text, tags):
     """Set priority based on content importance"""
@@ -725,11 +1063,11 @@ def prioritize_chunks(chunks, role):
     """Keep for backward compatibility"""
     return prioritize_chunks_enhanced(chunks, role)
 
-def enhanced_chunk_filtering(query, role, all_chunks, top_k=5):
+def enhanced_chunk_filtering(query, role, all_chunks, top_k=5, source_file=None):
     """Smart filtering using content-specific indexes for targeted search"""
     
-    print(f"DEBUG: enhanced_chunk_filtering with targeted indexing - role: '{role}', query: '{query}'")
-    role_logger.info(f"FILTERING_START: Role='{role}', Query='{query}', Total_chunks={len(all_chunks)}")
+    print(f"DEBUG: enhanced_chunk_filtering with targeted indexing - role: '{role}', query: '{query}', source_file: '{source_file}'")
+    role_logger.info(f"FILTERING_START: Role='{role}', Query='{query}', Source_file='{source_file}', Total_chunks={len(all_chunks)}")
     
     # Detect what the user is asking about
     required_tag, confidence = detect_query_intent(query)
@@ -753,8 +1091,8 @@ def enhanced_chunk_filtering(query, role, all_chunks, top_k=5):
         query_embedding = model.encode([query])
         faiss.normalize_L2(query_embedding)
         
-        # Search only relevant content indexes
-        search_results = content_indexer.search_targeted(query_embedding, target_tags, top_k * 2)
+        # Search only relevant content indexes, optionally filtered by source file
+        search_results = content_indexer.search_targeted(query_embedding, target_tags, top_k * 2, source_file)
         
         # Convert results back to chunks
         for score, chunk_idx, content_tag in search_results:
@@ -768,6 +1106,11 @@ def enhanced_chunk_filtering(query, role, all_chunks, top_k=5):
     else:
         # Fallback to tag-based filtering
         candidate_chunks = apply_strict_tag_filtering(all_chunks, required_tag, fallback_allowed=True)[:top_k * 2]
+        
+        # Apply source file filter if specified
+        if source_file:
+            candidate_chunks = [chunk for chunk in candidate_chunks 
+                              if chunk.get('metadata', {}).get('source', '') == source_file]
     
     # Apply role-specific prioritization
     prioritized_chunks = prioritize_chunks_enhanced(candidate_chunks, role)
@@ -777,7 +1120,7 @@ def enhanced_chunk_filtering(query, role, all_chunks, top_k=5):
     role_context = ROLE_CONTEXTS.get(role, {})
     
     # Log results with targeted search info
-    role_logger.info(f"TARGETED_SEARCH: Role='{role}', Intent='{required_tag}', Target_tags={target_tags}, Results={len(final_chunks)}")
+    role_logger.info(f"TARGETED_SEARCH: Role='{role}', Intent='{required_tag}', Target_tags={target_tags}, Source_file='{source_file}', Results={len(final_chunks)}")
     
     return {
         'chunks': final_chunks,
@@ -788,7 +1131,8 @@ def enhanced_chunk_filtering(query, role, all_chunks, top_k=5):
         'role_framing': role_context.get('framing', ''),
         'role_emphasis': role_context.get('emphasis', ''),
         'total_candidates': len(candidate_chunks),
-        'filtering_applied': required_tag is not None
+        'filtering_applied': required_tag is not None,
+        'source_file_filter': source_file
     }
 
 def prioritize_chunks_enhanced(chunks, role):
@@ -1045,18 +1389,18 @@ def query_ollama_with_role(query, role='general', top_k=5):
         return {"error": f"Error querying Ollama: {str(e)}"}
 
 # Main query function with enhanced filtering
-def query_ollama_with_strict_filtering(query, role='general', top_k=5):
+def query_ollama_with_strict_filtering(query, role='general', top_k=5, source_file=None):
     """Main query function with targeted content-specific indexing"""
     
-    print(f"DEBUG: query_ollama_with_strict_filtering with targeted indexing - role: '{role}', query: '{query}'")
-    role_logger.info(f"QUERY_START: Role='{role}', Query='{query}', Available_chunks={len(document_chunks)}")
+    print(f"DEBUG: query_ollama_with_strict_filtering with targeted indexing - role: '{role}', query: '{query}', source_file: '{source_file}'")
+    role_logger.info(f"QUERY_START: Role='{role}', Query='{query}', Source_file='{source_file}', Available_chunks={len(document_chunks)}")
     
     if len(document_chunks) == 0:
         log_query_result(query, role, None, 0, 0, [], [])
         return {"response": "No relevant information found. Please upload some documents first."}
     
     # Apply enhanced filtering with targeted indexing
-    filter_result = enhanced_chunk_filtering(query, role, document_chunks, top_k)
+    filter_result = enhanced_chunk_filtering(query, role, document_chunks, top_k, source_file)
     
     chunks = filter_result['chunks']
 
@@ -1544,6 +1888,305 @@ def cancel_processing():
             return jsonify({"success": True, "message": "Processing cancelled"})
         else:
             return jsonify({"success": False, "message": "No active processing to cancel"})
+
+# ====== NEW TESTING AND FILE MANAGEMENT ENDPOINTS ======
+
+@app.route('/test-tagging', methods=['POST'])
+def test_tagging():
+    """Test the enhanced section tagging system on sample text"""
+    try:
+        data = request.json
+        if not data or 'text' not in data:
+            return jsonify({"error": "No text provided for tagging test"}), 400
+        
+        text = data['text']
+        
+        # Test the new enhanced tagging function
+        sections = tag_procurement_sections(text)
+        
+        # Also test the old tagging for comparison
+        old_tags = auto_tag_chunk(text)
+        
+        return jsonify({
+            "success": True,
+            "input_text": text[:200] + "..." if len(text) > 200 else text,
+            "enhanced_sections": sections,
+            "legacy_tags": old_tags,
+            "sections_count": len(sections),
+            "unique_tags": list(set(section['section_tag'] for section in sections))
+        })
+    
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        })
+
+@app.route('/files', methods=['GET'])
+def list_files():
+    """Get list of all files in the index with statistics"""
+    try:
+        files_list = content_indexer.get_files_list()
+        file_stats = content_indexer.get_file_stats()
+        
+        # Add upload directory availability
+        for filename in file_stats:
+            base_filename = os.path.basename(filename)
+            upload_path = os.path.join(UPLOAD_FOLDER, base_filename)
+            file_stats[filename]['available_in_uploads'] = os.path.exists(upload_path)
+            file_stats[filename]['upload_url'] = f'/uploads/{base_filename}' if os.path.exists(upload_path) else None
+        
+        return jsonify({
+            "success": True,
+            "total_files": len(files_list),
+            "files": files_list,
+            "file_statistics": file_stats
+        })
+    
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        })
+
+@app.route('/query-file', methods=['POST'])
+def query_file():
+    """Query with file-specific filtering"""
+    try:
+        data = request.json
+        if not data or 'query' not in data:
+            return jsonify({"error": "No query provided"}), 400
+        
+        query = data['query']
+        role = data.get('role', 'general')
+        source_file = data.get('source_file', None)
+        top_k = int(data.get('top_k', 5))
+        
+        # Validate that the source file exists if specified
+        if source_file:
+            files_list = content_indexer.get_files_list()
+            if source_file not in files_list:
+                return jsonify({
+                    "error": f"Source file '{source_file}' not found in index",
+                    "available_files": files_list
+                }), 400
+        
+        # Use enhanced query function with source file filtering
+        result = query_ollama_with_strict_filtering(query, role, top_k, source_file)
+        
+        # Add file-specific information to response
+        if isinstance(result, dict) and 'response' in result:
+            result['source_file_filter'] = source_file
+            result['file_specific_query'] = source_file is not None
+        
+        return jsonify(result)
+    
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        })
+
+@app.route('/chunks/<path:filename>', methods=['GET'])
+def get_file_chunks(filename):
+    """Get all chunks for a specific file"""
+    try:
+        # Find the file in the index
+        chunk_indices = content_indexer.get_chunks_by_file(filename)
+        
+        if not chunk_indices:
+            return jsonify({
+                "success": False,
+                "error": f"No chunks found for file: {filename}",
+                "available_files": content_indexer.get_files_list()
+            }), 404
+        
+        # Get the actual chunks
+        chunks = []
+        for idx in chunk_indices:
+            if idx < len(document_chunks):
+                chunk = document_chunks[idx]
+                chunks.append({
+                    "index": idx,
+                    "text": chunk['text'][:200] + "..." if len(chunk['text']) > 200 else chunk['text'],
+                    "full_text": chunk['text'],
+                    "metadata": chunk['metadata'],
+                    "tags": chunk.get('metadata', {}).get('role_tags', []),
+                    "page": chunk.get('metadata', {}).get('page', 0),
+                    "priority": chunk.get('metadata', {}).get('chunk_priority', 'medium')
+                })
+        
+        return jsonify({
+            "success": True,
+            "filename": filename,
+            "total_chunks": len(chunks),
+            "chunks": chunks
+        })
+    
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        })
+
+@app.route('/analyze-document/<path:filename>', methods=['GET'])
+def analyze_document(filename):
+    """Analyze a document's section tagging and structure"""
+    try:
+        # Find the file in uploads directory
+        file_path = os.path.join(UPLOAD_FOLDER, os.path.basename(filename))
+        
+        if not os.path.exists(file_path):
+            return jsonify({
+                "success": False,
+                "error": f"File not found in uploads: {filename}"
+            }), 404
+        
+        # Extract full text from the PDF
+        full_text = ""
+        try:
+            with open(file_path, 'rb') as file:
+                pdf_reader = PyPDF2.PdfReader(file)
+                for page in pdf_reader.pages:
+                    text = page.extract_text()
+                    if text:
+                        full_text += text + "\n\n"
+        except Exception as e:
+            return jsonify({
+                "success": False,
+                "error": f"Could not read PDF: {str(e)}"
+            }), 500
+        
+        if not full_text.strip():
+            return jsonify({
+                "success": False,
+                "error": "No text could be extracted from PDF"
+            }), 500
+        
+        # Apply enhanced section tagging
+        sections = tag_procurement_sections(full_text)
+        
+        # Get existing chunks for comparison
+        chunk_indices = content_indexer.get_chunks_by_file(filename)
+        existing_chunks = []
+        for idx in chunk_indices:
+            if idx < len(document_chunks):
+                chunk = document_chunks[idx]
+                existing_chunks.append({
+                    "text": chunk['text'][:100] + "...",
+                    "tags": chunk.get('metadata', {}).get('role_tags', []),
+                    "page": chunk.get('metadata', {}).get('page', 0)
+                })
+        
+        # Analyze tag distribution
+        tag_counts = {}
+        for section in sections:
+            tag = section['section_tag']
+            tag_counts[tag] = tag_counts.get(tag, 0) + 1
+        
+        return jsonify({
+            "success": True,
+            "filename": filename,
+            "document_analysis": {
+                "total_sections_found": len(sections),
+                "tag_distribution": tag_counts,
+                "sections": sections,
+                "existing_chunks_count": len(existing_chunks),
+                "existing_chunks_sample": existing_chunks[:5]  # Show first 5 for comparison
+            },
+            "document_stats": {
+                "total_characters": len(full_text),
+                "estimated_pages": len(full_text) // 2000,  # Rough estimate
+                "has_contract_amounts": 'CONTRACT_AMOUNT' in tag_counts,
+                "has_technical_specs": 'TECHNICAL_SPECS' in tag_counts,
+                "has_timelines": 'TIMELINE' in tag_counts
+            }
+        })
+    
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        })
+
+@app.route('/test-file-query', methods=['POST'])
+def test_file_query():
+    """Test querying specific to a file with different roles"""
+    try:
+        data = request.json
+        if not data or 'filename' not in data or 'query' not in data:
+            return jsonify({"error": "Filename and query required"}), 400
+        
+        filename = data['filename']
+        query = data['query']
+        roles = data.get('roles', ['general', 'auditor', 'procurement_officer', 'bidder'])
+        
+        # Validate file exists
+        if filename not in content_indexer.get_files_list():
+            return jsonify({
+                "error": f"File '{filename}' not found",
+                "available_files": content_indexer.get_files_list()
+            }), 400
+        
+        # Test query with each role
+        results = {}
+        for role in roles:
+            try:
+                result = query_ollama_with_strict_filtering(query, role, 3, filename)
+                results[role] = {
+                    "success": True,
+                    "response": result.get('response', 'No response'),
+                    "contexts_used": result.get('contexts_used', 0),
+                    "relevant_tags": result.get('relevant_tags', []),
+                    "sources": result.get('sources', [])
+                }
+            except Exception as e:
+                results[role] = {
+                    "success": False,
+                    "error": str(e)
+                }
+        
+        return jsonify({
+            "success": True,
+            "filename": filename,
+            "query": query,
+            "role_comparisons": results
+        })
+    
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        })
+
+@app.route('/rebuild-file-mappings', methods=['POST'])
+def rebuild_file_mappings():
+    """Rebuild file mappings from existing chunks and save"""
+    try:
+        if not document_chunks:
+            return jsonify({
+                "success": False,
+                "error": "No chunks available to rebuild mappings from"
+            })
+        
+        # Rebuild file mappings
+        content_indexer.rebuild_file_mappings_from_chunks(document_chunks)
+        
+        # Save the updated mappings
+        save_index()
+        
+        return jsonify({
+            "success": True,
+            "message": "File mappings rebuilt and saved",
+            "total_files": len(content_indexer.file_mappings),
+            "file_mappings": content_indexer.file_mappings
+        })
+    
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        })
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

@@ -230,11 +230,17 @@
         document.getElementById('roleSelect').addEventListener('change', function() {
             const role = this.value;
             const description = roleDescriptions[role] || '';
-            document.getElementById('roleDescription').textContent = description;
+            const roleDescEl = document.getElementById('roleDescription');
+            if (roleDescEl) {
+                roleDescEl.textContent = description;
+            }
         });
 
         // Initialize with default description
-        document.getElementById('roleDescription').textContent = roleDescriptions['general'];
+        const roleDescEl = document.getElementById('roleDescription');
+        if (roleDescEl) {
+            roleDescEl.textContent = roleDescriptions['general'];
+        }
 
         // Enhanced query function with role support
         async function queryDocuments() {
