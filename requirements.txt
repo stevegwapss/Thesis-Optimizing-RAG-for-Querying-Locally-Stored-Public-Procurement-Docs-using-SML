@@ -1,8 +1,13 @@
 flask==2.3.3
 flask-cors==4.0.0
 werkzeug==2.3.7
-faiss-cpu
 numpy
-PyPDF2==3.0.1
-sentence-transformers==2.2.2
 requests==2.26.0
+
+# LangChain dependencies
+langchain==0.1.0
+langchain-community==0.0.10
+langchain-ollama==0.0.1
+chromadb==0.4.22
+pypdf==3.17.4
+sentence-transformers==2.2.2

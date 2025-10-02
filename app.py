@@ -1,75 +1,54 @@
-# app.py
+# app_langchain.py - LangChain refactor of the RAG system
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import os
 import json
-import tempfile
-import faiss
-import numpy as np
-import PyPDF2
-from typing import List, Dict, Tuple, Union
-
-# Using TF-IDF instead of sentence transformers for local embeddings
-from sklearn.feature_extraction.text import TfidfVectorizer
-import requests
 from pathlib import Path
-import re
+import glob
+import threading
+import time
+from typing import List, Dict, Tuple, Union
 from collections import defaultdict
+import traceback
 import logging
 from datetime import datetime
+import shutil
+import uuid
+from concurrent.futures import ThreadPoolExecutor
+
+# LangChain imports
+from langchain_community.document_loaders import PyPDFLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_chroma import Chroma
+from langchain_ollama import OllamaLLM
+from langchain.chains import RetrievalQA
+from langchain.schema import Document
+from langchain.prompts import PromptTemplate
+from langchain.callbacks.manager import CallbackManager
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 
 app = Flask(__name__, static_folder='.', static_url_path='')
 CORS(app)
 
-# Basic configuration
+# Configuration
 UPLOAD_FOLDER = 'uploads'
-DB_FOLDER = 'db'
-VECTOR_DIMENSION = 1000
-CHUNK_SIZE = 500  # Characters per text chunk
+CHROMA_DB_PATH = 'db/chromadb'
+CHUNK_SIZE = 500
 CHUNK_OVERLAP = 50
 
 # Create folders if they don't exist
 Path(UPLOAD_FOLDER).mkdir(exist_ok=True)
-Path(DB_FOLDER).mkdir(exist_ok=True)
+Path(CHROMA_DB_PATH).mkdir(parents=True, exist_ok=True)
 
-# Local TF-IDF embeddings instead of external API
-class LocalEmbeddings:
-    def __init__(self, max_features=1000):
-        self.vectorizer = TfidfVectorizer(
-            max_features=max_features,
-            stop_words='english',
-            ngram_range=(1, 2)
-        )
-        self.is_fitted = False
-        
-    def fit(self, texts):
-        """Train the vectorizer on text corpus"""
-        self.vectorizer.fit(texts)
-        self.is_fitted = True
-        
-    def encode(self, texts):
-        """Convert texts to vectors"""
-        if not self.is_fitted:
-            self.fit(texts)
-        
-        if isinstance(texts, str):
-            texts = [texts]
-            
-        vectors = self.vectorizer.transform(texts).toarray()
-        return vectors.astype(np.float32)
+# Global variables for LangChain components
+embeddings = None
+vectorstore = None
+llm = None
+text_splitter = None
+qa_chains = {}  # Role-specific QA chains
 
-model = LocalEmbeddings(max_features=VECTOR_DIMENSION)
-
-# Vector database setup
-faiss_index = faiss.IndexFlatIP(VECTOR_DIMENSION)  
-document_chunks = []  # Store text chunks with metadata
-
-import glob
-from concurrent.futures import ThreadPoolExecutor
-import threading
-import time
-
-# Global variable to track processing progress
+# Progress tracking (keeping existing functionality)
 processing_progress = {
     'total_files': 0,
     'processed_files': 0,
@@ -80,6 +59,143 @@ processing_progress = {
     'folder_path': ''
 }
 progress_lock = threading.Lock()
+
+def initialize_langchain_components():
+    """Initialize LangChain components (basic only, lazy load others)"""
+    global embeddings, vectorstore, llm, text_splitter
+    
+    try:
+        # Initialize text splitter first (no network required)
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=CHUNK_SIZE,
+            chunk_overlap=CHUNK_OVERLAP,
+            length_function=len,
+            separators=["\n\n", "\n", " ", ""]
+        )
+        
+        # Initialize Ollama LLM (no network required if model exists locally)
+        llm = OllamaLLM(
+            model="llama3.2:3b",
+            callbacks=[StreamingStdOutCallbackHandler()],
+            temperature=0.1
+        )
+        
+        print("LangChain components initialized successfully")
+        return True
+        
+    except Exception as e:
+        print(f"Error initializing LangChain components: {e}")
+        return False
+
+def get_or_initialize_embeddings():
+    """Lazy initialization of embeddings"""
+    global embeddings
+    if embeddings is None:
+        try:
+            print("Initializing HuggingFace embeddings...")
+            embeddings = HuggingFaceEmbeddings(
+                model_name="sentence-transformers/paraphrase-MiniLM-L6-v2",
+                model_kwargs={'device': 'cpu'}
+            )
+            print("Embeddings initialized successfully")
+        except Exception as e:
+            print(f"Error initializing embeddings: {e}")
+            return None
+    return embeddings
+
+def get_or_initialize_vectorstore():
+    """Lazy initialization of vectorstore"""
+    global vectorstore
+    if vectorstore is None:
+        embeddings_model = get_or_initialize_embeddings()
+        if embeddings_model is None:
+            return None
+            
+        try:
+            print("Initializing ChromaDB vectorstore...")
+            vectorstore = Chroma(
+                persist_directory=CHROMA_DB_PATH,
+                embedding_function=embeddings_model,
+                collection_name="procurement_docs"
+            )
+            
+            # Initialize role-specific QA chains now that vectorstore is ready
+            initialize_qa_chains()
+            
+            print("Vectorstore initialized successfully")
+        except Exception as e:
+            print(f"Error initializing vectorstore: {e}")
+            return None
+    return vectorstore
+
+def initialize_qa_chains():
+    """Initialize role-specific QA chains with different prompts"""
+    global qa_chains, vectorstore, llm
+    
+    # Role-specific prompts
+    role_prompts = {
+        'general': """You are an AI assistant helping users understand procurement documents. 
+        Provide clear, comprehensive answers based on the document content.
+        
+        Context: {context}
+        Question: {question}
+        
+        Answer:""",
+        
+        'auditor': """You are an AI assistant specialized for auditors reviewing procurement documents.
+        Focus on compliance, legal requirements, proper procedures, budget verification, and risk assessment.
+        Highlight any potential issues or areas requiring attention.
+        
+        Context: {context}
+        Question: {question}
+        
+        Auditor-focused answer:""",
+        
+        'procurement_officer': """You are an AI assistant for procurement officers managing procurement processes.
+        Focus on process management, timelines, bidder coordination, operations, and administrative requirements.
+        Provide actionable insights for managing procurement activities.
+        
+        Context: {context}
+        Question: {question}
+        
+        Procurement management answer:""",
+        
+        'policy_maker': """You are an AI assistant for policy makers and decision makers.
+        Focus on regulatory compliance, budget implications, strategic decisions, policy alignment, and governance.
+        Provide strategic insights and policy considerations.
+        
+        Context: {context}
+        Question: {question}
+        
+        Policy and strategic answer:""",
+        
+        'bidder': """You are an AI assistant helping bidders/suppliers understand procurement opportunities.
+        Focus on specifications, submission requirements, deadlines, participation guidance, and competitive positioning.
+        Provide clear guidance for successful participation.
+        
+        Context: {context}
+        Question: {question}
+        
+        Bidder guidance answer:"""
+    }
+    
+    # Create QA chains for each role
+    for role, prompt_template in role_prompts.items():
+        prompt = PromptTemplate(
+            template=prompt_template,
+            input_variables=["context", "question"]
+        )
+        
+        qa_chains[role] = RetrievalQA.from_chain_type(
+            llm=llm,
+            chain_type="stuff",
+            retriever=vectorstore.as_retriever(
+                search_type="similarity",
+                search_kwargs={"k": 5}
+            ),
+            chain_type_kwargs={"prompt": prompt},
+            return_source_documents=True
+        )
 
 def reset_progress():
     """Reset progress tracking for new session"""
@@ -94,7 +210,6 @@ def reset_progress():
             'start_time': None,
             'folder_path': ''
         })
-        print(f"DEBUG: Progress reset - processed_files = {processing_progress['processed_files']}")
 
 def update_progress(status=None, current_file=None, increment_processed=False, error=None):
     """Thread-safe progress update"""
@@ -106,115 +221,86 @@ def update_progress(status=None, current_file=None, increment_processed=False, e
             processing_progress['current_file'] = current_file
         if increment_processed:
             processing_progress['processed_files'] += 1
-            print(f"DEBUG: Incremented counter to {processing_progress['processed_files']}")
         if error:
             processing_progress['errors'].append(error)
 
-def process_single_file(file_path, copy_to_uploads=False):
-    """Process a single file and return results"""
+def process_pdf_with_langchain(file_path, copy_to_uploads=False):
+    """Process a PDF file using LangChain components"""
     try:
         update_progress(current_file=os.path.basename(file_path))
         
-        # Copy file to uploads directory if requested (for folder uploads)
-        uploaded_file_path = None
+        # Copy file to uploads directory if requested
         if copy_to_uploads:
             try:
                 filename = os.path.basename(file_path)
                 target_path = os.path.join(UPLOAD_FOLDER, filename)
                 
-                # Check if the exact same file already exists
-                if os.path.exists(target_path):
-                    if os.path.getsize(file_path) == os.path.getsize(target_path):
-                        print(f"File {filename} already exists with same size, skipping copy")
-                        uploaded_file_path = target_path
-                    else:
-                        base_name, ext = os.path.splitext(filename)
-                        counter = 1
-                        while os.path.exists(os.path.join(UPLOAD_FOLDER, filename)):
-                            filename = f"{base_name}_{counter}{ext}"
-                            counter += 1
-                        
-                        uploaded_file_path = os.path.join(UPLOAD_FOLDER, filename)
-                        import shutil
-                        shutil.copy2(file_path, uploaded_file_path)
-                        print(f"Copied {file_path} to {uploaded_file_path}")
-                else:
-                    # File doesn't exist, copy it
-                    uploaded_file_path = target_path
-                    import shutil
-                    shutil.copy2(file_path, uploaded_file_path)
-                    print(f"Copied {file_path} to {uploaded_file_path}")
+                if not os.path.exists(target_path):
+                    shutil.copy2(file_path, target_path)
                     
             except Exception as e:
                 print(f"Warning: Could not copy file to uploads directory: {e}")
-                # Continue with processing even if copy fails
         
-        # Extract chunks from file
-        chunks = extract_pdf_text(file_path)
-        if not chunks:
-            error_msg = f"No text extracted from {os.path.basename(file_path)}"
+        # Load PDF using LangChain PyPDFLoader
+        loader = PyPDFLoader(file_path)
+        documents = loader.load()
+        
+        if not documents:
+            error_msg = f"No content extracted from {os.path.basename(file_path)}"
             update_progress(error=error_msg)
-            return {"success": False, "file": file_path, "error": error_msg, "chunks": 0}
-
+            return {"success": False, "file": file_path, "error": error_msg}
+        
+        # Split documents into chunks
+        chunks = text_splitter.split_documents(documents)
+        
+        # Add metadata to chunks
+        for chunk in chunks:
+            chunk.metadata.update({
+                'source_file': os.path.basename(file_path),
+                'full_path': file_path,
+                'processed_at': datetime.now().isoformat()
+            })
+        
         return {
-            "success": True, 
-            "file": file_path, 
-            "uploaded_file": uploaded_file_path or file_path,
-            "chunks": chunks, 
+            "success": True,
+            "file": file_path,
+            "chunks": chunks,
             "chunks_count": len(chunks)
         }
         
     except Exception as e:
         error_msg = f"Error processing {os.path.basename(file_path)}: {str(e)}"
         update_progress(error=error_msg)
-        return {"success": False, "file": file_path, "error": error_msg, "chunks": 0}
+        return {"success": False, "file": file_path, "error": error_msg}
 
-def batch_index_files(file_results):
-    """Efficiently batch index all processed files"""
-    global content_indexer, model
+def batch_index_documents(file_results):
+    """Batch index all processed documents using ChromaDB"""
+    
+    # Ensure vectorstore is initialized
+    vectorstore = get_or_initialize_vectorstore()
+    if vectorstore is None:
+        return {"success": False, "message": "Failed to initialize vector store"}
     
     try:
-        # Collect all chunks and texts
-        all_new_chunks = []
-        
+        # Collect all chunks from successful processing
+        all_chunks = []
         for result in file_results:
             if result["success"]:
-                all_new_chunks.extend(result["chunks"])
+                all_chunks.extend(result["chunks"])
         
-        if not all_new_chunks:
+        if not all_chunks:
             return {"success": False, "message": "No valid chunks to index"}
         
-        # Prepare texts for model training
-        new_texts = [chunk["text"] for chunk in all_new_chunks]
-        existing_texts = [chunk["text"] for chunk in document_chunks]
-        all_texts = existing_texts + new_texts
+        print(f"Adding {len(all_chunks)} chunks to ChromaDB...")
         
-        # Retrain model on all data (existing + new)
-        print(f"Retraining model on {len(all_texts)} total texts...")
-        model.fit(all_texts)
+        # Add documents to ChromaDB
+        vectorstore.add_documents(all_chunks)
         
-        # Generate embeddings for all new chunks at once
-        print(f"Generating embeddings for {len(new_texts)} new chunks...")
-        embeddings = model.encode(new_texts)
-        faiss.normalize_L2(embeddings)
-        
-        # Initialize content indexer if needed with correct dimension
-        if embeddings.shape[1] != content_indexer.vector_dimension:
-            print(f"Rebuilding content indexer with dimension {embeddings.shape[1]}")
-            content_indexer = ContentSpecificIndexer(embeddings.shape[1])
-        
-        # Batch add all chunks to indexes
-        print("Adding chunks to content-specific indexes...")
-        for chunk, embedding in zip(all_new_chunks, embeddings):
-            document_chunks.append(chunk)
-            content_indexer.add_chunk(chunk, embedding)
-        
-        # Save everything once at the end
-        save_index()
+        # ChromaDB persists automatically in newer versions
         
         return {
-            "success": True, 
-            "total_chunks_added": len(all_new_chunks),
+            "success": True,
+            "total_chunks_added": len(all_chunks),
             "total_files_processed": sum(1 for r in file_results if r["success"]),
             "total_files_failed": sum(1 for r in file_results if not r["success"])
         }
@@ -223,14 +309,13 @@ def batch_index_files(file_results):
         return {"success": False, "message": f"Batch indexing failed: {str(e)}"}
 
 def process_folder_contents(folder_path, max_workers=3):
-    """Process all PDF files in a folder efficiently"""
+    """Process all PDF files in a folder using LangChain"""
     global processing_progress
     
     try:
-        # Reset progress tracking for new session
         reset_progress()
         
-        # Find all PDF files in folder and subfolders
+        # Find all PDF files
         pdf_files = []
         for extension in ['*.pdf', '*.PDF']:
             pdf_files.extend(glob.glob(os.path.join(folder_path, '**', extension), recursive=True))
@@ -238,1950 +323,320 @@ def process_folder_contents(folder_path, max_workers=3):
         if not pdf_files:
             return {"success": False, "message": "No PDF files found in the specified folder"}
         
-        # Initialize progress tracking
+        # Initialize progress
         update_progress(status='processing')
         with progress_lock:
             processing_progress.update({
                 'total_files': len(pdf_files),
-                'processed_files': 0,  # Explicitly reset counter
+                'processed_files': 0,
+                'folder_path': folder_path,
                 'start_time': time.time(),
                 'errors': [],
                 'current_file': ''
             })
-            print(f"DEBUG: Progress initialized - total={len(pdf_files)}, processed={processing_progress['processed_files']}")
         
-        print(f"Found {len(pdf_files)} PDF files to process")
+        print(f"Found {len(pdf_files)} PDF files to process with LangChain")
         
-        # Process files in parallel (but limit concurrency to avoid memory issues)
+        # Process files in parallel
         file_results = []
-        
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            # Submit all file processing tasks - copy files to uploads directory for folder uploads
-            future_to_file = {executor.submit(process_single_file, file_path, True): file_path 
-                            for file_path in pdf_files}
+            future_to_file = {
+                executor.submit(process_pdf_with_langchain, pdf_file, True): pdf_file 
+                for pdf_file in pdf_files
+            }
             
-            # Collect results as they complete
             for future in future_to_file:
-                result = future.result()
-                file_results.append(result)
-                # Only increment for successful file processing, not pages
-                if result["success"]:
+                try:
+                    result = future.result()
+                    file_results.append(result)
                     update_progress(increment_processed=True)
-                
-                print(f"Processed {processing_progress['processed_files']}/{processing_progress['total_files']}: "
-                      f"{os.path.basename(result['file'])} - {'Success' if result['success'] else 'Failed'}")
+                    
+                    if processing_progress['status'] == 'cancelled':
+                        break
+                        
+                except Exception as e:
+                    pdf_file = future_to_file[future]
+                    error_msg = f"Error processing {pdf_file}: {str(e)}"
+                    update_progress(error=error_msg, increment_processed=True)
+                    file_results.append({"success": False, "file": pdf_file, "error": error_msg})
         
-        # Batch index all successful results
-        print("Starting batch indexing...")
-        index_result = batch_index_files(file_results)
+        # Batch index all results
+        print("Starting batch indexing with ChromaDB...")
+        index_result = batch_index_documents(file_results)
         
-        # Update final status
         if index_result["success"]:
             update_progress(status='completed')
             return {
                 "success": True,
-                "message": f"Successfully processed {len(pdf_files)} files",
+                "message": f"Successfully processed {index_result['total_files_processed']} files",
                 "total_files": len(pdf_files),
-                "successful_files": index_result["total_files_processed"],
-                "failed_files": index_result["total_files_failed"],
-                "total_chunks_added": index_result["total_chunks_added"],
-                "errors": processing_progress['errors'],
-                "folder_path": folder_path
+                "processed_files": index_result['total_files_processed'],
+                "failed_files": index_result['total_files_failed'],
+                "total_chunks": index_result['total_chunks_added'],
+                "folder_path": folder_path,
+                "errors": processing_progress['errors']
             }
         else:
-            update_progress(status='error')
-            return {
-                "success": False,
-                "message": index_result["message"],
-                "errors": processing_progress['errors'],
-                "folder_path": folder_path
-            }
+            update_progress(status='error', error=index_result["message"])
+            return {"success": False, "message": index_result["message"], "folder_path": folder_path}
             
     except Exception as e:
         update_progress(status='error', error=str(e))
         return {"success": False, "message": f"Folder processing failed: {str(e)}", "folder_path": folder_path}
 
-# Enhanced indexing system with content-specific indexes
-class ContentSpecificIndexer:
-    def __init__(self, vector_dimension=1000):
-        self.vector_dimension = vector_dimension
-        self.indexes = {}
-        self.chunk_mappings = {}
-        self.file_mappings = {}  # Track chunks by source file
-        self.is_initialized = False
-        
-    def initialize_indexes(self, actual_dimension):
-        """Initialize indexes with the actual embedding dimension"""
-        self.vector_dimension = actual_dimension
-        self.indexes = {
-            'CONTRACT_AMOUNT': faiss.IndexFlatIP(actual_dimension),
-            'TIMELINE': faiss.IndexFlatIP(actual_dimension),
-            'COMPLIANCE_REQUIREMENTS': faiss.IndexFlatIP(actual_dimension),
-            'TECHNICAL_SPECS': faiss.IndexFlatIP(actual_dimension),
-            'BIDDER_INFO': faiss.IndexFlatIP(actual_dimension),
-            'CONTACT_INFO': faiss.IndexFlatIP(actual_dimension),
-            'REFERENCE_INFO': faiss.IndexFlatIP(actual_dimension),
-            'GENERAL': faiss.IndexFlatIP(actual_dimension)
-        }
-        self.chunk_mappings = {tag: [] for tag in self.indexes.keys()}
-        self.file_mappings = {}  # Track chunks by source file: {filename: [chunk_indices]}
-        self.is_initialized = True
-        print(f"Initialized content-specific indexes with dimension: {actual_dimension}")
-        
-    def add_chunk(self, chunk, embedding):
-        """Add chunk to appropriate content-specific indexes"""
-        # Initialize indexes if not done yet
-        if not self.is_initialized:
-            self.initialize_indexes(embedding.shape[0])
-        
-        # Ensure embedding is 2D
-        if embedding.ndim == 1:
-            embedding = embedding.reshape(1, -1)
-        
-        chunk_tags = chunk.get('metadata', {}).get('role_tags', ['GENERAL'])
-        source_file = chunk.get('metadata', {}).get('source', 'unknown')
-        
-        # Add to each relevant index based on tags
-        for tag in chunk_tags:
-            if tag in self.indexes:
-                # Add embedding to specific index
-                self.indexes[tag].add(embedding)
-                # Track chunk mapping - store the global chunk index
-                chunk_global_index = len(document_chunks) - 1  # Current index since chunk was just added
-                self.chunk_mappings[tag].append(chunk_global_index)
-        
-        # Track file mapping
-        if source_file not in self.file_mappings:
-            self.file_mappings[source_file] = []
-        chunk_global_index = len(document_chunks) - 1
-        self.file_mappings[source_file].append(chunk_global_index)
-                
-    def search_targeted(self, query_embedding, target_tags, top_k=5, source_file=None):
-        """Search only in relevant content-specific indexes, optionally filtered by source file"""
-        all_results = []
-        
-        # Ensure query embedding is 2D
-        if query_embedding.ndim == 1:
-            query_embedding = query_embedding.reshape(1, -1)
-        
-        for tag in target_tags:
-            if tag in self.indexes and self.indexes[tag].ntotal > 0:
-                try:
-                    # Search in specific index
-                    D, I = self.indexes[tag].search(query_embedding, min(top_k, self.indexes[tag].ntotal))
-                    
-                    # Map back to original chunk indices
-                    for score, idx in zip(D[0], I[0]):
-                        if idx < len(self.chunk_mappings[tag]):
-                            original_idx = self.chunk_mappings[tag][idx]
-                            
-                            # Filter by source file if specified
-                            if source_file:
-                                chunk_source = document_chunks[original_idx].get('metadata', {}).get('source', '')
-                                if chunk_source != source_file:
-                                    continue
-                            
-                            all_results.append((score, original_idx, tag))
-                except Exception as e:
-                    print(f"Error searching in {tag} index: {e}")
-                    continue
-        
-        # Sort by relevance score and return top results
-        all_results.sort(key=lambda x: x[0], reverse=True)
-        return all_results[:top_k]
-    
-    def rebuild_indexes(self, all_chunks, model):
-        """Rebuild all indexes from scratch"""
-        # Reset indexes
-        for tag in self.indexes:
-            self.indexes[tag] = faiss.IndexFlatIP(self.vector_dimension)
-            self.chunk_mappings[tag] = []
-        
-        # Reset file mappings
-        self.file_mappings = {}
-        
-        # Re-add all chunks
-        if all_chunks:
-            all_texts = [chunk["text"] for chunk in all_chunks]
-            embeddings = model.encode(all_texts)
-            faiss.normalize_L2(embeddings)
-            
-            for i, (chunk, embedding) in enumerate(zip(all_chunks, embeddings)):
-                self.add_chunk(chunk, embedding)
-    
-    def rebuild_file_mappings_from_chunks(self, all_chunks):
-        """Rebuild file mappings from existing chunk data"""
-        self.file_mappings = {}
-        for i, chunk in enumerate(all_chunks):
-            source_file = chunk.get('metadata', {}).get('source', 'unknown')
-            if source_file not in self.file_mappings:
-                self.file_mappings[source_file] = []
-            self.file_mappings[source_file].append(i)
-        
-        print(f"Rebuilt file mappings for {len(self.file_mappings)} files:")
-        for filename, indices in self.file_mappings.items():
-            print(f"  {filename}: {len(indices)} chunks")
-    
-    def get_files_list(self):
-        """Get list of all source files in the index"""
-        return list(self.file_mappings.keys())
-    
-    def get_chunks_by_file(self, source_file):
-        """Get all chunk indices for a specific source file"""
-        return self.file_mappings.get(source_file, [])
-    
-    def get_file_stats(self):
-        """Get statistics about files and their chunks"""
-        stats = {}
-        for filename, chunk_indices in self.file_mappings.items():
-            chunks = [document_chunks[i] for i in chunk_indices if i < len(document_chunks)]
-            tag_counts = {}
-            for chunk in chunks:
-                tags = chunk.get('metadata', {}).get('role_tags', [])
-                for tag in tags:
-                    tag_counts[tag] = tag_counts.get(tag, 0) + 1
-            
-            stats[filename] = {
-                'total_chunks': len(chunk_indices),
-                'tag_distribution': tag_counts
-            }
-        return stats
-
-# Replace the simple FAISS index with content-specific indexer
-content_indexer = ContentSpecificIndexer(VECTOR_DIMENSION)
-
-# Load existing vector database
-def load_index():
-    global content_indexer, document_chunks, model
-    if os.path.exists(f"{DB_FOLDER}/content_indexes.pkl") and os.path.exists(f"{DB_FOLDER}/chunks.json"):
-        try:
-            import pickle
-            
-            # Load chunk data
-            with open(f"{DB_FOLDER}/chunks.json", 'r') as f:
-                document_chunks = json.load(f)
-            
-            # Load content-specific indexes
-            with open(f"{DB_FOLDER}/content_indexes.pkl", 'rb') as f:
-                index_data = pickle.load(f)
-                content_indexer.indexes = index_data['indexes']
-                content_indexer.chunk_mappings = index_data['mappings']
-                content_indexer.file_mappings = index_data.get('file_mappings', {})  # Backward compatibility
-            
-            # If file_mappings is empty, rebuild it from existing chunks
-            if not content_indexer.file_mappings and document_chunks:
-                print("File mappings not found or empty, rebuilding from existing chunks...")
-                content_indexer.rebuild_file_mappings_from_chunks(document_chunks)
-            
-            # Retrain model on existing data
-            if document_chunks:
-                texts = [chunk["text"] for chunk in document_chunks]
-                model.fit(texts)
-                print(f"Loaded content-specific indexes with {len(document_chunks)} chunks")
-                print(f"File mappings loaded for {len(content_indexer.file_mappings)} files")
-            
-        except Exception as e:
-            print(f"Error loading indexes: {e}")
-            content_indexer = ContentSpecificIndexer(VECTOR_DIMENSION)
-            document_chunks = []
-    else:
-        content_indexer = ContentSpecificIndexer(VECTOR_DIMENSION)
-        document_chunks = []
-
-# Save vector database
-def save_index():
-    import pickle
-    
-    # Save chunk data
-    with open(f"{DB_FOLDER}/chunks.json", 'w') as f:
-        json.dump(document_chunks, f)
-    
-    # Save content-specific indexes
-    index_data = {
-        'indexes': content_indexer.indexes,
-        'mappings': content_indexer.chunk_mappings,
-        'file_mappings': content_indexer.file_mappings
-    }
-    with open(f"{DB_FOLDER}/content_indexes.pkl", 'wb') as f:
-        pickle.dump(index_data, f)
-    
-    print(f"Saved content-specific indexes with {len(document_chunks)} chunks")
-
-def tag_procurement_sections(text: str) -> List[Dict[str, str]]:
-    """
-    Automatically labels key sections of Philippine government procurement PDFs.
-    
-    This function uses regular expressions and keyword heuristics to identify section headings
-    and capture the following text until the next heading, providing more efficient and 
-    accurate section tagging than simple keyword-based approaches.
-    
-    Args:
-        text (str): The full OCR-extracted text from a procurement PDF
-        
-    Returns:
-        List[Dict[str, str]]: List of dictionaries with keys:
-            - 'section_tag': One of the predefined tags or 'UNLABELED'
-            - 'content': The text content for that section
-            
-    Tags detected:
-        - CONTRACT_AMOUNT: Budget information, approved costs, contract values
-        - BIDDER_INFO: Bidder requirements, supplier information, eligibility
-        - COMPLIANCE_REQUIREMENTS: Regulatory requirements, documentation needed
-        - LEGAL_CLAUSES: Legal references, acts, regulations, terms and conditions
-        - TIMELINE: Deadlines, submission dates, important dates
-        - TECHNICAL_SPECS: Product specifications, technical requirements, descriptions
-        - EVALUATION_CRITERIA: Evaluation methods, award criteria, selection process
-        - UNLABELED: Sections that don't match any predefined patterns
-    """
-    
-    # Define section patterns with comprehensive regex and keywords
-    SECTION_PATTERNS = {
-        'CONTRACT_AMOUNT': {
-            'keywords': [
-                'approved budget cost', 'total budget', 'contract amount', 'abc:', 'budget',
-                'cost', 'amount', 'price', 'php', 'peso', 'financial', 'funding'
-            ],
-            'headings': [
-                r'(?:contract|budget|cost|amount|financial|funding).*(?:amount|cost|budget)',
-                r'approved.*budget.*cost',
-                r'total.*(?:budget|amount|cost)',
-                r'abc\s*:'
-            ]
-        },
-        'BIDDER_INFO': {
-            'keywords': [
-                'bidder', 'supplier', 'contractor', 'vendor', 'philgeps', 'registration',
-                'eligibility', 'qualification', 'bidding', 'quotation', 'proposal'
-            ],
-            'headings': [
-                r'(?:bidder|supplier|contractor|vendor).*(?:info|information|requirements|details)',
-                r'eligibility.*(?:requirements|criteria)',
-                r'bidding.*(?:process|requirements|information)',
-                r'philgeps.*registration'
-            ]
-        },
-        'COMPLIANCE_REQUIREMENTS': {
-            'keywords': [
-                'compliance', 'requirements', 'documentary', 'documents', 'permit',
-                'license', 'certification', 'registration', 'submission', 'documentary requirements'
-            ],
-            'headings': [
-                r'(?:compliance|documentary).*requirements',
-                r'required.*documents',
-                r'submission.*requirements',
-                r'eligibility.*requirements'
-            ]
-        },
-        'LEGAL_CLAUSES': {
-            'keywords': [
-                'republic act', 'ra', 'implementing rules', 'regulations', 'irr',
-                'government procurement reform act', 'legal', 'terms and conditions',
-                'contract terms', 'provisions'
-            ],
-            'headings': [
-                r'(?:legal|contract).*(?:terms|clauses|provisions)',
-                r'terms.*and.*conditions',
-                r'republic.*act',
-                r'implementing.*rules.*regulations',
-                r'government.*procurement.*reform.*act'
-            ]
-        },
-        'TIMELINE': {
-            'keywords': [
-                'deadline', 'closing', 'submission', 'date', 'time', 'schedule',
-                'on or before', 'not later than', 'timeline', 'calendar'
-            ],
-            'headings': [
-                r'(?:deadline|closing|submission).*(?:date|time)',
-                r'important.*dates',
-                r'schedule.*of.*activities',
-                r'timeline',
-                r'on.*or.*before'
-            ]
-        },
-        'TECHNICAL_SPECS': {
-            'keywords': [
-                'specifications', 'technical', 'description', 'features', 'unit',
-                'pcs', 'piece', 'dimensions', 'capacity', 'performance', 'standards'
-            ],
-            'headings': [
-                r'(?:technical|product).*specifications',
-                r'item.*description',
-                r'scope.*of.*work',
-                r'technical.*requirements',
-                r'product.*details'
-            ]
-        },
-        'EVALUATION_CRITERIA': {
-            'keywords': [
-                'evaluation', 'criteria', 'award', 'selection', 'assessment',
-                'ranking', 'scoring', 'lowest calculated', 'responsive bid'
-            ],
-            'headings': [
-                r'evaluation.*criteria',
-                r'award.*criteria',
-                r'selection.*process',
-                r'assessment.*method',
-                r'bid.*evaluation'
-            ]
-        }
-    }
-    
-    # Common heading patterns for Philippine procurement documents
-    HEADING_PATTERNS = [
-        # Numbered headings: 1., 1.1, 1.1.1
-        r'^\s*\d+(?:\.\d+)*\.?\s+(.+)$',
-        # Roman numerals: I., II., III.
-        r'^\s*(?:[IVX]+)\.?\s+(.+)$',
-        # Alphabetic: A., B., C.
-        r'^\s*[A-Z]\.?\s+(.+)$',
-        # All caps lines (potential section headers)
-        r'^\s*([A-Z][A-Z\s]{5,})$',
-        # Colon-based headers: "SECTION:"
-        r'^\s*([A-Z][A-Z\s]+):\s*(.*)$'
-    ]
-    
-    def extract_sections_by_headings(text: str) -> List[Tuple[int, str, str]]:
-        """Extract sections based on heading patterns."""
-        lines = text.split('\n')
-        sections = []
-        current_section = {'start': 0, 'heading': '', 'content': []}
-        
-        for i, line in enumerate(lines):
-            line = line.strip()
-            if not line:
-                if current_section['content']:
-                    current_section['content'].append('')
-                continue
-                
-            # Check if line matches any heading pattern
-            is_heading = False
-            heading_text = ''
-            
-            for pattern in HEADING_PATTERNS:
-                match = re.match(pattern, line, re.IGNORECASE)
-                if match:
-                    heading_text = match.group(1) if match.groups() else line
-                    is_heading = True
-                    break
-            
-            if is_heading and current_section['content']:
-                # Save previous section
-                content = '\n'.join(current_section['content']).strip()
-                if content:
-                    sections.append((current_section['start'], current_section['heading'], content))
-                
-                # Start new section
-                current_section = {'start': i, 'heading': heading_text, 'content': []}
-            elif is_heading:
-                # First heading
-                current_section = {'start': i, 'heading': heading_text, 'content': []}
-            else:
-                # Add to current section content
-                current_section['content'].append(line)
-        
-        # Don't forget the last section
-        if current_section['content']:
-            content = '\n'.join(current_section['content']).strip()
-            if content:
-                sections.append((current_section['start'], current_section['heading'], content))
-        
-        return sections
-    
-    def classify_section(heading: str, content: str) -> str:
-        """Classify a section based on heading and content."""
-        text_to_analyze = (heading + ' ' + content).lower()
-        
-        # Score each section type
-        scores = {}
-        for section_tag, patterns in SECTION_PATTERNS.items():
-            score = 0
-            
-            # Check keywords
-            for keyword in patterns['keywords']:
-                if keyword.lower() in text_to_analyze:
-                    score += 1
-            
-            # Check heading patterns (higher weight)
-            for heading_pattern in patterns['headings']:
-                if re.search(heading_pattern, text_to_analyze, re.IGNORECASE):
-                    score += 3
-            
-            scores[section_tag] = score
-        
-        # Return the highest scoring section tag
-        if scores and max(scores.values()) > 0:
-            return max(scores, key=scores.get)
-        
-        return 'UNLABELED'
-    
-    def merge_overlapping_sections(sections: List[Dict[str, str]]) -> List[Dict[str, str]]:
-        """Merge sections with the same tag that are adjacent."""
-        if not sections:
-            return sections
-        
-        merged = [sections[0]]
-        
-        for current in sections[1:]:
-            last = merged[-1]
-            
-            # Merge if same tag and content is related
-            if (last['section_tag'] == current['section_tag'] and 
-                last['section_tag'] != 'UNLABELED' and
-                len(last['content']) < 1000):  # Don't merge very long sections
-                
-                merged[-1]['content'] += '\n\n' + current['content']
-            else:
-                merged.append(current)
-        
-        return merged
-    
-    # Main processing
-    if not text or not text.strip():
-        return [{'section_tag': 'UNLABELED', 'content': ''}]
-    
-    # Extract sections based on headings
-    heading_sections = extract_sections_by_headings(text)
-    
-    # If no clear headings found, fallback to keyword-based chunking
-    if not heading_sections:
-        # Split text into paragraphs and classify each
-        paragraphs = [p.strip() for p in text.split('\n\n') if p.strip()]
-        heading_sections = [(0, '', para) for para in paragraphs]
-    
-    # Classify and create result sections
-    result_sections = []
-    for start_pos, heading, content in heading_sections:
-        section_tag = classify_section(heading, content)
-        result_sections.append({
-            'section_tag': section_tag,
-            'content': content
-        })
-    
-    # Merge overlapping sections
-    result_sections = merge_overlapping_sections(result_sections)
-    
-    # Ensure we have at least one section
-    if not result_sections:
-        result_sections = [{'section_tag': 'UNLABELED', 'content': text}]
-    
-    return result_sections
-
-
-def auto_tag_chunk(text):
-    """
-    Enhanced chunk tagging using the new section-based approach.
-    Converts the new section tagging to the old tag format for backward compatibility.
-    """
-    sections = tag_procurement_sections(text)
-    tags = list(set(section['section_tag'] for section in sections))
-    
-    # Remove UNLABELED if there are other tags
-    if 'UNLABELED' in tags and len(tags) > 1:
-        tags.remove('UNLABELED')
-    
-    # Convert UNLABELED to GENERAL for backward compatibility
-    if 'UNLABELED' in tags:
-        tags = ['GENERAL']
-    
-    # Add legacy tags for backward compatibility
-    legacy_tag_mapping = {
-        'CONTRACT_AMOUNT': 'CONTRACT_AMOUNT',
-        'BIDDER_INFO': 'BIDDER_INFO', 
-        'COMPLIANCE_REQUIREMENTS': 'COMPLIANCE_REQUIREMENTS',
-        'LEGAL_CLAUSES': 'COMPLIANCE_REQUIREMENTS',  # Map to existing tag
-        'TIMELINE': 'TIMELINE',
-        'TECHNICAL_SPECS': 'TECHNICAL_SPECS',
-        'EVALUATION_CRITERIA': 'BIDDER_INFO'  # Map to existing tag
-    }
-    
-    # Convert to legacy tags and add missing ones
-    legacy_tags = []
-    text_lower = text.lower()
-    
-    for tag in tags:
-        if tag in legacy_tag_mapping:
-            legacy_tags.append(legacy_tag_mapping[tag])
-    
-    # Add additional legacy tags based on keywords (for backward compatibility)
-    if any(phrase in text_lower for phrase in ["phone", "telefax", "email", "@", "contact", "inquiries", "office"]):
-        if "CONTACT_INFO" not in legacy_tags:
-            legacy_tags.append("CONTACT_INFO")
-    
-    if any(phrase in text_lower for phrase in ["reference", "rfq", "pr-", "procurement", "number", "id"]):
-        if "REFERENCE_INFO" not in legacy_tags:
-            legacy_tags.append("REFERENCE_INFO")
-    
-    return legacy_tags if legacy_tags else ["GENERAL"]
-
-def determine_chunk_priority(text, tags):
-    """Set priority based on content importance"""
-    text_lower = text.lower()
-    
-    # High priority content
-    if any(phrase in text_lower for phrase in ["approved budget cost", "closing", "republic act", "request for quotation"]):
-        return "high"
-    
-    # Low priority content
-    if any(phrase in text_lower for phrase in ["contact", "phone", "email only"]):
-        return "low"
-    
-    return "medium"
-
-def determine_content_type(text, tags):
-    """Classify content type"""
-    text_lower = text.lower()
-    
-    if any(phrase in text_lower for phrase in ["request for quotation", "approved budget cost", "project"]):
-        return "summary"
-    
-    if any(phrase in text_lower for phrase in ["republic act", "regulation", "criteria"]):
-        return "regulatory"
-    
-    if any(phrase in text_lower for phrase in ["submission", "quotation", "documents"]):
-        return "procedural"
-    
-    return "detailed"
-
-def calculate_role_relevance(text, tags):
-    """Score relevance for different user roles"""
-    text_lower = text.lower()
-    relevance = {
-        "auditor": 0.5,
-        "procurement_officer": 0.5, 
-        "bidder": 0.5,
-        "policy_maker": 0.5
-    }
-    
-    # Boost relevance based on content type
-    if "COMPLIANCE_REQUIREMENTS" in tags or "CONTRACT_AMOUNT" in tags:
-        relevance["auditor"] += 0.4
-    
-    if "TIMELINE" in tags or "BIDDER_INFO" in tags:
-        relevance["procurement_officer"] += 0.4
-    
-    if "TECHNICAL_SPECS" in tags or "BIDDER_INFO" in tags:
-        relevance["bidder"] += 0.4
-    
-    if "COMPLIANCE_REQUIREMENTS" in tags or "CONTRACT_AMOUNT" in tags:
-        relevance["policy_maker"] += 0.4
-    
-    # Cap at maximum
-    for role in relevance:
-        relevance[role] = min(1.0, relevance[role])
-    
-    return relevance
-
-# Text chunking with metadata
-def chunk_text(text, filename="", page_num=0):
-    chunks = []
-    i = 0
-    while i < len(text):
-        chunk_text = text[i:i + CHUNK_SIZE]
-        if chunk_text:
-            # Generate metadata for this chunk
-            role_tags = auto_tag_chunk(chunk_text)
-            chunk_priority = determine_chunk_priority(chunk_text, role_tags)
-            content_type = determine_content_type(chunk_text, role_tags)
-            role_relevance = calculate_role_relevance(chunk_text, role_tags)
-            
-            chunks.append({
-                "text": chunk_text,
-                "metadata": {
-                    "source": filename,
-                    "page": page_num,
-                    "start_char": i,
-                    "end_char": min(i + CHUNK_SIZE, len(text)),
-                    "role_tags": role_tags,
-                    "role_relevance": role_relevance,
-                    "chunk_priority": chunk_priority,
-                    "content_type": content_type
-                }
-            })
-        i += CHUNK_SIZE - CHUNK_OVERLAP
-    return chunks
-
-# PDF text extraction
-def extract_pdf_text(file_path):
-    chunks = []
-    try:
-        with open(file_path, 'rb') as file:
-            pdf_reader = PyPDF2.PdfReader(file)
-            for i, page in enumerate(pdf_reader.pages):
-                text = page.extract_text()
-                if text:
-                    page_chunks = chunk_text(text, os.path.basename(file_path), i)
-                    chunks.extend(page_chunks)
-    except Exception as e:
-        print(f"Error processing PDF {file_path}: {e}")
-    return chunks
-
-# Add document to vector database
-def add_document_to_index(file_path):
-    global content_indexer, model
-    
-    chunks = extract_pdf_text(file_path)
-    if not chunks:
-        return {"success": False, "message": "No text extracted from document"}
-    
-    # Prepare all texts for training
-    texts = [chunk["text"] for chunk in chunks]
-    all_existing_texts = [chunk["text"] for chunk in document_chunks]
-    all_texts = all_existing_texts + texts
-    
-    # Retrain model on all data
-    model.fit(all_texts)
-    
-    # Generate embeddings for new chunks
-    embeddings = model.encode(texts)
-    faiss.normalize_L2(embeddings)
-    
-    # Add to content-specific indexes
-    for chunk, embedding in zip(chunks, embeddings):
-        content_indexer.add_chunk(chunk, embedding)
-        document_chunks.append(chunk)
-    
-    save_index()
-    return {"success": True, "chunks_added": len(chunks)}
-
-# Role-specific configurations
-ROLE_TAGS = {
-    'auditor': ['COMPLIANCE', 'BIDDER_INFO', 'BUDGET'],
-    'procurement_officer': ['TIMELINE', 'BIDDER_INFO', 'BUDGET', 'SPECIFICATIONS'],
-    'policy_maker': ['COMPLIANCE', 'BUDGET', 'TIMELINE'],
-    'bidder': ['SPECIFICATIONS', 'BIDDER_INFO', 'TIMELINE', 'CONTACT_INFO']
-}
-
-ROLE_PROMPTS = {
-    'auditor': "You are a procurement auditor. Focus on compliance, legal requirements, proper procedures, and budget verification in your analysis.",
-    'procurement_officer': "You are a procurement officer. Focus on process management, timelines, bidder coordination, and ensuring smooth procurement operations.",
-    'policy_maker': "You are a policy maker. Focus on regulatory compliance, budget implications, policy adherence, and strategic procurement decisions.",
-    'bidder': "You are helping a bidder/supplier. Focus on specifications, submission requirements, deadlines, and what bidders need to know to participate successfully."
-}
-
-# Keyword mapping for content detection
-STRICT_TAG_KEYWORDS = {
-    'CONTRACT_AMOUNT': ['budget', 'cost', 'amount', 'price', 'php', 'contract amount', 'approved budget', 'total cost', 'total budget'],
-    'TIMELINE': ['deadline', 'closing', 'submission', 'date', 'time', 'schedule', 'timeline', 'when', 'due date'],
-    'COMPLIANCE_REQUIREMENTS': ['compliance', 'requirements', 'legal', 'republic act', 'regulation', 'criteria', 'eligibility', 'act', 'law'],
-    'TECHNICAL_SPECS': ['specifications', 'specs', 'dimensions', 'materials', 'technical', 'description', 'features', 'length', 'width', 'height', 'inches', 'size', 'table', 'chair', 'truck', 'testing table', 'office table'],
-    'BIDDER_INFO': ['bidder', 'supplier', 'quotation', 'submission', 'documents', 'eligibility', 'permit', 'philgeps'],
-    'CONTACT_INFO': ['contact', 'phone', 'email', 'address', 'office', 'inquiries', 'telephone', 'secretariat'],
-    'REFERENCE_INFO': ['reference', 'reference number', 'procurement id', 'id', 'number', 'rfq', 'pr number', 'document number', 'identification']
-}
-
-ROLE_CONTEXTS = {
-    'auditor': {
-        'framing': 'From an audit perspective, focusing on compliance and verification:',
-        'priority_tags': ['COMPLIANCE_REQUIREMENTS', 'CONTRACT_AMOUNT'],
-        'emphasis': 'regulatory compliance and proper documentation'
-    },
-    'procurement_officer': {
-        'framing': 'From a procurement management perspective, focusing on operations:',
-        'priority_tags': ['TIMELINE', 'BIDDER_INFO', 'TECHNICAL_SPECIFICATIONS'],
-        'emphasis': 'process efficiency and stakeholder coordination'
-    },
-    'policy_maker': {
-        'framing': 'From a strategic policy perspective, focusing on high-level decisions:',
-        'priority_tags': ['COMPLIANCE_REQUIREMENTS', 'CONTRACT_AMOUNT', 'TIMELINE'],
-        'emphasis': 'strategic implications and policy adherence'
-    },
-    'bidder': {
-        'framing': 'For bidder guidance, focusing on participation requirements:',
-        'priority_tags': ['TECHNICAL_SPECIFICATIONS', 'BIDDER_INFO', 'TIMELINE'],
-        'emphasis': 'submission requirements and competitive advantage'
-    }
-}
-
-def detect_query_intent(query):
-    """Figure out what the user is asking about"""
-    query_lower = query.lower()
-    
-    # Score each category based on keyword matches
-    tag_scores = defaultdict(int)
-    
-    for tag, keywords in STRICT_TAG_KEYWORDS.items():
-        for keyword in keywords:
-            keyword_lower = keyword.lower()
-            
-            # Exact phrase match gets highest score
-            if keyword_lower in query_lower:
-                # Check for word boundaries to avoid partial matches
-                import re
-                pattern = r'\b' + re.escape(keyword_lower) + r'\b'
-                if re.search(pattern, query_lower):
-                    tag_scores[tag] += 5
-                else:
-                    tag_scores[tag] += 2
-            
-            # Additional synonym matches
-            if tag == 'CONTRACT_AMOUNT' and any(word in query_lower for word in ['cost', 'money', 'price', 'budget', 'amount']):
-                tag_scores[tag] += 1
-            elif tag == 'TIMELINE' and any(word in query_lower for word in ['when', 'deadline', 'time', 'date', 'schedule']):
-                tag_scores[tag] += 1
-            elif tag == 'TECHNICAL_SPECS' and any(word in query_lower for word in ['spec', 'description', 'feature', 'requirement']):
-                tag_scores[tag] += 1
-            elif tag == 'COMPLIANCE_REQUIREMENTS' and any(word in query_lower for word in ['rule', 'law', 'must', 'required', 'comply']):
-                tag_scores[tag] += 1
-            elif tag == 'BIDDER_INFO' and any(word in query_lower for word in ['how to', 'submit', 'apply', 'participate']):
-                tag_scores[tag] += 1
-            elif tag == 'CONTACT_INFO' and any(word in query_lower for word in ['who', 'contact', 'reach', 'phone', 'email']):
-                tag_scores[tag] += 1
-    
-    # Return best match if confident enough
-    if tag_scores:
-        best_tag = max(tag_scores, key=tag_scores.get)
-        best_score = tag_scores[best_tag]
-        
-        print(f"DEBUG: Intent detection - Query: '{query}', Scores: {dict(tag_scores)}, Best: {best_tag}({best_score})")
-        
-        if best_score >= 2:  # Minimum confidence threshold
-            return best_tag, best_score
-    
-    print(f"DEBUG: Intent detection - No clear intent found for query: '{query}'")
-    return None, 0
-
-def apply_strict_tag_filtering(chunks, required_tag, fallback_allowed=True):
-    """Filter chunks by specific tag"""
-    if not required_tag:
-        return chunks
-    
-    filtered_chunks = []
-    
-    for chunk in chunks:
-        chunk_tags = chunk.get('metadata', {}).get('role_tags', [])
-        if required_tag in chunk_tags:
-            filtered_chunks.append(chunk)
-    
-    # Fall back to all chunks if nothing found
-    if not filtered_chunks and fallback_allowed:
-        return chunks
-    
-    return filtered_chunks
-
-def prioritize_chunks(chunks, role):
-    """Keep for backward compatibility"""
-    return prioritize_chunks_enhanced(chunks, role)
-
-def enhanced_chunk_filtering(query, role, all_chunks, top_k=5, source_file=None):
-    """Smart filtering using content-specific indexes for targeted search"""
-    
-    print(f"DEBUG: enhanced_chunk_filtering with targeted indexing - role: '{role}', query: '{query}', source_file: '{source_file}'")
-    role_logger.info(f"FILTERING_START: Role='{role}', Query='{query}', Source_file='{source_file}', Total_chunks={len(all_chunks)}")
-    
-    # Detect what the user is asking about
-    required_tag, confidence = detect_query_intent(query)
-    print(f"DEBUG: Detected intent: {required_tag} with confidence: {confidence}")
-    
-    # Determine which content indexes to search
-    target_tags = []
-    if required_tag and confidence >= 2:
-        # High confidence - search only specific content type
-        target_tags = [required_tag]
-        print(f"DEBUG: High confidence search - targeting only: {target_tags}")
-    else:
-        # Lower confidence - search role-relevant content types
-        role_context = ROLE_CONTEXTS.get(role, {})
-        target_tags = role_context.get('priority_tags', ['GENERAL'])
-        print(f"DEBUG: Role-based search - targeting: {target_tags}")
-    
-    # Perform targeted search using content-specific indexes
-    candidate_chunks = []
-    if model.is_fitted and len(all_chunks) > 0:
-        query_embedding = model.encode([query])
-        faiss.normalize_L2(query_embedding)
-        
-        # Search only relevant content indexes, optionally filtered by source file
-        search_results = content_indexer.search_targeted(query_embedding, target_tags, top_k * 2, source_file)
-        
-        # Convert results back to chunks
-        for score, chunk_idx, content_tag in search_results:
-            if chunk_idx < len(all_chunks):
-                chunk = all_chunks[chunk_idx].copy()
-                chunk['_search_score'] = score
-                chunk['_matched_tag'] = content_tag
-                candidate_chunks.append(chunk)
-        
-        print(f"DEBUG: Targeted search found {len(candidate_chunks)} candidates from {len(target_tags)} content types")
-    else:
-        # Fallback to tag-based filtering
-        candidate_chunks = apply_strict_tag_filtering(all_chunks, required_tag, fallback_allowed=True)[:top_k * 2]
-        
-        # Apply source file filter if specified
-        if source_file:
-            candidate_chunks = [chunk for chunk in candidate_chunks 
-                              if chunk.get('metadata', {}).get('source', '') == source_file]
-    
-    # Apply role-specific prioritization
-    prioritized_chunks = prioritize_chunks_enhanced(candidate_chunks, role)
-    final_chunks = prioritized_chunks[:top_k]
-    
-    # Get role context for response framing
-    role_context = ROLE_CONTEXTS.get(role, {})
-    
-    # Log results with targeted search info
-    role_logger.info(f"TARGETED_SEARCH: Role='{role}', Intent='{required_tag}', Target_tags={target_tags}, Source_file='{source_file}', Results={len(final_chunks)}")
-    
-    return {
-        'chunks': final_chunks,
-        'detected_intent': required_tag,
-        'intent_confidence': confidence,
-        'target_tags': target_tags,
-        'targeted_search': True,
-        'role_framing': role_context.get('framing', ''),
-        'role_emphasis': role_context.get('emphasis', ''),
-        'total_candidates': len(candidate_chunks),
-        'filtering_applied': required_tag is not None,
-        'source_file_filter': source_file
-    }
-
-def prioritize_chunks_enhanced(chunks, role):
-    """Score and sort chunks based on role preferences"""
-    if not chunks:
-        return chunks
-    
-    print(f"DEBUG: prioritize_chunks_enhanced called with role: '{role}', chunks: {len(chunks)}")
-    
-    # Get role-specific priority tags
-    role_context = ROLE_CONTEXTS.get(role, {})
-    priority_tags = role_context.get('priority_tags', [])
-    
-    print(f"DEBUG: Priority tags for role '{role}': {priority_tags}")
-    
-    def chunk_score(chunk):
-        metadata = chunk.get('metadata', {})
-        score = 0
-        
-        # Base score from chunk priority
-        priority_map = {'high': 3, 'medium': 2, 'low': 1}
-        chunk_priority = metadata.get('chunk_priority', 'medium')
-        score += priority_map.get(chunk_priority, 2)
-        
-        # Content type preference
-        content_type = metadata.get('content_type', 'detailed')
-        if role == 'policy_maker' and content_type in ['summary', 'regulatory']:
-            score += 2
-        elif role == 'auditor' and content_type in ['regulatory', 'procedural']:
-            score += 2
-        elif content_type == 'summary':
-            score += 1
-        
-        # Role-specific tag matching
-        chunk_tags = metadata.get('role_tags', [])
-        tag_bonus = 0
-        for tag in chunk_tags:
-            if tag in priority_tags:
-                tag_bonus += 2  # Bonus for matching priority tags
-        score += tag_bonus
-        
-        # Role relevance score
-        role_relevance = metadata.get('role_relevance', {}).get(role, 0.5)
-        relevance_bonus = role_relevance * 3
-        score += relevance_bonus
-        
-        print(f"DEBUG: Chunk scoring - Tags: {chunk_tags}, Priority_tags: {priority_tags}, Tag_bonus: {tag_bonus}, Role_relevance: {role_relevance}, Total_score: {score}")
-        
-        return score
-    
-    # Sort by score
-    scored_chunks = sorted(chunks, key=chunk_score, reverse=True)
-    
-    # Debug top scores
-    for i, chunk in enumerate(scored_chunks[:3]):
-        score = chunk_score(chunk)
-        tags = chunk.get('metadata', {}).get('role_tags', [])
-        relevance = chunk.get('metadata', {}).get('role_relevance', {}).get(role, 0.5)
-        print(f"DEBUG: Top chunk {i+1}: Score={score:.2f}, Tags={tags}, Relevance={relevance:.2f}")
-    
-    return scored_chunks
-
-def create_fallback_response(query, role):
-    """Generate helpful response when no relevant chunks found"""
-    role_context = ROLE_CONTEXTS.get(role, {})
-    
-    fallback_message = f"""I couldn't find specific information to answer your query: "{query}".
-
-{role_context.get('framing', 'From your perspective,')} I recommend:
-
-1. Checking if your question relates to information that might be in other procurement documents
-2. Contacting the BAC Secretariat at (062) 991-1771 loc 1003 or bac@wmsu.edu.ph for clarification
-3. Reviewing the complete procurement documents for comprehensive information
-
-Please rephrase your question or ask about specific aspects like budget, timeline, specifications, or compliance requirements."""
-    
-    return fallback_message
-
-# Logging setup
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('role_awareness.log'),
-        logging.StreamHandler()
-    ]
-)
-
-role_logger = logging.getLogger('role_awareness')
-
-def log_query_result(query, role, detected_tag, confidence, chunks_used, role_relevance_scores, tags_used):
-    """Log detailed query processing results"""
-    
-    role_logger.info("="*80)
-    role_logger.info(f"🔍 NEW QUERY PROCESSED")
-    role_logger.info(f"QUERY: '{query}'")
-    role_logger.info(f"ROLE: {role.upper()}")
-    role_logger.info(f"DETECTED_TAG: {detected_tag}")
-    role_logger.info(f"CONFIDENCE: {confidence}")
-    role_logger.info(f"CHUNKS_USED: {chunks_used}")
-    
-    if tags_used:
-        role_logger.info(f"TAGS_IN_RESULTS: {', '.join(tags_used)}")
-    
-    if role_relevance_scores:
-        avg_relevance = sum(role_relevance_scores) / len(role_relevance_scores)
-        role_logger.info(f"ROLE_EFFECTIVENESS: {role.upper()} | AVG_RELEVANCE: {avg_relevance:.3f}")
-        role_logger.info(f"INDIVIDUAL_RELEVANCE_SCORES: {[f'{s:.3f}' for s in role_relevance_scores]}")
-    
-    role_logger.info("="*80)
-
-# Basic Ollama query function
-def query_ollama(query, top_k=3):
-    # Get query embedding
-    query_embedding = model.encode([query])
-    faiss.normalize_L2(query_embedding)
-    
-    # Search for relevant chunks
-    D, I = faiss_index.search(query_embedding, top_k)
-    
-    if len(I[0]) == 0:
-        return {"response": "No relevant information found. Please upload some documents first."}
-    
-    # Build context from relevant chunks
-    contexts = []
-    for idx in I[0]:
-        if idx < len(document_chunks):
-            contexts.append(document_chunks[idx]["text"])
-    
-    # Create prompt with context
-    context_text = "\n\n".join(contexts)
-    prompt = f"""
-    You are an expert in procurement documents. 
-    Use the following information to answer the query.
-    
-    Context information:
-    {context_text}
-    
-    Query: {query}
-    
-    Answer based only on the provided context. If the information is not in the context, say that you don't know.
-    """
-    
-    # Query Ollama
-    try:
-        response = requests.post(
-            "http://localhost:11434/api/generate",
-            json={
-                "model": "llama3.2:3b",
-                "prompt": prompt,
-                "stream": False,
-                "options": {
-                    "num_gpu": 0  # Use CPU
-                }
-            }
-        )
-        
-        if response.status_code == 200:
-            return {"response": response.json()["response"]}
-        else:
-            return {"error": f"Ollama error: {response.text}"}
-    except Exception as e:
-        return {"error": f"Error querying Ollama: {str(e)}"}
-
-# Role-aware query function
-def query_ollama_with_role(query, role='general', top_k=5):
-    # Get similar chunks
-    query_embedding = model.encode([query])
-    faiss.normalize_L2(query_embedding)
-    
-    D, I = faiss_index.search(query_embedding, top_k * 2)  # Get extra to filter
-    
-    if len(I[0]) == 0:
-        return {"response": "No relevant information found. Please upload some documents first."}
-    
-    # Score chunks by role relevance
-    contexts = []
-    role_tags = ROLE_TAGS.get(role, [])
-    
-    for idx in I[0]:
-        if idx < len(document_chunks):
-            chunk = document_chunks[idx]
-            
-            # Calculate relevance score
-            relevance_score = 1.0
-            if 'role_tags' in chunk.get('metadata', {}):
-                chunk_tags = chunk['metadata']['role_tags']
-                # Boost for matching tags
-                tag_match = len(set(chunk_tags) & set(role_tags))
-                if tag_match > 0:
-                    relevance_score = 1.0 + (tag_match * 0.3)
-            
-            if 'role_relevance' in chunk.get('metadata', {}):
-                role_relevance = chunk['metadata']['role_relevance'].get(role, 0.5)
-                relevance_score *= role_relevance
-            
-            contexts.append({
-                'text': chunk['text'],
-                'score': relevance_score,
-                'tags': chunk.get('metadata', {}).get('role_tags', []),
-                'source': chunk.get('metadata', {}).get('source', 'unknown')
-            })
-    
-    # Sort by relevance and take top results
-    contexts.sort(key=lambda x: x['score'], reverse=True)
-    contexts = contexts[:top_k]
-    
-    # Build role-specific prompt
-    context_text = "\n\n".join([ctx['text'] for ctx in contexts])
-    role_prompt = ROLE_PROMPTS.get(role, "You are an expert in procurement documents.")
-    
-    # Add role-specific emphasis
-    emphasis_tags = ", ".join([f"[{tag}]" for tag in role_tags])
-    if emphasis_tags:
-        role_prompt += f" Pay special attention to information tagged with: {emphasis_tags}."
-    
-    prompt = f"""
-    {role_prompt}
-    
-    Use the following information to answer the query.
-    
-    Context information:
-    {context_text}
-    
-    Query: {query}
-    
-    Answer based only on the provided context. If the information is not in the context, say that you don't know.
-    """
-    
-    # Query Ollama
-    try:
-        response = requests.post(
-            "http://localhost:11434/api/generate",
-            json={
-                "model": "llama3.2:3b",
-                "prompt": prompt,
-                "stream": False,
-                "options": {
-                    "num_gpu": 0
-                }
-            }
-        )
-        
-        if response.status_code == 200:
-            return {
-                "response": response.json()["response"],
-                "role": role,
-                "contexts_used": len(contexts),
-                "relevant_tags": list(set([tag for ctx in contexts for tag in ctx['tags']]))
-            }
-        else:
-            return {"error": f"Ollama error: {response.text}"}
-    except Exception as e:
-        return {"error": f"Error querying Ollama: {str(e)}"}
-
-# Main query function with enhanced filtering
-def query_ollama_with_strict_filtering(query, role='general', top_k=5, source_file=None):
-    """Main query function with targeted content-specific indexing"""
-    
-    print(f"DEBUG: query_ollama_with_strict_filtering with targeted indexing - role: '{role}', query: '{query}', source_file: '{source_file}'")
-    role_logger.info(f"QUERY_START: Role='{role}', Query='{query}', Source_file='{source_file}', Available_chunks={len(document_chunks)}")
-    
-    if len(document_chunks) == 0:
-        log_query_result(query, role, None, 0, 0, [], [])
-        return {"response": "No relevant information found. Please upload some documents first."}
-    
-    # Apply enhanced filtering with targeted indexing
-    filter_result = enhanced_chunk_filtering(query, role, document_chunks, top_k, source_file)
-    
-    chunks = filter_result['chunks']
-
-    # Extract role relevance scores and metadata
-    role_relevance_scores = []
-    all_tags_used = set()
-    matched_content_types = set()
-    
-    for chunk in chunks:
-        relevance = chunk.get('metadata', {}).get('role_relevance', {}).get(role, 0.5)
-        role_relevance_scores.append(relevance)
-        
-        chunk_tags = chunk.get('metadata', {}).get('role_tags', [])
-        all_tags_used.update(chunk_tags)
-        
-        # Track which content types were matched
-        if '_matched_tag' in chunk:
-            matched_content_types.add(chunk['_matched_tag'])
-
-    tags_used_list = list(all_tags_used)
-    matched_types_list = list(matched_content_types)
-
-    print(f"DEBUG: Targeted search matched content types: {matched_types_list}")
-    print(f"DEBUG: Role relevance scores: {role_relevance_scores}")
-    print(f"DEBUG: Selected {len(chunks)} chunks from targeted search")
-
-    # Handle no results case
-    if not chunks:
-        log_query_result(query, role, filter_result.get('detected_intent'), 0, 0, [], [])
-        fallback_response = create_fallback_response(query, role)
-        return {
-            "response": fallback_response,
-            "role": role,
-            "contexts_used": 0,
-            "filtering_info": filter_result,
-            "is_fallback": True
-        }
-    
-    # Build context with targeted content emphasis
-    contexts_text = []
-    for chunk in chunks:
-        contexts_text.append(chunk['text'])
-    
-    context_text = "\n\n".join(contexts_text)
-    
-    # Enhanced prompt with targeted search context
-    role_framing = filter_result.get('role_framing', '')
-    detected_intent = filter_result.get('detected_intent', '')
-    target_tags = filter_result.get('target_tags', [])
-    
-    # Role-specific instructions
-    role_specific_instruction = ""
-    if role == 'auditor':
-        role_specific_instruction = "Focus on compliance, legal requirements, budget verification, and procedural correctness. Highlight any potential issues or red flags."
-    elif role == 'procurement_officer':
-        role_specific_instruction = "Focus on timeline management, process efficiency, bidder coordination, and operational aspects. Provide actionable information for managing the procurement process."
-    elif role == 'policy_maker':
-        role_specific_instruction = "Focus on strategic implications, policy compliance, budget impact, and high-level decision-making factors. Provide insights for strategic planning."
-    elif role == 'bidder':
-        role_specific_instruction = "Focus on submission requirements, specifications, deadlines, and what bidders need to know to participate successfully. Provide clear, actionable guidance."
-    
-    prompt = f"""
-    {role_framing}
-    
-    {role_specific_instruction}
-    
-    {f"This response is based on targeted search for: {', '.join(target_tags)}" if target_tags else ""}
-    {f"The query appears to be about: {detected_intent}" if detected_intent else ""}
-    
-    Context information (from targeted content search):
-    {context_text}
-    
-    Query: {query}
-    
-    Provide a clear, role-appropriate answer based only on the provided context. The context has been specifically selected for relevance to your query, so focus on the most pertinent information.
-    """
-    
-    # Query Ollama
-    try:
-        response = requests.post(
-            "http://localhost:11434/api/generate",
-            json={
-                "model": "llama3.2:3b",
-                "prompt": prompt,
-                "stream": False,
-                "options": {
-                    "num_gpu": 0
-                }
-            }
-        )
-        
-        if response.status_code == 200:
-            # Log successful targeted query
-            log_query_result(query, role, detected_intent, filter_result.get('intent_confidence', 0), len(chunks), role_relevance_scores, tags_used_list)
-            
-            # Log targeted search effectiveness
-            role_logger.info(f"TARGETED_SEARCH_ANALYSIS for query '{query}' with role '{role}':")
-            role_logger.info(f"  Target_content_types: {target_tags}")
-            role_logger.info(f"  Matched_content_types: {matched_types_list}")
-            role_logger.info(f"  Chunks_from_targeted_search: {len(chunks)}")
-            
-            avg_relevance = sum(role_relevance_scores) / len(role_relevance_scores) if role_relevance_scores else 0.5
-            
-            response_data = {
-                "response": response.json()["response"],
-                "role": role,
-                "confirmed_role": role,
-                "contexts_used": len(chunks),
-                "relevant_tags": tags_used_list,
-                "matched_content_types": matched_types_list,
-                "target_content_types": target_tags,
-                "sources": list(set([chunk.get('metadata', {}).get('source', 'unknown') for chunk in chunks])),
-                "filtering_info": filter_result,
-                "is_fallback": False,
-                "targeted_search": True,
-                "role_effectiveness": {
-                    "avg_relevance": avg_relevance,
-                    "tags_found": len(tags_used_list),
-                    "intent_detected": detected_intent,
-                    "search_precision": len(matched_types_list) / max(1, len(target_tags))
-                }
-            }
-            
-            return response_data
-        else:
-            role_logger.error(f"Ollama error: {response.text}")
-            return {"error": f"Ollama error: {response.text}"}
-    except Exception as e:
-        role_logger.error(f"Error querying Ollama: {str(e)}")
-        return {"error": f"Error querying Ollama: {str(e)}"}
+# Flask routes
 
 @app.route('/')
-def serve_index():
+def index():
     return send_from_directory('.', 'index.html')
 
+@app.route('/document-viewer.html')
+def document_viewer():
+    return send_from_directory('.', 'document-viewer.html')
+
 @app.route('/uploads/<filename>')
-def serve_uploaded_file(filename):
-    """Serve uploaded PDF files"""
+def uploaded_file(filename):
     return send_from_directory(UPLOAD_FOLDER, filename)
 
-@app.route('/status', methods=['GET'])
-def get_status():
-    """Get system status - mainly for Ollama connection check"""
-    return jsonify({
-        "success": True,
-        "ollama_status": "connected",  # Simplified for now
-        "message": "System operational"
-    })
+@app.route('/css/<filename>')
+def css_files(filename):
+    return send_from_directory('css', filename)
+
+@app.route('/js/<filename>')
+def js_files(filename):
+    return send_from_directory('js', filename)
+
+@app.route('/images/<filename>')
+def image_files(filename):
+    return send_from_directory('images', filename)
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    print("Upload endpoint called!")
-    
-    if 'file' not in request.files:
-        print("No file part in request")
-        return jsonify({"error": "No file part"}), 400
-    
-    file = request.files['file']
-    if file.filename == '':
-        print("No selected file")
-        return jsonify({"error": "No selected file"}), 400
-    
-    if not file.filename.lower().endswith('.pdf'):
-        print(f"Invalid file type: {file.filename}")
-        return jsonify({"error": "Only PDF files are supported"}), 400
-    
-    print(f"Processing file: {file.filename}")
-    
-    # Save and process file
-    temp_path = os.path.join(UPLOAD_FOLDER, file.filename)
-    file.save(temp_path)
-    print(f"File saved to: {temp_path}")
-    
-    result = add_document_to_index(temp_path)
-    print(f"Processing result: {result}")
-    
-    return jsonify(result)
-
-@app.route('/query', methods=['POST'])
-def query():
-    data = request.json
-    if not data or 'query' not in data:
-        return jsonify({"error": "No query provided"}), 400
-
-    # Extract and validate role
-    role = data.get('role', 'general')
-    
-    # Debug logging
-    print(f"DEBUG: Received request data: {data}")
-    print(f"DEBUG: Extracted role: '{role}' (type: {type(role)})")
-    
-    # Clean up role string
-    if isinstance(role, str):
-        role = role.strip().lower()
-    
-    # Validate role
-    role_mapping = {
-        'general': 'general',
-        'auditor': 'auditor',
-        'procurement_officer': 'procurement_officer',
-        'policy_maker': 'policy_maker',
-        'bidder': 'bidder'
-    }
-    
-    if role in role_mapping:
-        role = role_mapping[role]
-    else:
-        print(f"DEBUG: Invalid role '{role}', defaulting to 'general'")
-        role_logger.warning(f"Invalid role '{role}', defaulting to 'general'")
-        role = 'general'
-    
-    print(f"DEBUG: Final role being used: '{role}'")
-    
-    # Log role switch
-    role_logger.info("🔄" + "="*50 + "🔄")
-    role_logger.info(f"🎭 ROLE SWITCH: Now operating as '{role.upper()}'")
-    role_logger.info(f"📝 Query: '{data['query']}'")
-    role_logger.info("🔄" + "="*50 + "🔄")
-    
-    role_logger.info(f"RECEIVED_ROLE: '{role}' for query: '{data['query']}'")
-    
-    # Process query with confirmed role
-    result = query_ollama_with_strict_filtering(data['query'], role)
-    
-    # Clean up response
-    clean_result = {
-        "response": result.get("response", ""),
-        "role": role,
-        "confirmed_role": role,
-        "contexts_used": result.get("contexts_used", 0),
-        "relevant_tags": result.get("relevant_tags", []),
-        "is_fallback": result.get("is_fallback", False),
-        "filtering_applied": result.get("filtering_info", {}).get("filtering_applied", False),
-        "detected_intent": result.get("filtering_info", {}).get("detected_intent", None)
-    }
-    
-    print(f"DEBUG: Response role confirmation: '{role}'")
-    role_logger.info(f"FINAL_RESPONSE_ROLE: '{role}' | TAGS: {clean_result.get('relevant_tags', [])} | CHUNKS: {clean_result.get('contexts_used', 0)}")
-    
-    return jsonify(clean_result)
-
-@app.route('/get-roles', methods=['GET'])
-def get_roles():
-    """Return available roles for the frontend"""
-    return jsonify({
-        "roles": list(ROLE_TAGS.keys()),
-        "role_descriptions": ROLE_PROMPTS
-    })
-
-@app.route('/analyze-chunks', methods=['GET'])
-def analyze_chunks():
-    """Analyze current chunks for debugging"""
-    analysis = {
-        "total_chunks": len(document_chunks),
-        "chunks_with_role_tags": 0,
-        "tag_distribution": {},
-        "role_relevance_stats": {}
-    }
-    
-    for chunk in document_chunks:
-        metadata = chunk.get('metadata', {})
-        
-        if 'role_tags' in metadata:
-            analysis["chunks_with_role_tags"] += 1
-            for tag in metadata['role_tags']:
-                analysis["tag_distribution"][tag] = analysis["tag_distribution"].get(tag, 0) + 1
-        
-        if 'role_relevance' in metadata:
-            for role, score in metadata['role_relevance'].items():
-                if role not in analysis["role_relevance_stats"]:
-                    analysis["role_relevance_stats"][role] = {"scores": [], "avg": 0}
-                analysis["role_relevance_stats"][role]["scores"].append(score)
-    
-    # Calculate averages
-    for role, stats in analysis["role_relevance_stats"].items():
-        if stats["scores"]:
-            stats["avg"] = sum(stats["scores"]) / len(stats["scores"])
-    
-    return jsonify(analysis)
-
-@app.route('/analyze-tagging', methods=['GET'])
-def analyze_tagging():
-    """Analyze tagging consistency across documents"""
-    analysis = {
-        "total_chunks": len(document_chunks),
-        "documents": {},
-        "tag_distribution": {},
-        "role_coverage": {}
-    }
-    
-    # Group by document
-    for chunk in document_chunks:
-        metadata = chunk.get('metadata', {})
-        source = metadata.get('source', 'unknown')
-        
-        if source not in analysis["documents"]:
-            analysis["documents"][source] = {
-                "chunk_count": 0,
-                "tags": set(),
-                "has_auto_tags": False
-            }
-        
-        analysis["documents"][source]["chunk_count"] += 1
-        
-        # Check for role tags
-        role_tags = metadata.get('role_tags', [])
-        if role_tags:
-            analysis["documents"][source]["has_auto_tags"] = True
-            analysis["documents"][source]["tags"].update(role_tags)
-            
-            # Update global tag distribution
-            for tag in role_tags:
-                analysis["tag_distribution"][tag] = analysis["tag_distribution"].get(tag, 0) + 1
-    
-    # Convert sets to lists for JSON
-    for doc_info in analysis["documents"].values():
-        doc_info["tags"] = list(doc_info["tags"])
-    
-    # Check role coverage
-    for role in ["auditor", "procurement_officer", "bidder", "policy_maker"]:
-        chunks_for_role = 0
-        for chunk in document_chunks:
-            role_relevance = chunk.get('metadata', {}).get('role_relevance', {})
-            if role_relevance.get(role, 0) > 0.7:  # High relevance threshold
-                chunks_for_role += 1
-        analysis["role_coverage"][role] = chunks_for_role
-    
-    return jsonify(analysis)
-
-@app.route('/analyze-index-efficiency', methods=['GET'])
-def analyze_index_efficiency():
-    """Analyze the efficiency of content-specific indexing"""
-    analysis = {
-        "total_chunks": len(document_chunks),
-        "content_index_distribution": {},
-        "index_sizes": {},
-        "search_efficiency": {}
-    }
-    
-    # Analyze distribution across content indexes
-    for tag, chunks in content_indexer.chunk_mappings.items():
-        analysis["content_index_distribution"][tag] = len(chunks)
-        analysis["index_sizes"][tag] = content_indexer.indexes[tag].ntotal
-    
-    # Calculate search efficiency metrics
-    total_indexed = sum(analysis["index_sizes"].values())
-    for tag, size in analysis["index_sizes"].items():
-        if total_indexed > 0:
-            analysis["search_efficiency"][tag] = {
-                "percentage_of_total": (size / total_indexed) * 100,
-                "search_reduction": ((total_indexed - size) / total_indexed) * 100 if size < total_indexed else 0
-            }
-    
-    return jsonify(analysis)
-
-def check_ollama_connection():
+    """Upload and process a single PDF file"""
     try:
-        response = requests.get("http://localhost:11434/api/tags")
-        return response.status_code == 200
-    except:
-        return False
-
-# Initialize on startup
-load_index()
+        if 'file' not in request.files:
+            return jsonify({"success": False, "error": "No file provided"})
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({"success": False, "error": "No file selected"})
+        
+        if not file.filename.lower().endswith('.pdf'):
+            return jsonify({"success": False, "error": "Only PDF files are supported"})
+        
+        # Save uploaded file
+        filename = file.filename
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(file_path)
+        
+        # Process with LangChain
+        result = process_pdf_with_langchain(file_path, copy_to_uploads=False)
+        
+        if result["success"]:
+            # Index the document
+            index_result = batch_index_documents([result])
+            
+            if index_result["success"]:
+                return jsonify({
+                    "success": True,
+                    "message": f"Successfully processed {filename}",
+                    "filename": filename,
+                    "chunks": result["chunks_count"],
+                    "redirect": "document-viewer.html"
+                })
+            else:
+                return jsonify({"success": False, "error": index_result["message"]})
+        else:
+            return jsonify({"success": False, "error": result["error"]})
+            
+    except Exception as e:
+        return jsonify({"success": False, "error": f"Upload failed: {str(e)}"})
 
 @app.route('/upload-folder', methods=['POST'])
 def upload_folder():
-    """Handle folder path upload and process all PDFs in it"""
-    data = request.json
-    
-    if not data or 'folder_path' not in data:
-        return jsonify({"error": "No folder path provided"}), 400
-    
-    folder_path = data['folder_path']
-    
-    # Validate folder path
-    if not os.path.exists(folder_path):
-        return jsonify({"error": "Folder path does not exist"}), 400
-    
-    if not os.path.isdir(folder_path):
-        return jsonify({"error": "Path is not a directory"}), 400
-    
-    print(f"Processing folder: {folder_path}")
-    
-    # Get optional parameters
-    max_workers = data.get('max_workers', 3)  # Limit concurrent processing
-    
-    # Process folder in background (for large folders)
-    def process_in_background():
-        # Set folder path in progress tracking
-        global processing_progress
-        with progress_lock:
-            processing_progress['folder_path'] = folder_path
-        
-        result = process_folder_contents(folder_path, max_workers)
-        print(f"Folder processing completed: {result}")
-    
-    # Start background processing
-    thread = threading.Thread(target=process_in_background)
-    thread.daemon = True
-    thread.start()
-    
-    return jsonify({
-        "success": True,
-        "message": f"Started processing folder: {folder_path}",
-        "status": "processing_started"
-    })
-
-@app.route('/upload-progress', methods=['GET'])
-def get_upload_progress():
-    """Get current upload/processing progress"""
-    global processing_progress
-    with progress_lock:
-        progress_copy = processing_progress.copy()
-        
-        # Calculate elapsed time and ETA
-        if progress_copy['start_time'] and progress_copy['status'] == 'processing':
-            elapsed = time.time() - progress_copy['start_time']
-            if progress_copy['processed_files'] > 0:
-                avg_time_per_file = elapsed / progress_copy['processed_files']
-                remaining_files = progress_copy['total_files'] - progress_copy['processed_files']
-                eta_seconds = avg_time_per_file * remaining_files
-                progress_copy['eta_seconds'] = eta_seconds
-                progress_copy['elapsed_seconds'] = elapsed
-            
-        return jsonify(progress_copy)
-
-@app.route('/database-stats', methods=['GET'])
-def get_database_stats():
-    """Get current database statistics"""
-    try:
-        chunks_file = f"{DB_FOLDER}/chunks.json"
-        if os.path.exists(chunks_file):
-            with open(chunks_file, 'r') as f:
-                chunks = json.load(f)
-            
-            # Count unique source files and build file info
-            unique_sources = set()
-            file_info = {}
-            
-            for chunk in chunks:
-                source = chunk.get('metadata', {}).get('source', 'unknown')
-                unique_sources.add(source)
-                
-                if source not in file_info:
-                    # Check if file exists in uploads directory
-                    filename = os.path.basename(source)
-                    upload_path = os.path.join(UPLOAD_FOLDER, filename)
-                    
-                    file_info[source] = {
-                        'original_path': source,
-                        'filename': filename,
-                        'available_in_uploads': os.path.exists(upload_path),
-                        'upload_url': f'/uploads/{filename}' if os.path.exists(upload_path) else None
-                    }
-            
-            return jsonify({
-                "success": True,
-                "total_chunks": len(chunks),
-                "unique_files": len(unique_sources),
-                "files": list(unique_sources),
-                "file_details": file_info
-            })
-        else:
-            return jsonify({
-                "success": True,
-                "total_chunks": 0,
-                "unique_files": 0,
-                "files": [],
-                "file_details": {}
-            })
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        })
-
-@app.route('/cancel-processing', methods=['POST'])
-def cancel_processing():
-    """Cancel ongoing folder processing"""
-    global processing_progress
-    with progress_lock:
-        if processing_progress['status'] == 'processing':
-            processing_progress['status'] = 'cancelled'
-            return jsonify({"success": True, "message": "Processing cancelled"})
-        else:
-            return jsonify({"success": False, "message": "No active processing to cancel"})
-
-# ====== NEW TESTING AND FILE MANAGEMENT ENDPOINTS ======
-
-@app.route('/test-tagging', methods=['POST'])
-def test_tagging():
-    """Test the enhanced section tagging system on sample text"""
+    """Process a folder of PDF files"""
     try:
         data = request.json
-        if not data or 'text' not in data:
-            return jsonify({"error": "No text provided for tagging test"}), 400
+        if not data or 'folder_path' not in data:
+            return jsonify({"success": False, "error": "No folder path provided"})
         
-        text = data['text']
+        folder_path = data['folder_path']
+        max_workers = data.get('max_workers', 3)
         
-        # Test the new enhanced tagging function
-        sections = tag_procurement_sections(text)
+        if not os.path.exists(folder_path):
+            return jsonify({"success": False, "error": "Folder path does not exist"})
         
-        # Also test the old tagging for comparison
-        old_tags = auto_tag_chunk(text)
+        # Start processing in background
+        def process_async():
+            result = process_folder_contents(folder_path, max_workers)
+            return result
         
-        return jsonify({
-            "success": True,
-            "input_text": text[:200] + "..." if len(text) > 200 else text,
-            "enhanced_sections": sections,
-            "legacy_tags": old_tags,
-            "sections_count": len(sections),
-            "unique_tags": list(set(section['section_tag'] for section in sections))
-        })
-    
+        # For now, process synchronously but we could make this async
+        result = process_async()
+        return jsonify(result)
+        
     except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        })
+        return jsonify({"success": False, "error": f"Folder upload failed: {str(e)}"})
 
-@app.route('/files', methods=['GET'])
-def list_files():
-    """Get list of all files in the index with statistics"""
+@app.route('/query', methods=['POST'])
+def query_documents():
+    """Query documents using LangChain RAG"""
     try:
-        files_list = content_indexer.get_files_list()
-        file_stats = content_indexer.get_file_stats()
-        
-        # Add upload directory availability
-        for filename in file_stats:
-            base_filename = os.path.basename(filename)
-            upload_path = os.path.join(UPLOAD_FOLDER, base_filename)
-            file_stats[filename]['available_in_uploads'] = os.path.exists(upload_path)
-            file_stats[filename]['upload_url'] = f'/uploads/{base_filename}' if os.path.exists(upload_path) else None
-        
-        return jsonify({
-            "success": True,
-            "total_files": len(files_list),
-            "files": files_list,
-            "file_statistics": file_stats
-        })
-    
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        })
-
-@app.route('/query-file', methods=['POST'])
-def query_file():
-    """Query with file-specific filtering"""
-    try:
+        # Ensure vectorstore is initialized
+        vectorstore = get_or_initialize_vectorstore()
+        if vectorstore is None:
+            return jsonify({"error": "Vector store not initialized. Please upload documents first."}), 500
+            
         data = request.json
         if not data or 'query' not in data:
             return jsonify({"error": "No query provided"}), 400
         
         query = data['query']
         role = data.get('role', 'general')
-        source_file = data.get('source_file', None)
-        top_k = int(data.get('top_k', 5))
         
-        # Validate that the source file exists if specified
-        if source_file:
-            files_list = content_indexer.get_files_list()
-            if source_file not in files_list:
-                return jsonify({
-                    "error": f"Source file '{source_file}' not found in index",
-                    "available_files": files_list
-                }), 400
+        # Get the appropriate QA chain for the role
+        qa_chain = qa_chains.get(role, qa_chains['general'])
         
-        # Use enhanced query function with source file filtering
-        result = query_ollama_with_strict_filtering(query, role, top_k, source_file)
+        # Run the query
+        result = qa_chain({"query": query})
         
-        # Add file-specific information to response
-        if isinstance(result, dict) and 'response' in result:
-            result['source_file_filter'] = source_file
-            result['file_specific_query'] = source_file is not None
+        # Extract source information
+        sources = []
+        relevant_files = set()
         
-        return jsonify(result)
-    
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        })
-
-@app.route('/chunks/<path:filename>', methods=['GET'])
-def get_file_chunks(filename):
-    """Get all chunks for a specific file"""
-    try:
-        # Find the file in the index
-        chunk_indices = content_indexer.get_chunks_by_file(filename)
-        
-        if not chunk_indices:
-            return jsonify({
-                "success": False,
-                "error": f"No chunks found for file: {filename}",
-                "available_files": content_indexer.get_files_list()
-            }), 404
-        
-        # Get the actual chunks
-        chunks = []
-        for idx in chunk_indices:
-            if idx < len(document_chunks):
-                chunk = document_chunks[idx]
-                chunks.append({
-                    "index": idx,
-                    "text": chunk['text'][:200] + "..." if len(chunk['text']) > 200 else chunk['text'],
-                    "full_text": chunk['text'],
-                    "metadata": chunk['metadata'],
-                    "tags": chunk.get('metadata', {}).get('role_tags', []),
-                    "page": chunk.get('metadata', {}).get('page', 0),
-                    "priority": chunk.get('metadata', {}).get('chunk_priority', 'medium')
+        if 'source_documents' in result:
+            for doc in result['source_documents']:
+                source_file = doc.metadata.get('source_file', 'unknown')
+                relevant_files.add(source_file)
+                sources.append({
+                    'source_file': source_file,
+                    'page': doc.metadata.get('page', 'N/A'),
+                    'content_preview': doc.page_content[:200] + "..."
                 })
         
         return jsonify({
-            "success": True,
-            "filename": filename,
-            "total_chunks": len(chunks),
-            "chunks": chunks
+            "response": result['result'],
+            "role": role,
+            "confirmed_role": role,
+            "sources": sources,
+            "relevant_files": list(relevant_files),
+            "contexts_used": len(sources)
         })
+        
+    except Exception as e:
+        return jsonify({"error": f"Query failed: {str(e)}"}), 500
+
+@app.route('/status', methods=['GET'])
+def get_status():
+    """Check system status"""
+    try:
+        # Test Ollama connection
+        test_response = llm.invoke("test")
+        ollama_status = "connected"
+    except:
+        ollama_status = "disconnected"
     
+    # Check ChromaDB status
+    try:
+        collection_count = vectorstore._collection.count()
+        chroma_status = "connected"
+    except:
+        collection_count = 0
+        chroma_status = "disconnected"
+    
+    return jsonify({
+        "ollama_status": ollama_status,
+        "chroma_status": chroma_status,
+        "documents_indexed": collection_count,
+        "system": "LangChain RAG System"
+    })
+
+@app.route('/upload-progress', methods=['GET'])
+def get_upload_progress():
+    """Get current upload progress"""
+    return jsonify(processing_progress)
+
+@app.route('/files', methods=['GET'])
+def list_files():
+    """Get list of indexed documents"""
+    
+    # Ensure vectorstore is initialized
+    vectorstore = get_or_initialize_vectorstore()
+    if vectorstore is None:
+        return jsonify({"success": False, "error": "Vector store not initialized"})
+    
+    try:
+        # Get unique source files from ChromaDB
+        all_docs = vectorstore.get()
+        
+        file_stats = defaultdict(lambda: {
+            'total_chunks': 0,
+            'available_in_uploads': False
+        })
+        
+        if all_docs and 'metadatas' in all_docs:
+            for metadata in all_docs['metadatas']:
+                source_file = metadata.get('source_file', 'unknown')
+                file_stats[source_file]['total_chunks'] += 1
+                
+                # Check if file exists in uploads
+                upload_path = os.path.join(UPLOAD_FOLDER, source_file)
+                file_stats[source_file]['available_in_uploads'] = os.path.exists(upload_path)
+        
+        files_list = list(file_stats.keys())
+        
+        return jsonify({
+            "success": True,
+            "total_files": len(files_list),
+            "files": files_list,
+            "file_statistics": dict(file_stats)
+        })
+        
     except Exception as e:
         return jsonify({
             "success": False,
             "error": str(e)
         })
 
-@app.route('/analyze-document/<path:filename>', methods=['GET'])
-def analyze_document(filename):
-    """Analyze a document's section tagging and structure"""
+@app.route('/database-stats', methods=['GET'])
+def get_database_stats():
+    """Get database statistics"""
+    # Ensure vectorstore is initialized
+    vectorstore = get_or_initialize_vectorstore()
+    if vectorstore is None:
+        return jsonify({"success": False, "error": "Vector store not initialized"})
+        
     try:
-        # Find the file in uploads directory
-        file_path = os.path.join(UPLOAD_FOLDER, os.path.basename(filename))
+        collection = vectorstore._collection
+        total_docs = collection.count()
         
-        if not os.path.exists(file_path):
-            return jsonify({
-                "success": False,
-                "error": f"File not found in uploads: {filename}"
-            }), 404
+        # Get sample of documents to analyze
+        sample_docs = vectorstore.get(limit=1000)
         
-        # Extract full text from the PDF
-        full_text = ""
-        try:
-            with open(file_path, 'rb') as file:
-                pdf_reader = PyPDF2.PdfReader(file)
-                for page in pdf_reader.pages:
-                    text = page.extract_text()
-                    if text:
-                        full_text += text + "\n\n"
-        except Exception as e:
-            return jsonify({
-                "success": False,
-                "error": f"Could not read PDF: {str(e)}"
-            }), 500
+        file_details = {}
+        if sample_docs and 'metadatas' in sample_docs:
+            for metadata in sample_docs['metadatas']:
+                source_file = metadata.get('source_file', 'unknown')
+                if source_file not in file_details:
+                    filename = os.path.basename(source_file)
+                    upload_path = os.path.join(UPLOAD_FOLDER, filename)
+                    
+                    file_details[source_file] = {
+                        'filename': filename,
+                        'available_in_uploads': os.path.exists(upload_path),
+                        'upload_url': f'/uploads/{filename}' if os.path.exists(upload_path) else None
+                    }
         
-        if not full_text.strip():
-            return jsonify({
-                "success": False,
-                "error": "No text could be extracted from PDF"
-            }), 500
-        
-        # Apply enhanced section tagging
-        sections = tag_procurement_sections(full_text)
-        
-        # Get existing chunks for comparison
-        chunk_indices = content_indexer.get_chunks_by_file(filename)
-        existing_chunks = []
-        for idx in chunk_indices:
-            if idx < len(document_chunks):
-                chunk = document_chunks[idx]
-                existing_chunks.append({
-                    "text": chunk['text'][:100] + "...",
-                    "tags": chunk.get('metadata', {}).get('role_tags', []),
-                    "page": chunk.get('metadata', {}).get('page', 0)
-                })
-        
-        # Analyze tag distribution
-        tag_counts = {}
-        for section in sections:
-            tag = section['section_tag']
-            tag_counts[tag] = tag_counts.get(tag, 0) + 1
+        unique_files = len(file_details)
         
         return jsonify({
             "success": True,
-            "filename": filename,
-            "document_analysis": {
-                "total_sections_found": len(sections),
-                "tag_distribution": tag_counts,
-                "sections": sections,
-                "existing_chunks_count": len(existing_chunks),
-                "existing_chunks_sample": existing_chunks[:5]  # Show first 5 for comparison
-            },
-            "document_stats": {
-                "total_characters": len(full_text),
-                "estimated_pages": len(full_text) // 2000,  # Rough estimate
-                "has_contract_amounts": 'CONTRACT_AMOUNT' in tag_counts,
-                "has_technical_specs": 'TECHNICAL_SPECS' in tag_counts,
-                "has_timelines": 'TIMELINE' in tag_counts
-            }
+            "total_chunks": total_docs,
+            "unique_files": unique_files,
+            "files": list(file_details.keys()),
+            "file_details": file_details
         })
-    
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        })
-
-@app.route('/test-file-query', methods=['POST'])
-def test_file_query():
-    """Test querying specific to a file with different roles"""
-    try:
-        data = request.json
-        if not data or 'filename' not in data or 'query' not in data:
-            return jsonify({"error": "Filename and query required"}), 400
         
-        filename = data['filename']
-        query = data['query']
-        roles = data.get('roles', ['general', 'auditor', 'procurement_officer', 'bidder'])
-        
-        # Validate file exists
-        if filename not in content_indexer.get_files_list():
-            return jsonify({
-                "error": f"File '{filename}' not found",
-                "available_files": content_indexer.get_files_list()
-            }), 400
-        
-        # Test query with each role
-        results = {}
-        for role in roles:
-            try:
-                result = query_ollama_with_strict_filtering(query, role, 3, filename)
-                results[role] = {
-                    "success": True,
-                    "response": result.get('response', 'No response'),
-                    "contexts_used": result.get('contexts_used', 0),
-                    "relevant_tags": result.get('relevant_tags', []),
-                    "sources": result.get('sources', [])
-                }
-            except Exception as e:
-                results[role] = {
-                    "success": False,
-                    "error": str(e)
-                }
-        
-        return jsonify({
-            "success": True,
-            "filename": filename,
-            "query": query,
-            "role_comparisons": results
-        })
-    
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        })
-
-@app.route('/rebuild-file-mappings', methods=['POST'])
-def rebuild_file_mappings():
-    """Rebuild file mappings from existing chunks and save"""
-    try:
-        if not document_chunks:
-            return jsonify({
-                "success": False,
-                "error": "No chunks available to rebuild mappings from"
-            })
-        
-        # Rebuild file mappings
-        content_indexer.rebuild_file_mappings_from_chunks(document_chunks)
-        
-        # Save the updated mappings
-        save_index()
-        
-        return jsonify({
-            "success": True,
-            "message": "File mappings rebuilt and saved",
-            "total_files": len(content_indexer.file_mappings),
-            "file_mappings": content_indexer.file_mappings
-        })
-    
     except Exception as e:
         return jsonify({
             "success": False,
@@ -2189,4 +644,9 @@ def rebuild_file_mappings():
         })
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    # Initialize LangChain components
+    if initialize_langchain_components():
+        print("Starting Flask application with LangChain RAG system...")
+        app.run(host='127.0.0.1', port=5000, debug=True)
+    else:
+        print("Failed to initialize LangChain components. Please check your setup.")
