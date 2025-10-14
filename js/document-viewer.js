@@ -791,6 +791,18 @@ document.addEventListener('DOMContentLoaded', function() {
         
         sendButton.addEventListener('click', sendQuery);
         
+        // Add predefined question button handlers
+        const questionButtons = document.querySelectorAll('.question-btn');
+        questionButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const question = this.getAttribute('data-question');
+                if (question) {
+                    queryInput.value = question;
+                    sendQuery();
+                }
+            });
+        });
+        
         // Add role selection change handler
         const roleSelect = document.getElementById('roleSelect');
         if (roleSelect) {

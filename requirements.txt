@@ -11,3 +11,10 @@ langchain-ollama==0.0.1
 chromadb==0.4.22
 pypdf==3.17.4
 sentence-transformers==2.2.2
+
+# Enhanced PDF processing with table detection
+pypdf==3.17.4
+pdfminer3k
+# Optional: Advanced table detection (if dependencies allow)
+# unstructured[pdf]
+# python-magic-bin
