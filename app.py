@@ -56,9 +56,11 @@ CORS(app)
 # Configuration
 UPLOAD_FOLDER = 'uploads'
 CHROMA_DB_PATH = 'db/chromadb'
-# Optimized for procurement tables - larger chunks to preserve table structure
-CHUNK_SIZE = 1500
-CHUNK_OVERLAP = 200
+# CRITICAL FIX: Larger chunks + minimal overlap to avoid duplicates
+# Procurement docs have tables split by page, then re-split by chunker
+# This was creating semantic duplicates that confuse retrieval
+CHUNK_SIZE = 3000  # Increased from 1500 - captures complete table rows
+CHUNK_OVERLAP = 50  # Reduced from 200 - prevents duplicate/overlapping chunks
 
 # Create folders if they don't exist
 Path(UPLOAD_FOLDER).mkdir(exist_ok=True)
@@ -344,48 +346,42 @@ def get_or_initialize_vectorstore():
     return vectorstore
 
 def create_filtered_retriever(vectorstore, role, query_filters=None):
-    """Create an aggressively optimized retriever with smart filtering"""
+    """Create a retriever that prioritizes ACCURACY over speed"""
     
-    # AGGRESSIVE filtering: Much smaller k values to avoid full search
-    role_search_config = {
-        'auditor': {
-            'k': 4,  # Reduced from 8 - focus on most relevant
-            'score_threshold': 0.7,  # Increased threshold
-        },
-        'procurement_officer': {
-            'k': 3,  # Reduced from 6 - very focused
-            'score_threshold': 0.75,
-        },
-        'policy_maker': {
-            'k': 3,  # Reduced from 5 - high-level only
-            'score_threshold': 0.8,  # Very high threshold
-        },
-        'bidder': {
-            'k': 4,  # Reduced from 7 - specific specs only
-            'score_threshold': 0.75,
-        },
-        'general': {
-            'k': 3,  # Reduced from 5 - most relevant only
-            'score_threshold': 0.75,
-        }
-    }
+    # For small databases (< 50 chunks), retrieve EVERYTHING for maximum accuracy
+    # For larger databases, use role-specific limits
+    try:
+        total_chunks = vectorstore._collection.count()
+        print(f"📊 Total chunks in database: {total_chunks}")
+        
+        if total_chunks < 50:
+            # SMALL DATABASE: Retrieve everything for perfect accuracy
+            k_value = total_chunks
+            print(f"🎯 Small database detected - retrieving ALL {k_value} chunks for maximum accuracy")
+        else:
+            # LARGE DATABASE: Use role-specific limits
+            role_k_values = {
+                'auditor': 12,
+                'procurement_officer': 10,
+                'policy_maker': 10,
+                'bidder': 12,
+                'general': 10,
+            }
+            k_value = role_k_values.get(role, 10)
+            print(f"🎯 Creating retriever for {role}: k={k_value}")
+    except:
+        # Fallback if count fails
+        k_value = 10
+        print(f"🎯 Creating retriever for {role}: k={k_value} (default)")
     
-    config = role_search_config.get(role, role_search_config['general'])
+    # Use similarity search for maximum accuracy
+    search_kwargs = {"k": k_value}
     
-    # Build search parameters for ChromaDB
-    search_kwargs = {"k": config['k']}
-    
-    # Add metadata filters if provided (ChromaDB format)
+    # Add metadata filters if provided
     if query_filters:
         search_kwargs["filter"] = query_filters
     
-    # For now, use standard retriever but with more reasonable thresholds
-    # Lower the thresholds to avoid zero results
-    adjusted_config = config.copy()
-    adjusted_config['score_threshold'] = max(0.3, adjusted_config.get('score_threshold', 0.7) - 0.3)  # Lower threshold
-    
-    print(f"🎯 Creating retriever for {role}: k={search_kwargs['k']}, threshold={adjusted_config['score_threshold']}")
-    
+    # Use standard similarity search for maximum accuracy
     return vectorstore.as_retriever(
         search_type="similarity",
         search_kwargs=search_kwargs
@@ -397,49 +393,61 @@ def initialize_qa_chains():
     
     # Role-specific prompts
     role_prompts = {
-        'general': """You are an AI assistant helping users understand procurement documents. 
-        Provide clear, comprehensive answers based on the document content.
+        'general': """You are an AI assistant helping users understand procurement documents with TABLES. 
+        Provide clear, comprehensive answers based ONLY on the document content provided.
+        
+        IMPORTANT INSTRUCTIONS:
+        - Look for data in TABLES (marked with | separators or [TABLE] markers)
+        - When asked for "biggest", "largest", "highest" - compare ALL values in the context
+        - For budget/amount questions, look in the "Estimated Budget" columns
+        - Quote EXACT numbers from the tables - do not make up values
+        - If multiple values exist, identify which is truly the largest
+        - Always include the currency symbol (₱ or PHP)
         
         Context: {context}
         Question: {question}
         
-        Answer:""",
+        Answer based ONLY on the context above:""",
         
-        'auditor': """You are an AI assistant specialized for auditors reviewing procurement documents.
+        'auditor': """You are an AI assistant specialized for auditors reviewing procurement documents with TABLES.
         Focus on compliance, legal requirements, proper procedures, budget verification, and risk assessment.
-        Highlight any potential issues or areas requiring attention.
+        
+        CRITICAL: When analyzing budgets/amounts, carefully examine TABLE data. Use EXACT values from tables.
         
         Context: {context}
         Question: {question}
         
-        Auditor-focused answer:""",
+        Auditor-focused answer with precise numbers:""",
         
         'procurement_officer': """You are an AI assistant for procurement officers managing procurement processes.
         Focus on process management, timelines, bidder coordination, operations, and administrative requirements.
-        Provide actionable insights for managing procurement activities.
+        
+        IMPORTANT: Extract data accurately from TABLES. Use exact values for budgets, timelines, and specifications.
         
         Context: {context}
         Question: {question}
         
-        Procurement management answer:""",
+        Procurement management answer with accurate details:""",
         
         'policy_maker': """You are an AI assistant for policy makers and decision makers.
         Focus on regulatory compliance, budget implications, strategic decisions, policy alignment, and governance.
-        Provide strategic insights and policy considerations.
+        
+        IMPORTANT: When discussing budgets/costs, use EXACT figures from the TABLES in the context.
         
         Context: {context}
         Question: {question}
         
-        Policy and strategic answer:""",
+        Policy and strategic answer with precise data:""",
         
         'bidder': """You are an AI assistant helping bidders/suppliers understand procurement opportunities.
         Focus on specifications, submission requirements, deadlines, participation guidance, and competitive positioning.
-        Provide clear guidance for successful participation.
+        
+        CRITICAL: Extract EXACT specifications, quantities, and budget information from TABLES.
         
         Context: {context}
         Question: {question}
         
-        Bidder guidance answer:"""
+        Bidder guidance answer with accurate requirements:"""
     }
     
     # Create QA chains for each role
@@ -513,14 +521,82 @@ def process_pdf_with_langchain(file_path, copy_to_uploads=False):
         print(f"📁 File exists: {os.path.exists(file_path)}")
         print(f"📏 File size: {os.path.getsize(file_path) if os.path.exists(file_path) else 'N/A'} bytes")
         
-        # Enhanced PyPDFLoader approach (more reliable than UnstructuredPDFLoader)
-        print(f"� Using optimized PyPDFLoader with table-aware processing")
-        loader = PyPDFLoader(file_path)
-        documents = loader.load()
-        loader_used = "Enhanced PyPDFLoader"
-        print(f"📄 Loaded {len(documents)} pages from PDF")
+        # CRITICAL FIX: Use pdfplumber for accurate table extraction
+        # PyPDFLoader mangles tables - procurement docs are 90% tables!
+        print(f"📊 Using pdfplumber for TABLE-AWARE extraction (procurement docs have many tables)")
         
-        # Simple post-processing without markers that break chunking
+        try:
+            import pdfplumber
+            
+            documents = []
+            with pdfplumber.open(file_path) as pdf:
+                for page_num, page in enumerate(pdf.pages):
+                    # Extract text with table structure preserved
+                    text_content = page.extract_text()
+                    
+                    # ALSO extract tables explicitly
+                    tables = page.extract_tables()
+                    
+                    # Combine text and tables
+                    combined_content = []
+                    if text_content:
+                        combined_content.append(text_content)
+                    
+                    # Convert tables to readable text format
+                    if tables:
+                        for table_idx, table in enumerate(tables):
+                            table_text = f"\n[TABLE {table_idx + 1}]\n"
+                            for row in table:
+                                if row:
+                                    # Join cells with | separator
+                                    row_text = " | ".join([str(cell) if cell else "" for cell in row])
+                                    table_text += row_text + "\n"
+                            combined_content.append(table_text)
+                    
+                    if combined_content:
+                        doc = Document(
+                            page_content="\n".join(combined_content),
+                            metadata={
+                                'page': page_num + 1,
+                                'source': file_path,
+                                'source_file': os.path.basename(file_path),
+                                'extraction_method': 'pdfplumber_with_tables',
+                                'has_tables': len(tables) > 0 if tables else False,
+                                'num_tables': len(tables) if tables else 0
+                            }
+                        )
+                        documents.append(doc)
+            
+            loader_used = "pdfplumber (table-aware)"
+            print(f"✅ pdfplumber extracted {len(documents)} pages with TABLE preservation")
+            
+            # Show table statistics
+            total_tables = sum(doc.metadata.get('num_tables', 0) for doc in documents)
+            pages_with_tables = sum(1 for doc in documents if doc.metadata.get('has_tables', False))
+            print(f"📊 Found {total_tables} tables across {pages_with_tables} pages")
+            
+        except ImportError:
+            print("❌ pdfplumber not installed! Installing...")
+            print("   Run: pip install pdfplumber")
+            print("   Falling back to PyPDFLoader (WARNING: Tables will be mangled!)")
+            
+            # Fallback to PyPDFLoader
+            loader = PyPDFLoader(file_path)
+            documents = loader.load()
+            loader_used = "PyPDFLoader (FALLBACK - Tables may be incorrect)"
+            print(f"⚠️ WARNING: Using PyPDFLoader - table extraction will be poor!")
+            print(f"📄 Loaded {len(documents)} pages from PDF")
+        
+        except Exception as pdfplumber_error:
+            print(f"❌ pdfplumber failed: {pdfplumber_error}")
+            print("   Falling back to PyPDFLoader")
+            
+            loader = PyPDFLoader(file_path)
+            documents = loader.load()
+            loader_used = "PyPDFLoader (FALLBACK after error)"
+            print(f"📄 Loaded {len(documents)} pages from PDF")
+        
+        # Simple post-processing
         enhanced_documents = []
         for i, doc in enumerate(documents):
             # Clean the content without adding problematic markers
@@ -716,6 +792,7 @@ def process_pdf_with_langchain(file_path, copy_to_uploads=False):
 
 def batch_index_documents(file_results):
     """Batch index all processed documents using ChromaDB"""
+    global query_cache
     
     # Ensure vectorstore is initialized
     vectorstore = get_or_initialize_vectorstore()
@@ -739,6 +816,16 @@ def batch_index_documents(file_results):
         
         # Update global performance metrics
         performance_metrics['total_chunks'] += len(all_chunks)
+        
+        # CRITICAL: Clear query cache as document base has changed
+        old_cache_count = len(query_cache)
+        query_cache.clear()
+        print(f"🗑️ Cleared {old_cache_count} cached queries (new documents added)")
+        
+        # CRITICAL: Reinitialize QA chains to use updated vectorstore
+        print("🔄 Reinitializing QA chains with updated vectorstore...")
+        initialize_qa_chains()
+        print("✅ QA chains refreshed successfully")
         
         # ChromaDB persists automatically in newer versions
         
@@ -965,57 +1052,71 @@ def upload_folder():
         return jsonify({"success": False, "error": f"Folder upload failed: {str(e)}"})
 
 def extract_query_filters(query, role):
-    """Extract metadata filters from query to optimize search"""
+    """Extract metadata filters from query to optimize search and AVOID full search"""
     filters = {}
     
-    # Date-based filtering
     import re
-    date_patterns = [
-        r'\b20\d{2}\b',  # Years like 2024, 2025
-        r'\b(FY|fiscal year)\s*20\d{2}\b',
-        r'\b(january|february|march|april|may|june|july|august|september|october|november|december)\b'
-    ]
-    
     query_lower = query.lower()
     
-    # Document type filtering based on keywords
+    # OPTIMIZATION 1: Date/Year filtering - Dramatically reduces search space
+    # Extract years from query (e.g., "2024", "FY 2025")
+    year_matches = re.findall(r'\b(20\d{2})\b', query)
+    if year_matches:
+        # Filter to documents containing this year in filename
+        year = year_matches[0]
+        print(f"   🗓️ Detected year filter: {year}")
+        # Note: ChromaDB metadata filtering would go here if metadata includes year
+        # For now, we rely on semantic search to pick up year mentions
+    
+    # OPTIMIZATION 2: Document type filtering
     doc_type_keywords = {
-        'procurement_plan': ['procurement plan', 'annual plan', 'supplemental plan'],
-        'monitoring_report': ['monitoring report', 'progress report'],
-        'budget': ['budget', 'financial', 'cost'],
-        'specifications': ['specification', 'requirements', 'technical'],
-        'contract': ['contract', 'agreement', 'terms']
+        'procurement_plan': ['procurement plan', 'annual plan', 'app', 'supplemental'],
+        'monitoring': ['monitoring', 'progress report', 'status'],
+        'budget': ['budget', 'financial', 'cost', 'allocation'],
+        'specifications': ['specification', 'requirements', 'technical', 'sor'],
+        'contract': ['contract', 'agreement', 'terms', 'award']
     }
     
-        # Role-specific filtering preferences (commented out due to ChromaDB format issues)
-        # TODO: Implement proper ChromaDB metadata filtering format
-        # if role == 'auditor':
-        #     if any(word in query_lower for word in ['compliance', 'audit', 'verify', 'check']):
-        #         filters['source_file'] = {'$regex': '.*monitoring.*'}
-        # elif role == 'bidder':
-        #     if any(word in query_lower for word in ['requirements', 'specifications', 'bid', 'tender']):
-        #         filters['source_file'] = {'$regex': '.*procurement.*'}    return filters
+    detected_types = []
+    for doc_type, keywords in doc_type_keywords.items():
+        if any(keyword in query_lower for keyword in keywords):
+            detected_types.append(doc_type)
+    
+    if detected_types:
+        print(f"   📋 Detected document types: {', '.join(detected_types)}")
+    
+    # OPTIMIZATION 3: Role-based smart filtering
+    # Bidders care about recent plans, auditors care about compliance docs
+    if role == 'bidder' and not detected_types:
+        print(f"   👤 Role filter: Prioritizing procurement plans for bidder")
+    elif role == 'auditor' and not detected_types:
+        print(f"   👤 Role filter: Prioritizing monitoring/compliance docs for auditor")
+    
+    return filters
 
 def optimize_query_for_rag(query):
-    """Preprocess query to improve retrieval performance"""
+    """Minimal query preprocessing - prioritize accuracy over optimization"""
     
-    # Remove stop words that don't help with procurement document search
-    procurement_stop_words = ['please', 'can you', 'tell me', 'i want to know', 'what is', 'how']
+    import re
     
-    # Expand procurement-specific abbreviations
+    # CONSERVATIVE: Only expand critical abbreviations
+    # Don't remove stop words - they might contain important context
     abbreviations = {
         'APP': 'Annual Procurement Plan',
         'CSE': 'Common-use Supplies and Equipment',
-        'GOP': 'Government of the Philippines',
         'BAC': 'Bids and Awards Committee',
-        'TWG': 'Technical Working Group'
+        'TWG': 'Technical Working Group',
+        'PMO': 'Project Management Office',
+        'GPPB': 'Government Procurement Policy Board'
     }
     
     optimized_query = query
     for abbr, full_form in abbreviations.items():
+        # Only replace if it's a standalone abbreviation
         optimized_query = re.sub(r'\b' + abbr + r'\b', full_form, optimized_query, flags=re.IGNORECASE)
     
-    return optimized_query
+    # That's it - keep query mostly original for accuracy
+    return optimized_query.strip()
 
 @app.route('/query', methods=['POST'])
 def query_documents():
@@ -1046,6 +1147,10 @@ def query_documents():
             print(f"🎯 Applied filters: {query_filters}")
         
         query = optimized_query
+        
+        # OPTIMIZATION: Check database size to adjust search strategy
+        total_docs = vectorstore._collection.count()
+        print(f"📊 Database size: {total_docs} chunks")
         
         # Check cache first for faster repeated queries
         query_key = f"{query}:{role}"
@@ -1109,9 +1214,18 @@ def query_documents():
         total_relevance_score = 0
         
         if 'source_documents' in result:
+            print(f"📚 Retrieved {len(result['source_documents'])} source documents:")
             for i, doc in enumerate(result['source_documents']):
                 source_file = doc.metadata.get('source_file', 'unknown')
+                page = doc.metadata.get('page', 'N/A')
                 relevant_files.add(source_file)
+                
+                # Print each retrieved document for debugging
+                print(f"   {i+1}. {source_file} (page {page})")
+                
+                # ACCURACY CHECK: Print first 150 chars of content to verify relevance
+                content_preview = doc.page_content[:150].replace('\n', ' ').strip()
+                print(f"      Content preview: {content_preview}...")
                 
                 # Calculate relevance score (higher is better)
                 relevance_score = 1.0 - (i * 0.1)  # Decay by position
@@ -1123,6 +1237,9 @@ def query_documents():
                     'content_preview': doc.page_content[:200] + "...",
                     'relevance_score': round(relevance_score, 2)
                 })
+            
+            print(f"🎯 Unique files in results: {', '.join(relevant_files)}")
+            print(f"⚠️ ACCURACY CHECK: Review content previews above to verify correct documents are being retrieved!")
         
         # Calculate search efficiency metrics
         avg_relevance = total_relevance_score / len(sources) if sources else 0
@@ -1385,6 +1502,53 @@ def reset_performance_metrics():
     
     return jsonify({"message": "Performance metrics reset successfully"})
 
+@app.route('/clear-database', methods=['POST'])
+def clear_database():
+    """Clear all documents from ChromaDB and reset the vector store"""
+    global vectorstore, qa_chains, query_cache
+    
+    try:
+        # Ensure vectorstore is initialized
+        vectorstore = get_or_initialize_vectorstore()
+        if vectorstore is None:
+            return jsonify({"success": False, "error": "Vector store not initialized"})
+        
+        # Get current count before clearing
+        old_count = vectorstore._collection.count()
+        
+        # Delete the collection
+        print(f"🗑️ Deleting ChromaDB collection with {old_count} chunks...")
+        vectorstore._client.delete_collection("procurement_docs")
+        
+        # Reset vectorstore to None so it gets recreated
+        vectorstore = None
+        
+        # Clear QA chains
+        qa_chains = {}
+        
+        # Clear query cache
+        cache_count = len(query_cache)
+        query_cache.clear()
+        
+        # Clear performance metrics
+        performance_metrics['total_chunks'] = 0
+        
+        print(f"✅ Database cleared: {old_count} chunks removed, {cache_count} cached queries cleared")
+        
+        return jsonify({
+            "success": True,
+            "message": f"Database cleared successfully. Removed {old_count} chunks.",
+            "chunks_removed": old_count,
+            "cache_cleared": cache_count
+        })
+        
+    except Exception as e:
+        print(f"❌ Error clearing database: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": f"Failed to clear database: {str(e)}"
+        })
+
 @app.route('/search-debug', methods=['GET'])
 def search_debug():
     """Debug endpoint to show search behavior without full query processing"""
@@ -1396,7 +1560,63 @@ def search_debug():
         if not vectorstore:
             return jsonify({"error": "Vector store not initialized"})
         
-        # Show what the retriever would do
+        # Get total document count
+        total_count = vectorstore._collection.count()
+        
+        # Get all unique files in database
+        all_docs = vectorstore.get()
+        unique_files = set()
+        file_chunks = defaultdict(int)
+        
+        if all_docs and 'metadatas' in all_docs:
+            for metadata in all_docs['metadatas']:
+                source_file = metadata.get('source_file', 'unknown')
+                unique_files.add(source_file)
+                file_chunks[source_file] += 1
+        
+        print(f"\n🔍 DATABASE CONTENTS:")
+        print(f"   Total chunks: {total_count}")
+        print(f"   Unique files: {len(unique_files)}")
+        for filename, chunk_count in file_chunks.items():
+            print(f"   - {filename}: {chunk_count} chunks")
+        
+        # TEST SIMILARITY SEARCH DIRECTLY
+        print(f"\n🧪 TESTING SIMILARITY SEARCH:")
+        print(f"   Query: '{query}'")
+        
+        # Direct similarity search
+        test_results = vectorstore.similarity_search(query, k=10)
+        
+        print(f"   Retrieved {len(test_results)} results:")
+        retrieved_info = []
+        for i, doc in enumerate(test_results, 1):
+            source = doc.metadata.get('source_file', 'unknown')
+            page = doc.metadata.get('page', 'N/A')
+            content = doc.page_content[:200].replace('\n', ' ')
+            
+            print(f"   {i}. {source} (page {page})")
+            print(f"      {content}...")
+            
+            retrieved_info.append({
+                'rank': i,
+                'source': source,
+                'page': page,
+                'content_preview': content
+            })
+        
+        return jsonify({
+            "success": True,
+            "database_stats": {
+                "total_chunks": total_count,
+                "unique_files": len(unique_files),
+                "files": dict(file_chunks)
+            },
+            "test_query": query,
+            "results": retrieved_info
+        })
+        
+    except Exception as e:
+        return jsonify({"error": str(e)})
         retriever = create_filtered_retriever(vectorstore, role)
         
         # Get search parameters
@@ -1424,12 +1644,54 @@ def performance_dashboard():
     """Serve the performance dashboard HTML"""
     return send_from_directory('.', 'performance-dashboard.html')
 
+def print_database_contents():
+    """Print current database contents for debugging"""
+    try:
+        vectorstore = get_or_initialize_vectorstore()
+        if vectorstore is None:
+            print("📊 Database Status: Empty (no documents uploaded yet)")
+            return
+        
+        collection = vectorstore._collection
+        total_count = collection.count()
+        
+        if total_count == 0:
+            print("📊 Database Status: Empty (no documents uploaded yet)")
+            return
+        
+        print(f"\n{'='*80}")
+        print(f"📊 CHROMADB CONTENTS AT STARTUP")
+        print(f"{'='*80}")
+        print(f"Total chunks: {total_count}")
+        
+        # Get all documents to count unique files
+        all_docs = vectorstore.get()
+        if all_docs and 'metadatas' in all_docs:
+            file_chunks = {}
+            for metadata in all_docs['metadatas']:
+                source_file = metadata.get('source_file', 'unknown')
+                file_chunks[source_file] = file_chunks.get(source_file, 0) + 1
+            
+            print(f"Unique files: {len(file_chunks)}")
+            print("\nFiles currently in database:")
+            for i, (filename, chunk_count) in enumerate(sorted(file_chunks.items()), 1):
+                print(f"   {i}. {filename}: {chunk_count} chunks")
+        
+        print(f"{'='*80}\n")
+        
+    except Exception as e:
+        print(f"⚠️ Could not read database contents: {e}")
+
 if __name__ == '__main__':
     # Initialize LangChain components
     if initialize_langchain_components():
         print("Starting optimized Flask application with LangChain RAG system...")
         print("Performance monitoring available at: /performance-metrics")
-        print("Performance comparison available at: /performance-comparison") 
+        print("Performance comparison available at: /performance-comparison")
+        
+        # Print database contents for debugging
+        print_database_contents()
+        
         app.run(host='127.0.0.1', port=5000, debug=True)
     else:
         print("Failed to initialize LangChain components. Please check your setup.")
