@@ -1,0 +1,120 @@
+# Configuration for Advanced PDF Chunking Pipeline
+# This file contains default settings that can be overridden
+
+# OCR Engine Settings
+ocr:
+  engines:
+    - tesseract
+    - pypdf2
+    - pdfplumber
+  
+  tesseract:
+    config: "--oem 3 --psm 6"
+    timeout: 30
+  
+  confidence_threshold: 0.7
+  parallel_processing: true
+
+# Text Processing Settings
+text_processing:
+  min_sentence_length: 10
+  max_sentence_length: 1000
+  preserve_context: true
+  
+  # Chunking parameters
+  target_chunk_size: 600  # tokens
+  max_chunk_size: 800     # tokens
+  chunk_overlap: 100      # tokens
+  sentence_overlap: 3     # number of sentences
+
+# Table Processing
+tables:
+  min_table_rows: 2
+  max_table_description_length: 1000
+  preserve_table_structure: true
+  
+  detection_settings:
+    vertical_strategy: "lines_strict"
+    horizontal_strategy: "lines_strict"
+    intersection_tolerance: 3
+
+# Embedding Settings
+embeddings:
+  model: "text-embedding-3-large"
+  dimension: 3072
+  batch_size: 32
+  
+  # OpenAI API settings
+  api_key_env: "OPENAI_API_KEY"
+  timeout: 60
+  max_retries: 3
+
+# Vector Database Settings
+vector_store:
+  type: "qdrant"  # or "weaviate"
+  collection_name: "procurement_docs"
+  distance_metric: "cosine"
+  
+  # Qdrant specific settings
+  qdrant:
+    host: "localhost"
+    port: 6333
+    api_key_env: "QDRANT_API_KEY"  # Optional
+  
+  # Weaviate specific settings
+  weaviate:
+    url: "http://localhost:8080"
+    api_key_env: "WEAVIATE_API_KEY"  # Optional
+    openai_key_env: "OPENAI_API_KEY"
+
+# Processing Settings
+processing:
+  max_workers: 4
+  timeout_per_page: 60  # seconds
+  enable_progress_tracking: true
+  save_intermediate_results: false
+  
+  # Memory management
+  max_concurrent_pages: 4
+  max_concurrent_documents: 2
+
+# Logging Settings
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: null  # Set to file path to enable file logging
+  
+  # Component-specific log levels
+  components:
+    ocr_engines: "INFO"
+    embedding_generator: "INFO"
+    vector_store: "INFO"
+    pdf_processor: "INFO"
+
+# Quality Control
+quality:
+  min_confidence_threshold: 0.3
+  high_confidence_threshold: 0.8
+  similarity_threshold: 0.7
+  
+  # Error handling
+  retry_failed_pages: true
+  skip_corrupted_pages: true
+  fallback_to_simple_chunking: true
+
+# Performance Monitoring
+monitoring:
+  track_processing_times: true
+  track_memory_usage: true
+  track_error_rates: true
+  
+  # Alerts (if monitoring system is configured)
+  alert_on_high_error_rate: true
+  alert_on_slow_processing: true
+
+# Development Settings
+development:
+  debug_mode: false
+  profile_performance: false
+  save_debug_outputs: false
+  test_mode: false

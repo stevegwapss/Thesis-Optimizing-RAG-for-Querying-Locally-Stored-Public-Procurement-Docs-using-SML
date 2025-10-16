@@ -1,20 +1,63 @@
-flask==2.3.3
-flask-cors==4.0.0
-werkzeug==2.3.7
-numpy
-requests==2.26.0
+# Advanced PDF Chunking Pipeline for RAG Systems
+# Original Flask app dependencies
+flask>=2.3.3
+flask-cors>=4.0.0
+werkzeug>=2.3.7
 
-# LangChain dependencies
-langchain==0.1.0
-langchain-community==0.0.10
-langchain-ollama==0.0.1
-chromadb==0.4.22
-pypdf==3.17.4
-sentence-transformers==2.2.2
+# Core dependencies for new pipeline
+pydantic>=2.0.0
+python-dotenv>=1.0.0
+numpy>=1.24.0
+requests>=2.31.0
+aiohttp>=3.8.0
+aiofiles>=23.0.0
 
-# Enhanced PDF processing with table detection
-pypdf==3.17.4
-pdfminer3k
-# Optional: Advanced table detection (if dependencies allow)
-# unstructured[pdf]
-# python-magic-bin
+# PDF processing
+PyPDF2>=3.0.0
+pdfplumber>=0.9.0
+PyMuPDF>=1.23.0  # fitz
+pypdf>=3.17.4
+
+# OCR engines
+pytesseract>=0.3.10
+Pillow>=10.0.0
+opencv-python>=4.8.0
+
+# NLP and text processing
+spacy>=3.6.0
+nltk>=3.8.0
+
+# Embeddings and AI
+openai>=1.0.0
+tiktoken>=0.5.0
+sentence-transformers>=2.2.0
+
+# Vector databases
+qdrant-client>=1.6.0
+weaviate-client>=4.0.0
+chromadb>=0.4.0
+
+# LangChain (keep for existing functionality) - Python 3.12 compatible versions
+langchain>=0.2.0
+langchain-community>=0.2.0
+langchain-ollama>=0.1.0
+
+# Utilities
+tqdm>=4.65.0
+asyncio-throttle>=1.0.0
+colorama>=0.4.6
+
+# Configuration
+pyyaml>=6.0.0
+toml>=0.10.2
+
+# Data validation
+jsonschema>=4.19.0
+orjson>=3.9.0
+
+# Performance monitoring
+psutil>=5.9.0
+
+# Development (optional)
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
