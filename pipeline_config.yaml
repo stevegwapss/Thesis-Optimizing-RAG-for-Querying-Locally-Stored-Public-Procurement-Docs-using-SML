@@ -1,0 +1,92 @@
+# Production PDF Chunking Pipeline Configuration
+# This file configures all 7 stages of the pipeline
+
+file_handling:
+  temp_dir: "./temp"
+  output_dir: "./output"
+  cleanup_on_complete: true
+
+ocr:
+  engines: ["tesseract", "pypdf2", "pdfplumber"]
+  tesseract_config: "--oem 3 --psm 6"
+  confidence_threshold: 0.7
+  batch_size: 5
+
+spacy:
+  model: "en_core_web_sm"
+  batch_size: 100
+  n_process: 4
+
+embeddings:
+  text_model: "all-MiniLM-L6-v2"
+  table_model: "google/tapas-base"
+  batch_size: 32
+  max_text_length: 512
+
+chunking:
+  target_size: 600
+  overlap: 100
+  preserve_tables: true
+  preserve_headers: true
+
+vector_store:
+  provider: "chromadb"
+  persist_directory: "./db/chromadb"
+  collection_name: "procurement_docs"
+
+# Procurement-specific settings
+procurement:
+  known_departments:
+    - "NCHFD"
+    - "NCDPC" 
+    - "NCPAM"
+    - "NCMF"
+    - "NCIP"
+    - "NCCA"
+    - "NCW"
+    - "NYC"
+    - "NSC"
+    - "DILG"
+    - "DOF"
+    - "DBM"
+    - "DOH"
+    - "DEPED"
+    - "DA"
+    - "DENR"
+    - "DPWH"
+    - "DOT"
+    - "DTR"
+    - "DOE"
+    - "DTI"
+    - "DOLE"
+    - "DSWD"
+    - "DAR"
+    - "DND"
+    - "DFA"
+    - "DOJ"
+    - "DICT"
+  
+  fiscal_years: [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029]
+  
+  document_types:
+    - "Annual Procurement Plan"
+    - "Supplemental Procurement Plan"
+    - "Procurement Monitoring Report"
+    - "Bid Evaluation Report"
+    - "Contract"
+    - "Purchase Order"
+
+# Performance settings
+performance:
+  max_concurrent_documents: 3
+  max_memory_usage_mb: 2048
+  enable_caching: true
+  cache_timeout_hours: 24
+
+# Logging configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "pipeline.log"
+  max_file_size_mb: 10
+  backup_count: 3

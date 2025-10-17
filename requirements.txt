@@ -22,6 +22,7 @@ pypdf>=3.17.4
 pytesseract>=0.3.10
 Pillow>=10.0.0
 opencv-python>=4.8.0
+pdf2image>=1.16.3  # For Tesseract PDF conversion
 
 # NLP and text processing
 spacy>=3.6.0
@@ -31,6 +32,8 @@ nltk>=3.8.0
 openai>=1.0.0
 tiktoken>=0.5.0
 sentence-transformers>=2.2.0
+transformers>=4.35.0  # For TAPAS table embeddings
+torch>=1.13.0  # Required for transformers
 
 # Vector databases
 qdrant-client>=1.6.0

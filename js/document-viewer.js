@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const zoomInButton = document.getElementById('zoom-in');
     const zoomOutButton = document.getElementById('zoom-out');
     const loadingIndicator = document.getElementById('pdf-loading');
-    const chatMessages = document.getElementById('chat-messages');
+    const chatMessages = document.getElementById('messages');
     const queryInput = document.getElementById('query-input');
     const sendButton = document.getElementById('send-button');
     

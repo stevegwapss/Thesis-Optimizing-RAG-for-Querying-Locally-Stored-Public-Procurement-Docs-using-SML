@@ -227,6 +227,8 @@
     flex-direction: column;
     background-color: #fff;
     order: 1;
+    height: 100%; /* Ensure full height */
+    overflow: hidden; /* Prevent scrolling of entire interface */
 }
 
 .chat-header {
@@ -253,6 +255,40 @@
     overflow-y: auto;
     display: flex;
     flex-direction: column;
+    min-height: 0; /* Allow flex item to shrink */
+    scrollbar-width: thin;
+    scrollbar-color: #c1a06d #f5f7fa;
+}
+
+/* Custom scrollbar styling for webkit browsers */
+.chat-messages::-webkit-scrollbar {
+    width: 8px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+    background: #f5f7fa;
+    border-radius: 4px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+    background: #c1a06d;
+    border-radius: 4px;
+    transition: background 0.3s ease;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+    background: #a8925e;
+}
+
+/* Ensure messages scroll to bottom when new content is added */
+.chat-messages {
+    scroll-behavior: smooth;
+}
+
+/* Make sure the last message has proper bottom margin for the fixed input */
+.chat-messages .user-message:last-child,
+.chat-messages .assistant-message:last-child {
+    margin-bottom: 1rem;
 }
 
 .user-message, .assistant-message {
@@ -278,6 +314,11 @@
     display: flex;
     padding: 1rem;
     border-top: 1px solid #e0e4e8;
+    flex-shrink: 0; /* Prevent the input from shrinking */
+    background-color: #fff; /* Ensure white background */
+    position: sticky; /* Keep it sticky at bottom */
+    bottom: 0;
+    z-index: 10; /* Ensure it stays on top */
 }
 
 .chat-input input {
@@ -308,6 +349,60 @@
 .chat-input button svg {
     width: 18px;
     height: 18px;
+}
+
+/* Progress indicator for query processing */
+.progress-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.progress-text {
+    font-weight: 600;
+    color: #333;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 4px;
+    background-color: #e0e4e8;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #c1a06d, #a8925e);
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.3s ease;
+    animation: pulse 1.5s infinite;
+}
+
+.progress-note {
+    color: #666;
+    font-style: italic;
+    margin-top: 4px;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* Spinner animation for thinking indicator */
+.spinner {
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #c1a06d;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 /* Additional styles for the upload component */
@@ -387,6 +482,9 @@
     .chat-interface {
         width: 100%;
         height: 400px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
     }
 }
 
@@ -506,6 +604,9 @@
     .chat-interface {
         order: 2;
         min-height: 400px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
     }
 }
 

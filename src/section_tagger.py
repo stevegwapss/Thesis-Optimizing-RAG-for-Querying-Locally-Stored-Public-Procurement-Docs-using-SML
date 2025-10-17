@@ -192,7 +192,7 @@ class SectionTagger:
         # Heuristics for table content
         indicators = [
             len(text.split()) < 10,  # Table cells are usually short
-            re.search(r'\$[\d,]+', text),  # Currency amounts
+            re.search(r'[₱][\d,]+|PHP\s*[\d,]+', text),  # Philippine Peso amounts
             re.search(r'\d+%', text),  # Percentages
             re.search(r'\d{1,3}(,\d{3})+', text),  # Large numbers with commas
             text.count('|') > 2,  # Table separators
