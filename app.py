@@ -66,18 +66,18 @@ except ImportError as e:
     LEGACY_PIPELINE_AVAILABLE = False
     print(f"⚠️ Legacy Pipeline not available: {e}")
 
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_chroma import Chroma
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores import Chroma
 from langchain_ollama import OllamaLLM
-from langchain.chains import RetrievalQA
+# from langchain.chains import RetrievalQA  # Commented out - may need to use newer API
 import re
 from typing import List
 import time
-from langchain.schema import Document
-from langchain.prompts import PromptTemplate
-from langchain.callbacks.manager import CallbackManager
-from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from langchain_core.documents import Document
+from langchain_core.prompts import PromptTemplate
+from langchain_core.callbacks import CallbackManager
+from langchain_core.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 
 app = Flask(__name__, static_folder='.', static_url_path='')
 CORS(app)
@@ -2103,7 +2103,7 @@ def query_documents():
                     # If we successfully read the PDF, create a single large document
                     if complete_text and len(complete_text) > 1000:
                         print(f"✅ DIRECT PDF READ SUCCESS: {len(complete_text)} characters")
-                        from langchain.schema import Document
+                        from langchain_core.documents import Document
                         complete_doc = Document(
                             page_content=complete_text,
                             metadata={
@@ -2285,7 +2285,7 @@ def query_documents():
                     cleaned_content = re.sub(pattern, replacement, cleaned_content, flags=re.IGNORECASE)
                 
                 # Create new document with cleaned content
-                from langchain.schema import Document
+                from langchain_core.documents import Document
                 cleaned_doc = Document(
                     page_content=cleaned_content.strip(),
                     metadata=doc.metadata
